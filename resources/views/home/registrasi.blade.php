@@ -166,35 +166,38 @@
                             Guru
                         </label>
                     </div>
-                    <small class="text-muted">
-                        Murid dapat mengisi kode kelas (opsional)
-                    </small>
                 </div>
 
                 <div class="mb-3">
                     <label>Nama Lengkap</label>
-                    <input type="text" id="name" class="form-control" placeholder="Nama lengkap" required>
+                    <input type="text" id="name" class="form-control" placeholder="Nama lengkap">
+                    <div id="nameError" class="error hidden"></div>
                 </div>
+
 
                 <div class="mb-3">
                     <label>Email</label>
-                    <input type="email" id="email" class="form-control" placeholder="nama@contoh.com" required>
+                    <input type="email" id="email" class="form-control" placeholder="nama@contoh.com">
+                    <div id="emailError" class="error hidden"></div>
                 </div>
+
 
                 <div class="mb-3">
                     <label>Kata Sandi</label>
                     <div class="input-group">
-                        <input type="password" id="password" class="form-control" placeholder="Minimal 6 karakter"
-                            required>
+                        <input type="password" id="password" class="form-control" placeholder="Minimal 6 karakter">
                         <button type="button" class="toggle-pass" id="togglePass">Tampilkan</button>
                     </div>
+                    <div id="passwordError" class="error hidden"></div>
                 </div>
 
-                <!-- KODE KELAS -->
+
                 <div class="mb-3" id="kelasField">
                     <label>Kode Kelas (opsional)</label>
                     <input type="text" id="kodeKelas" class="form-control" placeholder="Misal: EVO-1234">
+                    <div id="kelasError" class="error hidden"></div>
                 </div>
+
 
                 <!-- ID -->
                 <div class="mb-3">
@@ -213,9 +216,11 @@
                 <div class="mb-3">
                     <label>Nomor ID</label>
                     <input type="text" id="id_other" class="form-control" placeholder="Masukkan jika ada">
+                    <div id="idError" class="error hidden"></div>
                 </div>
 
-                <div id="errMsg" class="error hidden"></div>
+
+
 
                 <div class="d-grid gap-2 mt-3">
                     <button type="submit" class="btn btn-primary">Daftar</button>
@@ -242,6 +247,18 @@
         const typeIdOtherSelect = document.getElementById('type_id_other');
         const idOtherInput = document.getElementById('id_other');
 
+        const nameError = document.getElementById('nameError');
+        const emailError = document.getElementById('emailError');
+        const passwordError = document.getElementById('passwordError');
+        const kelasError = document.getElementById('kelasError');
+        const idError = document.getElementById('idError');
+
+        function resetErrors() {
+            [nameError, emailError, passwordError, kelasError, idError]
+                .forEach(e => e.classList.add('hidden'));
+        }
+
+
         function updateRole() {
             const role = document.querySelector('input[name="role"]:checked').value;
             kelasField.style.display = role === 'murid' ? 'block' : 'none';
@@ -260,23 +277,111 @@
 
         document.getElementById('regForm').addEventListener('submit', async e => {
             e.preventDefault();
-            errMsg.classList.add('hidden');
+            resetErrors();
 
-            const payload = {
-                name: nameInput.value.trim(),
-                email: emailInput.value.trim(),
-                password: password.value,
-                role: document.querySelector('input[name="role"]:checked').value,
-                kodeKelas: kodeKelasInput.value.trim() || null,
-                type_id_other: typeIdOtherSelect.value || null,
-                id_other: idOtherInput.value.trim() || null
-            };
+            const name = nameInput.value.trim();
+            const email = emailInput.value.trim();
+            const pass = password.value;
+            const role = document.querySelector('input[name="role"]:checked').value;
+            const kodeKelas = kodeKelasInput.value.trim();
+            const idOther = idOtherInput.value.trim();
 
-            if (!payload.email || payload.password.length < 6) {
-                errMsg.textContent = 'Email dan sandi minimal 6 karakter.';
-                errMsg.classList.remove('hidden');
+            /* =====================
+               VALIDASI NAMA
+            ===================== */
+            if (!name) {
+                nameError.textContent = 'Nama tidak boleh kosong.';
+                nameError.classList.remove('hidden');
                 return;
             }
+
+            if (name.length < 2) {
+                nameError.textContent = 'Nama terlalu pendek (minimal 2 karakter).';
+                nameError.classList.remove('hidden');
+                return;
+            }
+
+            if (!/^[A-Za-zÀ-ÖØ-öø-ÿ\s]+$/.test(name)) {
+                nameError.textContent = 'Nama tidak valid (tidak boleh angka atau simbol).';
+                nameError.classList.remove('hidden');
+                return;
+            }
+
+            /* =====================
+               VALIDASI EMAIL
+            ===================== */
+            if (!email) {
+                emailError.textContent = 'Email tidak boleh kosong.';
+                emailError.classList.remove('hidden');
+                return;
+            }
+
+            if (/\s/.test(email)) {
+                emailError.textContent = 'Email tidak boleh mengandung spasi.';
+                emailError.classList.remove('hidden');
+                return;
+            }
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                emailError.textContent = 'Format email tidak valid.';
+                emailError.classList.remove('hidden');
+                return;
+            }
+
+            /* =====================
+               VALIDASI PASSWORD
+            ===================== */
+            if (pass.length < 6) {
+                passwordError.textContent = 'Password minimal 6 karakter.';
+                passwordError.classList.remove('hidden');
+                return;
+            }
+
+            if (/^\d+$/.test(pass)) {
+                passwordError.textContent = 'Password terlalu lemah (tidak boleh hanya angka).';
+                passwordError.classList.remove('hidden');
+                return;
+            }
+
+            /* =====================
+               VALIDASI KODE KELAS
+            ===================== */
+            if (role === 'murid' && kodeKelas) {
+                if (!/^EVO-\d{4}$/.test(kodeKelas)) {
+                    kelasError.textContent = 'Kode kelas tidak valid. Contoh: EVO-1234';
+                    kelasError.classList.remove('hidden');
+                    return;
+                }
+            }
+
+            /* =====================
+               VALIDASI ID
+            ===================== */
+            if (idOther) {
+                if (!/^\d+$/.test(idOther)) {
+                    idError.textContent = 'Nomor ID harus berupa angka.';
+                    idError.classList.remove('hidden');
+                    return;
+                }
+
+                if (idOther.length < 6) {
+                    idError.textContent = 'Nomor ID terlalu pendek.';
+                    idError.classList.remove('hidden');
+                    return;
+                }
+            }
+
+            const payload = {
+                name: name,
+                email: email,
+                password: pass,
+                role: role,
+                kodeKelas: kodeKelas || null,
+                type_id_other: typeIdOtherSelect.value || null,
+                id_other: idOther || null
+            };
+
+
 
             try {
                 const res = await fetch("{{ route('register.submit') }}", {
@@ -289,14 +394,45 @@
                 });
 
                 const json = await res.json();
-                if (!res.ok) throw new Error(json.message || 'Registrasi gagal');
+
+                if (!res.ok) {
+
+                    // 🔴 VALIDASI LARAVEL (422)
+                    if (res.status === 422) {
+
+                        // error email unique
+                        if (json.errors && json.errors.email) {
+                            emailError.textContent = json.errors.email[0];
+                            emailError.classList.remove('hidden');
+                            return;
+                        }
+
+                        // error lain (fallback)
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Validasi gagal',
+                            text: json.message || 'Data tidak valid'
+                        });
+                        return;
+                    }
+
+                    throw new Error(json.message || 'Registrasi gagal');
+                }
+
 
                 Swal.fire({
                     icon: 'success',
                     title: 'Berhasil!',
                     text: 'Akun berhasil dibuat',
                     confirmButtonColor: '#4e73df'
-                }).then(() => window.location.href = '/login');
+                }).then(() => {
+                    if (json.redirect) {
+                        window.location.href = json.redirect;
+                    } else {
+                        window.location.href = '/login';
+                    }
+                });
+
 
             } catch (err) {
                 Swal.fire({

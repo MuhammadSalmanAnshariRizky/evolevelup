@@ -207,7 +207,6 @@
                                     <input class="form-check-input" type="checkbox" name="remember">
                                     <label class="form-check-label small">Ingat saya</label>
                                 </div>
-                                <a href="#" class="small">Lupa kata sandi?</a>
                             </div>
 
                             <div class="d-grid mb-3">
@@ -228,33 +227,87 @@
 
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Toggle password
-        document.getElementById('togglePwd').addEventListener('click', function () {
-            const pwd = document.getElementById('password');
-            const eyeText = document.getElementById('eyeText');
-            if (pwd.type === 'password') {
-                pwd.type = 'text';
-                eyeText.textContent = 'Sembunyikan';
-            } else {
-                pwd.type = 'password';
-                eyeText.textContent = 'Tampilkan';
-            }
-        });
+        document.getElementById('loginForm').addEventListener('submit', function (event) {
+            event.preventDefault();
 
-        // Validation
-        (function () {
-            const form = document.getElementById('loginForm');
-            form.addEventListener('submit', function (event) {
-                if (!form.checkValidity()) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    form.classList.add('was-validated');
+            const email = this.email.value.trim();
+            const rawPassword = this.password.value; // ⬅ ambil asli (tanpa trim)
+            const password = rawPassword.trim();
+            const minPasswordLength = 6;
+
+            // Email kosong
+            if (!email) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Email belum diisi',
+                    text: 'Silakan masukkan alamat email Anda.',
+                    confirmButtonColor: '#4e73df'
+                });
+                return;
+            }
+
+            // Format email tidak valid
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(email)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Email tidak valid',
+                    text: 'Gunakan format email yang benar.',
+                    confirmButtonColor: '#4e73df'
+                });
+                return;
+            }
+
+            // 🔴 PASSWORD HANYA SPASI
+            if (!password) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Kata Sandi Kosong',
+                    text: 'Kata sandi tidak boleh hanya berisi spasi.',
+                    confirmButtonColor: '#4e73df'
+                });
+                return;
+            }
+
+            // 🔴 PASSWORD MENGANDUNG SPASI
+            if (/\s/.test(rawPassword)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Kata Sandi Tidak Valid',
+                    text: 'Kata sandi tidak boleh mengandung spasi.',
+                    confirmButtonColor: '#4e73df'
+                });
+                return;
+            }
+
+            // 🔴 PASSWORD TERLALU PENDEK
+            if (password.length < minPasswordLength) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Kata Sandi Terlalu Pendek',
+                    text: `Kata sandi minimal ${minPasswordLength} karakter.`,
+                    confirmButtonColor: '#4e73df'
+                });
+                return;
+            }
+
+            // ✅ LOLOS VALIDASI
+            Swal.fire({
+                title: 'Memeriksa akun...',
+                text: 'Mohon tunggu sebentar',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
                 }
-            }, false);
-        })();
+            });
+
+            this.submit();
+        });
     </script>
 </body>
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Classes;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -19,15 +20,26 @@ class registerController extends Controller
     public function register(Request $request)
     {
         try {
-            $validated = $request->validate([
-                'name' => ['required', 'string', 'max:255'],
-                'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
-                'password' => ['required', 'min:6'],
-                'role' => ['required', Rule::in(['student', 'teacher', 'murid', 'guru'])],
-                'kodeKelas' => ['nullable', 'string', 'max:50'],
-                'type_id_other' => ['nullable', Rule::in(['NISN', 'NIM', 'NIP', 'NIDN', 'NUPTK','id_lainnya'])],
-                'id_other' => ['nullable', 'string', 'max:255'],
-            ]);
+            $validated = $request->validate(
+                [
+                    'name' => ['required', 'string', 'max:255'],
+                    'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
+                    'password' => ['required', 'min:6'],
+                    'role' => ['required', Rule::in(['student', 'teacher', 'murid', 'guru'])],
+                    'kodeKelas' => ['nullable', 'string', 'max:50'],
+                    'type_id_other' => ['nullable', Rule::in(['NISN', 'NIM', 'NIP', 'NIDN', 'NUPTK', 'id_lainnya'])],
+                    'id_other' => ['nullable', 'string', 'max:255'],
+                ],
+
+                [
+                    // 🔴 CUSTOM MESSAGE
+                    'email.unique' => 'Email sudah terdaftar. Silakan gunakan email lain.',
+                    'email.required' => 'Email wajib diisi.',
+                    'email.email' => 'Format email tidak valid.',
+                ]
+
+
+            );
 
 
             $roleMap = [
@@ -85,15 +97,29 @@ class registerController extends Controller
 
             DB::commit();
 
+            // 🔐 AUTO LOGIN SETELAH REGISTRASI
+            Auth::login($user);
+
+            // 🎯 TENTUKAN REDIRECT BERDASARKAN ROLE
+            $redirectUrl = match ($user->role) {
+                'student' => route('dashboard.siswa'),
+                'teacher' => route('dashboardGuru'),
+                default => route('login'),
+            };
+
+            // 🔁 RESPONSE UNTUK AJAX / FETCH
             if ($request->wantsJson() || $request->isJson() || $request->ajax()) {
                 return response()->json([
                     'success' => true,
                     'message' => 'Registrasi berhasil.',
-                    'data' => ['user_id' => $user->id, 'role' => $user->role]
+                    'redirect' => $redirectUrl,
+                    'role' => $user->role,
                 ], 201);
             }
 
-            return redirect('/login')->with('success', 'Registrasi berhasil! Silakan masuk.');
+            // 🔁 FALLBACK JIKA BUKAN AJAX
+            return redirect($redirectUrl)->with('success', 'Registrasi berhasil.');
+
 
         } catch (\Throwable $e) {
             DB::rollBack();

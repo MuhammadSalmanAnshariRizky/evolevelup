@@ -247,32 +247,43 @@ class siswaController extends Controller
             'nilaiList' => $nilaiList
         ]);
     }
+
     public function gabungKelasSiswa(Request $request)
     {
         $request->validate([
             'token' => 'required|string'
         ]);
 
-        $kelas = Classes::where('token', $request->token)->first();
+       
+        $token = trim($request->token);
 
+        $kelas = Classes::whereRaw('LOWER(token) = ?', [strtolower($token)])->first();
+       
         if (!$kelas) {
-            return redirect()->back()->with('error', 'Token kelas tidak ditemukan.');
+            return redirect()
+                ->back()
+                ->with('swal_error', 'Kode kelas tidak ditemukan. Periksa kembali token kelas.');
         }
-
-        // Cegah siswa bergabung dua kali
         $sudahGabung = StudentClasses::where('id_student', Auth::id())
             ->where('id_class', $kelas->id)
             ->exists();
 
         if ($sudahGabung) {
-            return redirect()->back()->with('info', 'Anda sudah tergabung di kelas ini.');
+            return redirect()
+                ->back()
+                ->with('swal_warning', 'Anda sudah tergabung di kelas ini.');
         }
+
 
         StudentClasses::create([
             'id_student' => Auth::id(),
             'id_class' => $kelas->id,
         ]);
 
-        return redirect()->back()->with('success', 'Berhasil bergabung ke kelas: ' . $kelas->name);
+ 
+        return redirect()
+            ->back()
+            ->with('swal_success', 'Berhasil bergabung ke kelas: ' . $kelas->name);
     }
+
 }

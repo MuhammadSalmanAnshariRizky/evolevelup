@@ -214,7 +214,6 @@ ikuti contoh dibawah ini :
   }
 ]
 
-Simpan kedalam bentuk file JSON
 PROMPT;
 
 

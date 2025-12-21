@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class loginController extends Controller
 {
@@ -17,39 +19,36 @@ class loginController extends Controller
      */
     public function login(Request $request)
     {
-        // Validasi input
-        $credentials = $request->validate([
+        $request->validate([
             'email' => ['required', 'email'],
-            'password' => ['required', 'string'],
-        ], [
-            'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
-            'password.required' => 'Kata sandi wajib diisi.',
+            'password' => ['required'],
         ]);
 
-        // Cek kredensial
-        if (Auth::attempt($credentials, $request->filled('remember'))) {
-            $request->session()->regenerate();
 
-            $user = Auth::user();
+        $user = User::where('email', $request->email)->first();
 
-            // Redirect berdasarkan peran pengguna
-            if ($user->role === 'teacher') {
-                return redirect()->route('dashboardGuru')
-                    ->with('success', 'Selamat datang, Guru!');
-            } elseif ($user->role === 'student') {
-                return redirect()->route('dashboard.siswa')
-                    ->with('success', 'Selamat datang, Siswa!');
-            } else {
-                return redirect()->route('home')
-                    ->with('info', 'Selamat datang di EvoLevel!');
-            }
+  
+        if (!$user) {
+            return back()->with('login_error', 'email_not_found')->onlyInput('email');
         }
 
-        // Jika gagal login
-        return back()->withErrors([
-            'email' => 'Email atau kata sandi salah.',
-        ])->onlyInput('email');
+        if (!Hash::check($request->password, $user->password)) {
+            return back()->with('login_error', 'password_wrong')->onlyInput('email');
+        }
+
+        Auth::login($user, $request->filled('remember'));
+        $request->session()->regenerate();
+
+        // Redirect berdasarkan role
+        if ($user->role === 'teacher') {
+            return redirect()->route('dashboardGuru')->with('success', 'Selamat datang, Guru!');
+        }
+
+        if ($user->role === 'student') {
+            return redirect()->route('dashboard.siswa')->with('success', 'Selamat datang, Siswa!');
+        }
+
+        return redirect('/')->with('success', 'Selamat datang di Evolevel!');
     }
 
     /**
