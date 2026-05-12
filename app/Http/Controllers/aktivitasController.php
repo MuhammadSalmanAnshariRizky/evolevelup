@@ -11,6 +11,8 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\ActivityAnswer;
+
 
 class aktivitasController extends Controller
 {
@@ -315,10 +317,38 @@ class aktivitasController extends Controller
             $correct = strtolower($req->user_answer) === strtolower($question->MC_answer);
 
         } else if ($question->type === 'ShortAnswer') {
-            $answers = json_decode($question->SA_answer, true);
+
+            $answersRaw = $question->SA_answer;
+
+            if (is_string($answersRaw)) {
+                $answers = json_decode($answersRaw, true);
+            } else {
+                $answers = $answersRaw;
+            }
+
+            if (!is_array($answers)) {
+                $answers = [];
+            }
+
             $user = strtolower(trim($req->user_answer));
             $correct = in_array($user, array_map('strtolower', $answers));
         }
+
+        // =======================
+        // SIMPAN JAWABAN SISWA
+        // =======================
+        ActivityAnswer::updateOrCreate(
+            [
+                'id_activity' => $id,
+                'id_user' => auth()->id(),
+                'id_question' => $question->id,
+            ],
+            [
+                'user_answer' => $req->user_answer,
+                'is_correct' => $correct,
+            ]
+        );
+
         // Hitung total jawaban benar (akumulasi)
         $prevCorrect = session("activity.$id.total_correct", 0);
         if ($correct) {
@@ -367,53 +397,49 @@ class aktivitasController extends Controller
         }
 
         // =======================
-        // HITUNG POIN SOAL INI
+        // HITUNG POIN SOAL INI (HANYA ADAPTIF)
         // =======================
 
-        $pointEasy = Settings::where('name', 'soal_mudah')->value('value');
-        $pointMedium = Settings::where('name', 'soal_sedang')->value('value');
-        $pointHard = Settings::where('name', 'soal_sulit')->value('value');
+        if ($adaptive) {
 
-        $difficulty = $question->difficulty;
+            $pointEasy = (int) Settings::where('name', 'soal_mudah')->value('value');
+            $pointMedium = (int) Settings::where('name', 'soal_sedang')->value('value');
+            $pointHard = (int) Settings::where('name', 'soal_sulit')->value('value');
 
-        // Tentukan base point
-        $basePoint =
-            $difficulty === 'mudah' ? $pointEasy :
-            ($difficulty === 'sedang' ? $pointMedium : $pointHard);
+            $difficulty = $question->difficulty;
 
-        // Jika salah → basePoint = 0
-        if (!$correct) {
-            $basePoint = 0;
-        }
+            $basePoint =
+                $difficulty === 'mudah' ? $pointEasy :
+                ($difficulty === 'sedang' ? $pointMedium : $pointHard);
 
-        // simpan akumulasi base point
-        $prevBase = session("activity.$id.total_base_point", 0);
-        session(["activity.$id.total_base_point" => $prevBase + $basePoint]);
+            if (!$correct) {
+                $basePoint = 0;
+            }
 
-        // =======================
-        // BONUS STREAK
-        // =======================
-        $correctStreak = session("activity.$id.streak_correct", 0);
+            // simpan akumulasi base point
+            $prevBase = session("activity.$id.total_base_point", 0);
+            session(["activity.$id.total_base_point" => $prevBase + $basePoint]);
 
-        $bonus = 0;
-        if ($correct) {
-            if ($correctStreak == 2)
-                $bonus = 5;
-            else if ($correctStreak == 3)
-                $bonus = 10;
-            else if ($correctStreak >= 4)
-                $bonus = 15;
-        }
+            // =======================
+            // BONUS STREAK (ADAPTIF)
+            // =======================
+            $correctStreak = session("activity.$id.streak_correct", 0);
 
-        // Jika salah → bonus = 0
-        if (!$correct) {
             $bonus = 0;
+            if ($correct) {
+                if ($correctStreak == 2)
+                    $bonus = 5;
+                else if ($correctStreak == 3)
+                    $bonus = 10;
+                else if ($correctStreak >= 4)
+                    $bonus = 15;
+            }
+
+            $prevReal = session("activity.$id.total_real_point", 0);
+            session([
+                "activity.$id.total_real_point" => $prevReal + ($basePoint + $bonus)
+            ]);
         }
-
-        // simpan akumulasi total real point (dasar + bonus)
-        $prevReal = session("activity.$id.total_real_point", 0);
-        session(["activity.$id.total_real_point" => $prevReal + ($basePoint + $bonus)]);
-
 
         $saOptions = [];
 
@@ -524,8 +550,30 @@ class aktivitasController extends Controller
             $bestCase = 1;
         }
 
-        // nilai akhir = (real_poin / best_case) * 100
-        $nilaiAkhir = round((($totalBase) / $bestCase) * 100, 2);
+        // ======================
+        // HITUNG NILAI AKHIR
+        // ======================
+
+        if ($activity->addaptive === 'yes') {
+
+            // ===== ADAPTIF (TETAP PAKAI BEST CASE) =====
+            if ($bestCase <= 0) {
+                $bestCase = 1;
+            }
+
+            $nilaiAkhir = round(($totalBase / $bestCase) * 100, 2);
+
+        } else {
+
+            // ===== NON-ADAPTIF (RESCALE) =====
+            // Rumus: (jumlah benar / jumlah soal) × 100
+            if ($jumlahSoal > 0) {
+                $nilaiAkhir = round(($totalCorrect / $jumlahSoal) * 100, 2);
+            } else {
+                $nilaiAkhir = 0;
+            }
+        }
+
         // Status kelulusan (angka)
         $status = $nilaiAkhir >= $activity->kkm ?? 70 ? 'Pass' : 'Remedial';
         // ====================== SIMPAN KE DB ======================

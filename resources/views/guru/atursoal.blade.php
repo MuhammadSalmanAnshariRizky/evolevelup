@@ -585,9 +585,9 @@
 
             if (!ids || ids.length === 0) {
                 area.innerHTML = `<div id="noSelectedPlaceholder" class="text-center text-muted py-4">
-                                                                                                                                <i class="bi bi-clipboard-x" style="font-size:2rem"></i>
-                                                                                                                                <div class="mt-2">Belum ada soal.</div>
-                                                                                                                          </div>`;
+                                                                                                                                    <i class="bi bi-clipboard-x" style="font-size:2rem"></i>
+                                                                                                                                    <div class="mt-2">Belum ada soal.</div>
+                                                                                                                              </div>`;
                 document.getElementById('currentTotal') && (document.getElementById('currentTotal').innerText = 0);
                 updateCounter();
                 return;
@@ -600,14 +600,14 @@
                 const smallText = q ? (q.difficulty + ' — ' + q.type) : '';
                 const bodyText = q ? escapeHtml(q.text) : `Memuat soal #${id}...`;
                 html += `<div class="p-2 border rounded mb-2 bg-light d-flex justify-content-between align-items-start" id="selectedItem-${id}">
-                                                                                                                    <div>
-                                                                                                                        <small class="text-muted">${smallText}</small>
-                                                                                                                        <div class="mt-1" id="selectedText-${id}">${bodyText}</div>
-                                                                                                                    </div>
-                                                                                                                    <button class="btn btn-sm btn-danger" onclick="hapusDariTerpilih(${id})">
-                                                                                                                        <i class="bi bi-x-circle"></i>
-                                                                                                                    </button>
-                                                                                                                </div>`;
+                                                                                                                        <div>
+                                                                                                                            <small class="text-muted">${smallText}</small>
+                                                                                                                            <div class="mt-1" id="selectedText-${id}">${bodyText}</div>
+                                                                                                                        </div>
+                                                                                                                        <button class="btn btn-sm btn-danger" onclick="hapusDariTerpilih(${id})">
+                                                                                                                            <i class="bi bi-x-circle"></i>
+                                                                                                                        </button>
+                                                                                                                    </div>`;
             });
             area.innerHTML = html;
             document.getElementById('currentTotal') && (document.getElementById('currentTotal').innerText = ids.length);
@@ -661,16 +661,16 @@
                 const smallText = q ? (q.difficulty + ' — ' + q.type) : '';
                 const bodyText = q ? escapeHtml(q.text) : `Memuat soal #${id}...`;
                 html += `<div class="p-2 border rounded mb-2 bg-white" id="modalSelectedItem-${id}">
-                                                                                                                    <div class="d-flex justify-content-between align-items-start">
-                                                                                                                        <div>
-                                                                                                                            <small class="text-muted">${smallText}</small>
-                                                                                                                            <div class="mt-1" id="modalSelectedText-${id}">${bodyText}</div>
+                                                                                                                        <div class="d-flex justify-content-between align-items-start">
+                                                                                                                            <div>
+                                                                                                                                <small class="text-muted">${smallText}</small>
+                                                                                                                                <div class="mt-1" id="modalSelectedText-${id}">${bodyText}</div>
+                                                                                                                            </div>
+                                                                                                                            <button class="btn btn-sm btn-outline-danger" onclick="modalToggleSelect(${id})">
+                                                                                                                                <i class="bi bi-x-circle"></i>
+                                                                                                                            </button>
                                                                                                                         </div>
-                                                                                                                        <button class="btn btn-sm btn-outline-danger" onclick="modalToggleSelect(${id})">
-                                                                                                                            <i class="bi bi-x-circle"></i>
-                                                                                                                        </button>
-                                                                                                                    </div>
-                                                                                                                </div>`;
+                                                                                                                    </div>`;
             });
             wrap.innerHTML = html;
 
@@ -1247,6 +1247,36 @@
                 }
                 // jika semua minimal terpenuhi -> lanjut simpan
             }
+
+            // ================= NON-ADAPTIVE VALIDATION =================
+            if (!isAdaptive) {
+
+                if (!n || n <= 0) {
+                    Swal.fire(
+                        'Jumlah soal belum ditentukan',
+                        'Silakan pilih jumlah soal terlebih dahulu.',
+                        'warning'
+                    );
+                    return;
+                }
+
+                const totalDipilih = (window.lastPicked || []).length;
+
+                if (totalDipilih < n) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Jumlah soal belum mencukupi',
+                        html: `
+                    Jumlah soal yang dipilih: <b>${totalDipilih}</b><br>
+                    Jumlah soal yang ditentukan: <b>${n}</b><br><br>
+                    Silakan tambah <b>${n - totalDipilih}</b> soal lagi.
+                `
+                    });
+                    return;
+                }
+              
+            }
+
 
             // Lakukan simpan (adaptive atau non-adaptive)
             // Kirim juga 'jumlah' (n) supaya disimpan ke activities.jumlah_soal

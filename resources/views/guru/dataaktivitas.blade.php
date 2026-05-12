@@ -32,11 +32,21 @@
                                 <label class="form-label fw-semibold">Judul Aktivitas</label>
                                 <input type="text" name="title" class="form-control shadow-sm"
                                     placeholder="Masukkan judul aktivitas..." required>
+                                @error('title')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
                             </div>
 
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Deadline</label>
-                                <input type="datetime-local" name="deadline" class="form-control shadow-sm">
+                                <input type="datetime-local" name="deadline" class="form-control shadow-sm" required>
+                                @error('deadline')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
                             </div>
 
                             <div class="mb-3">
@@ -49,6 +59,11 @@
                                         </option>
                                     @endforeach
                                 </select>
+                                @error('id_topic')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
                             </div>
                         </div>
 
@@ -60,7 +75,12 @@
                                 <div class="col-6">
                                     <label class="form-label fw-semibold">Durasi (menit)</label>
                                     <input type="number" name="durasi_pengerjaan" class="form-control shadow-sm" min="1"
-                                        placeholder="30">
+                                        placeholder="30" required>
+                                    @error('durasi_pengerjaan')
+                                        <div class="invalid-feedback">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
                                 </div>
 
                                 <div class="col-6 d-flex flex-column">
@@ -71,12 +91,22 @@
                                             id="adaptiveToggle">
                                         <label class="form-check-label" for="adaptiveToggle">Aktifkan</label>
                                     </div>
+                                    @error('addaptive')
+                                        <div class="text-danger small">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
                                 </div>
                                 <!-- kkm -->
                                 <div class="col-6">
                                     <label class="form-label fw-semibold">KKM</label>
                                     <input type="number" name="kkm" class="form-control shadow-sm" min="0" max="100"
                                         placeholder="70" required>
+                                    @error('kkm')
+                                        <div class="invalid-feedback">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
                                 </div>
                                 {{-- Row 2: (kosong / spacing) --}}
                                 <div class="col-6">

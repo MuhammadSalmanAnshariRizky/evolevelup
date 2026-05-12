@@ -210,7 +210,7 @@
 
                     <div class="d-flex justify-content-center gap-2">
                         <button class="btn btn-primary px-4" onclick="mulai()">Mulai</button>
-                        <a href="{{ route('dashboard.siswa') }}" class="btn btn-outline-secondary px-4">Kembali</a>
+                        <a href="{{ route('siswa.aktivitas') }}" class="btn btn-outline-secondary px-4">Kembali</a>
                     </div>
 
                 </div>

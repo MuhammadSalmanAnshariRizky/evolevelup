@@ -23,7 +23,7 @@ class Activity extends Model
     ];
 
     protected $casts = [
-        'deadline' => 'datetime', 
+        'deadline' => 'datetime',
     ];
     public function topic()
     {
@@ -45,5 +45,10 @@ class Activity extends Model
     public function nilai()
     {
         return $this->hasMany(ActivityResult::class, 'id_activity');
+    }
+
+    public function answers()
+    {
+        return $this->hasMany(ActivityAnswer::class, 'id_activity');
     }
 }

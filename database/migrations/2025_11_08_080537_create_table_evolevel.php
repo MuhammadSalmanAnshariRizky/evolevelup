@@ -127,6 +127,30 @@ return new class extends Migration {
             $table->index('id_class');
         });
 
+        Schema::create('activity_answers', function (Blueprint $table) {
+            $table->id();
+
+            $table->unsignedBigInteger('id_activity');
+            $table->unsignedBigInteger('id_user');
+            $table->unsignedBigInteger('id_question');
+
+            $table->text('user_answer')->nullable();
+            $table->boolean('is_correct')->default(false);
+
+            $table->timestamps();
+
+            // UNIQUE: 1 siswa 1 jawaban per soal
+            $table->unique(
+                ['id_activity', 'id_user', 'id_question'],
+                'activity_answer_unique'
+            );
+
+            // Index performa
+            $table->index('id_activity');
+            $table->index('id_user');
+            $table->index('id_question');
+        });
+
     }
 
     /**
@@ -148,7 +172,7 @@ return new class extends Migration {
         Schema::dropIfExists('activity_result');
         Schema::dropIfExists('settings');
         Schema::dropIfExists('activity_packages');
-
+        Schema::dropIfExists('activity_answers');
 
     }
 };

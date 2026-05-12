@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityMatrixController;
 use App\Http\Controllers\ActivityPackageController;
 use App\Http\Controllers\aktivitasController;
 use App\Http\Controllers\aturAktivitasController;
@@ -156,6 +157,25 @@ Route::middleware(['auth', RoleMiddleware::class . ':teacher'])->group(function 
 
     Route::get('/activity-package/{id}/download', [ActivityPackageController::class, 'download'])
         ->name('activity.package.download');
+
+
+    // halaman list (tanpa parameter)
+    Route::get(
+        '/activity-matrix',
+        [ActivityMatrixController::class, 'list']
+    )->name('activity.matrix.list');
+
+    // halaman matriks (PAKAI parameter)
+    Route::get(
+        '/activity/{activity}/class/{class}/matrix',
+        [ActivityMatrixController::class, 'index']
+    )->name('activity.matrix');
+
+    Route::get(
+        '/activity/{activity}/class/{class}/matrix/export',
+        [ActivityMatrixController::class, 'exportExcel']
+    )->name('activity.matrix.export');
+
 });
 
 

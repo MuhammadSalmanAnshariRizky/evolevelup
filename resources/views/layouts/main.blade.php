@@ -255,6 +255,13 @@
                         <span>Data Evaluasi</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link @yield('dataMatrix')" href="{{ route('activity.matrix.list') }}">
+                        <i class="fas fa-fw fa-table"></i>
+                        <span>Matriks Aktivitas</span>
+                    </a>
+                </li>
+
             @endif
 
             <hr class="sidebar-divider d-none d-md-block">

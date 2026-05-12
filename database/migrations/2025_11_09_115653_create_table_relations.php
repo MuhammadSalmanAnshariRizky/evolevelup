@@ -145,7 +145,23 @@ return new class extends Migration {
                 ->on('classes')
                 ->onDelete('set null');
         });
+        Schema::table('activity_answers', function (Blueprint $table) {
 
+            $table->foreign('id_activity')
+                ->references('id')
+                ->on('activities')
+                ->onDelete('cascade');
+
+            $table->foreign('id_user')
+                ->references('id')
+                ->on('users')
+                ->onDelete('cascade');
+
+            $table->foreign('id_question')
+                ->references('id')
+                ->on('question')
+                ->onDelete('cascade');
+        });
     }
 
     /**
@@ -202,6 +218,11 @@ return new class extends Migration {
             $table->dropForeign(['id_activity']);
             $table->dropForeign(['created_by']);
             $table->dropForeign(['id_class']);
+        });
+        Schema::table('activity_answers', function (Blueprint $table) {
+            $table->dropForeign(['id_activity']);
+            $table->dropForeign(['id_user']);
+            $table->dropForeign(['id_question']);
         });
 
     }

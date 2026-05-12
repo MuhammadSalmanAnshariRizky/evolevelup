@@ -54,6 +54,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(ActivityResult::class, 'id_user');
     }
+
+    public function activityAnswers()
+    {
+        return $this->hasMany(ActivityAnswer::class, 'id_user');
+    }
     /**
      * The attributes that should be hidden for serialization.
      *

@@ -619,12 +619,29 @@ class guruController extends Controller
     public function simpanAktivitas(Request $request)
     {
         $request->validate([
-            'title' => 'required|string|max:255',
-            'deadline' => 'nullable|date',
-            'id_topic' => 'required|exists:topics,id',
-            'addaptive' => 'required|in:yes,no',
-            'durasi_pengerjaan' => 'nullable|integer|min:1',
-            'kkm' => 'required|integer|min:0|max:100'
+            'title' => ['required', 'string', 'min:3', 'max:255'],
+
+            // deadline wajib & harus setelah sekarang
+            'deadline' => ['required', 'date', 'after:now'],
+
+            'id_topic' => ['required', 'exists:topics,id'],
+
+            // wajib yes / no
+            'addaptive' => ['required', 'in:yes,no'],
+
+            // durasi wajib
+            'durasi_pengerjaan' => ['required', 'integer', 'min:1'],
+
+            // kkm wajib
+            'kkm' => ['required', 'integer', 'min:0', 'max:100'],
+        ], [
+            // 🔴 Pesan error custom (opsional tapi direkomendasikan)
+            'title.required' => 'Judul aktivitas wajib diisi.',
+            'deadline.required' => 'Deadline wajib diisi.',
+            'deadline.after' => 'Deadline harus lebih dari waktu sekarang.',
+            'id_topic.required' => 'Topik wajib dipilih.',
+            'durasi_pengerjaan.required' => 'Durasi pengerjaan wajib diisi.',
+            'kkm.required' => 'KKM wajib diisi.',
         ]);
 
         Activity::create([
@@ -636,9 +653,11 @@ class guruController extends Controller
             'kkm' => $request->kkm,
         ]);
 
-        return redirect()->route('guru.aktivitas.tampil')
+        return redirect()
+            ->route('guru.aktivitas.tampil')
             ->with('success', 'Aktivitas berhasil ditambahkan.');
     }
+
 
 
     /**

@@ -224,6 +224,7 @@ class ActivityPackageController extends Controller
                 'type' => $act['type'] ?? 'quiz',
                 'durasi_pengerjaan' => $act['durasi_pengerjaan'] ?? null,
                 'deadline' => $act['deadline'] ?? null,
+                'kkm' => $act['kkm'] ?? null,
                 'jumlah_soal' => $act['jumlah_soal'] ?? null,
                 'id_topic' => $finalTopicId,
                 'created_at' => now(),
