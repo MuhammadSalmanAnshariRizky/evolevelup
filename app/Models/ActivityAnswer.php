@@ -14,6 +14,7 @@ class ActivityAnswer extends Model
         'id_question',
         'user_answer',
         'is_correct',
+        'delta'
     ];
 
     protected $casts = [

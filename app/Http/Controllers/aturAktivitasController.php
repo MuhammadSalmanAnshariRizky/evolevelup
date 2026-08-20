@@ -43,8 +43,7 @@ class aturAktivitasController extends Controller
             abort(403, 'Anda tidak memiliki akses ke kelas/topik ini.');
         }
 
-        // Ambil semua soal yang punya id_topic = $idTopic (tidak dibatasi created_by)
-        // Karena kamu mau soal walau dibuat guru lain tetap tersedia selama topiknya sama
+        // Ambil semua soal yang punya id_topic = $idTopic
         $questions = Question::where('id_topic', $idTopic)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -93,53 +92,16 @@ class aturAktivitasController extends Controller
             return response()->json(['success' => false, 'message' => 'Anda tidak memiliki akses ke kelas/topik ini.'], 403);
         }
 
-        $isAdaptive = ($aktivitas->addaptive === 'yes');
         $n = intval($request->jumlah);
 
-        // Base query: semua soal yang punya topik sama (tanpa membatasi created_by)
-        $baseQuery = Question::where('id_topic', $idTopic);
-
-        if ($isAdaptive) {
-            $easyCount = max(0, $n - 2);
-            $hardCount = max(0, $n - 2);
-            $mediumCount = max(0, $n);
-
-            // Ambil bagian dari masing-masing difficulty secara acak
-            $easyPool = (clone $baseQuery)->where('difficulty', 'mudah')
-                ->inRandomOrder()->take($easyCount)->get();
-
-            $mediumPool = (clone $baseQuery)->where('difficulty', 'sedang')
-                ->inRandomOrder()->take($mediumCount)->get();
-
-            $hardPool = (clone $baseQuery)->where('difficulty', 'sulit')
-                ->inRandomOrder()->take($hardCount)->get();
-
-            $final = $easyPool->merge($mediumPool)->merge($hardPool);
-
-            return response()->json([
-                'success' => true,
-                'adaptive' => true,
-                'easy' => $easyCount,
-                'medium' => $mediumCount,
-                'hard' => $hardCount,
-                'total' => $final->count(),
-                'data' => $final->map(function ($q) {
-                    return [
-                        'id' => $q->id,
-                        'difficulty' => $q->difficulty,
-                        'type' => $q->type,
-                        'text' => optional(json_decode($q->question))->text ?? '-'
-                    ];
-                })->values()
-            ]);
-        }
-
-        // Non-adaptive: ambil n soal acak dari semua soal topik ini
-        $final = $baseQuery->inRandomOrder()->take($n)->get();
+        // Ambil secara acak n soal dari topik ini
+        $final = Question::where('id_topic', $idTopic)
+            ->inRandomOrder()
+            ->take($n)
+            ->get();
 
         return response()->json([
             'success' => true,
-            'adaptive' => false,
             'total' => $final->count(),
             'data' => $final->map(function ($q) {
                 return [
@@ -151,6 +113,7 @@ class aturAktivitasController extends Controller
             })->values()
         ]);
     }
+
     public function simpanAturSoal(Request $request, $idAktivitas)
     {
         $request->validate([
@@ -172,7 +135,6 @@ class aturAktivitasController extends Controller
                 $insert = [];
                 $now = now();
                 foreach ($ids as $qid) {
-                    // skip non-int guard
                     $qid = intval($qid);
                     if ($qid <= 0)
                         continue;
@@ -190,7 +152,6 @@ class aturAktivitasController extends Controller
 
             // Jika dikirim jumlah, update kolom jumlah_soal pada activities
             if (!is_null($jumlah)) {
-                // pastikan kolom ada — jika tidak ada, query akan gagal -> exception
                 DB::table('activities')->where('id', $idAktivitas)->update([
                     'jumlah_soal' => intval($jumlah),
                     'updated_at' => now()
@@ -201,7 +162,7 @@ class aturAktivitasController extends Controller
             return response()->json(['success' => true, 'message' => 'Tersimpan', 'jumlah' => $jumlah]);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error(message: 'simpanAturSoal error: ' . $e->getMessage() . ' -- trace: ' . $e->getTraceAsString());
+            \Log::error('simpanAturSoal error: ' . $e->getMessage() . ' -- trace: ' . $e->getTraceAsString());
             return response()->json(['success' => false, 'message' => 'Server error: ' . $e->getMessage()], 500);
         }
     }
@@ -231,7 +192,6 @@ class aturAktivitasController extends Controller
     public function getQuestion($id)
     {
         $q = Question::find($id);
-
         $qData = json_decode($q->question);
 
         return response()->json([
@@ -249,8 +209,5 @@ class aturAktivitasController extends Controller
 
         return response()->json(['success' => true]);
     }
-
-
-
-
 }
+?>

@@ -360,11 +360,12 @@
             @endif
 
             // VALIDASI SEBELUM SUBMIT
+            // VALIDASI SEBELUM SUBMIT
             form.addEventListener('submit', function (e) {
                 // disable tombol submit sementara
                 submitBtn.disabled = true;
 
-                // helper untuk balikke tombol dan fokus
+                // helper untuk balik ke tombol dan fokus
                 function fail(msg, focusEl) {
                     e.preventDefault();
                     submitBtn.disabled = false;
@@ -382,10 +383,16 @@
                 }
 
                 const tipe = tipeSoal.value;
+                const difficulty = document.getElementById('difficulty').value; // 👈 AMBIL VALUE DIFFICULTY
                 const questionText = document.getElementById('question_text').value.trim();
 
                 if (!tipe) {
                     return fail('Pilih tipe soal terlebih dahulu.', tipeSoal);
+                }
+
+                // 👈 TAMBAHKAN PENGECEKAN TINGKAT KESULITAN DI SINI
+                if (!difficulty) {
+                    return fail('Pilih tingkat kesulitan soal terlebih dahulu.', document.getElementById('difficulty'));
                 }
 
                 if (!questionText) {
@@ -418,8 +425,7 @@
                 }
 
                 // semua ok -> biarkan submit berlangsung (tombol tetap dinonaktifkan sementara)
-                submitBtn.innerHTML = 'Menyimpan...';
-                // jangan panggil preventDefault(); form akan submit ke server
+                submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Menyimpan...';
             });
 
         });

@@ -10,7 +10,7 @@ class Question extends Model
     use HasFactory;
 
     protected $table = 'question';
-    protected $fillable = ['type', 'question', 'MC_option', 'SA_answer', 'MC_answer', 'difficulty', 'created_by', 'id_topic'];
+    protected $fillable = ['type', 'question', 'MC_option', 'SA_answer', 'MC_answer', 'difficulty', 'delta','created_by', 'id_topic'];
 
     // (9) manyToMany with Activity
     public function activities()

@@ -45,7 +45,6 @@
     <div class="container py-4">
         <div class="mb-4">
 
-            <!-- BARIS JUDUL -->
             <div class="d-flex align-items-center gap-2 mb-3">
                 <h3 class="fw-bold mb-0 text-black">Daftar Soal</h3>
 
@@ -55,7 +54,6 @@
                 </button>
             </div>
 
-            <!-- BARIS TOMBOL -->
             <div class="d-flex flex-column flex-md-row gap-2 align-items-md-start">
                 <a href="{{ route('tambahSoal') }}" class="btn btn-primary shadow-sm px-md-3">
                     <i class="bi bi-plus-circle me-1"></i>
@@ -95,7 +93,7 @@
                             <th class="w-10">Tipe</th>
                             <th class="w-40">Pertanyaan</th>
                             <th class="w-20">Topik</th>
-                            <th class="w-10">Kesulitan</th>
+                            <th class="w-15">Kesulitan</th>
                             <th class="w-10">Aksi</th>
                         </tr>
                     </thead>
@@ -109,7 +107,9 @@
                             <tr data-question-id="{{ $item->id }}" data-topic-title="{{ $topicTitle }}"
                                 data-id_topic="{{ $item->id_topic ?? '' }}">
                                 <td class="fw-bold"></td>
-                                <td>{{ $item->type }}</td>
+                                
+                                <td>{{ $item->type == 'MultipleChoice' ? 'Pilihan Ganda' : 'Isian Singkat' }}</td>
+                                
                                 <td class="text-start">
                                     {!! nl2br(e($item->question->text ?? ($item->question['text'] ?? '-'))) !!}
                                 </td>
@@ -123,13 +123,16 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <span
-                                        class="badge
-                                                                                                                                                                                                                @if($item->difficulty == 'mudah') bg-success
-                                                                                                                                                                                                                @elseif($item->difficulty == 'sedang') bg-warning text-dark
-                                                                                                                                                                                                                @else bg-danger @endif">
+                                    <span class="badge 
+                                        @if($item->difficulty == 'mudah') bg-success 
+                                        @elseif($item->difficulty == 'sedang') bg-warning text-dark 
+                                        @else bg-danger @endif">
                                         {{ ucfirst($item->difficulty) }}
                                     </span>
+                                    
+                                    <div class="mt-1 small text-muted">
+                                        <strong>Delta:</strong> {{ number_format($item->delta, 2) }}
+                                    </div>
                                 </td>
                                 <td>
                                     <div class="d-flex gap-2">
@@ -139,7 +142,7 @@
                                             data-opt="{{ base64_encode(json_encode($item->MC_option)) }}"
                                             data-mcanswer="{{ $item->MC_answer }}"
                                             data-sa="{{ base64_encode(json_encode($item->SA_answer)) }}"
-                                            data-type="{{ $item->type }}">
+                                            data-type="{{ $item->type }}"> 
                                             <i class="bi bi-eye-fill"></i>
                                         </button>
 
@@ -165,7 +168,6 @@
                 </table>
             </div>
         </div>
-        <!-- mobile -->
         <div class="d-block d-md-none mt-3">
             @foreach($data as $item)
                 @php
@@ -177,14 +179,20 @@
 
                     <div class="card-body">
 
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="badge bg-secondary">{{ $item->type }}</span>
-                            <span class="badge
-                                                                                                @if($item->difficulty == 'mudah') bg-success
-                                                                                                @elseif($item->difficulty == 'sedang') bg-warning text-dark
-                                                                                                @else bg-danger @endif">
-                                {{ ucfirst($item->difficulty) }}
-                            </span>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-secondary">{{ $item->type == 'MultipleChoice' ? 'Pilihan Ganda' : 'Isian Singkat' }}</span>
+                            
+                            <div class="text-end">
+                                <span class="badge 
+                                    @if($item->difficulty == 'mudah') bg-success 
+                                    @elseif($item->difficulty == 'sedang') bg-warning text-dark 
+                                    @else bg-danger @endif">
+                                    {{ ucfirst($item->difficulty) }}
+                                </span>
+                                <span class="badge bg-light text-dark border ms-1" title="Tingkat Kesulitan / Delta">
+                                    <i class="bi bi-activity"></i> {{ number_format($item->delta, 2) }}
+                                </span>
+                            </div>
                         </div>
 
                         <p class="fw-semibold mb-2">
@@ -293,6 +301,7 @@
                 </div>
             </div>
         </div>
+        
         {{-- MODAL INFO DAFTAR SOAL --}}
         <div class="modal fade" id="modalInfoSoal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
@@ -312,7 +321,6 @@
                         </p>
                         <hr>
 
-                        <!-- TIPE SOAL -->
                         <h6 class="fw-bold text-dark">
                             <i class="bi bi-ui-checks me-1"></i>
                             Jenis / Tipe Soal
@@ -320,7 +328,7 @@
 
                         <ul>
                             <li>
-                                <strong>Multiple Choice (Pilihan Ganda)</strong>
+                                <strong>Pilihan Ganda (Multiple Choice)</strong>
                                 <ul>
                                     <li>Soal dengan beberapa pilihan jawaban (A, B, C, D, E).</li>
                                     <li>Siswa memilih <strong>satu jawaban yang paling benar</strong>.</li>
@@ -345,7 +353,7 @@
                             </li>
 
                             <li>
-                                <strong>Short Answer (Isian Singkat)</strong>
+                                <strong>Isian Singkat (Short Answer)</strong>
                                 <ul>
                                     <li>Soal berupa isian singkat tanpa pilihan jawaban.</li>
                                     <li>Siswa menuliskan jawaban sendiri dalam bentuk teks.</li>
@@ -395,27 +403,10 @@
                                     <li>Tipe soal (Pilihan Ganda / Isian Singkat)</li>
                                     <li>Pertanyaan</li>
                                     <li>Jawaban benar</li>
-                                    <li>Tingkat kesulitan</li>
+                                    <li>Tingkat kesulitan dan nilai <strong>Delta</strong> (Rasch Model)</li>
                                     <li>Topik & mata pelajaran</li>
                                 </ul>
                             </li>
-                        </ul>
-
-                        <hr>
-
-                        <h6 class="fw-bold text-success">
-                            <i class="bi bi-lightbulb me-1"></i> Buat Soal Otomatis
-                        </h6>
-                        <ul>
-                            <li>Digunakan untuk menghasilkan soal secara otomatis.</li>
-                            <li>Soal dibuat berdasarkan:
-                                <ul>
-                                    <li>Topik yang dipilih</li>
-                                    <li>Mata pelajaran</li>
-                                    <li>Jumlah soal yang diinginkan</li>
-                                </ul>
-                            </li>
-                            <li>Cocok untuk mempercepat pembuatan bank soal.</li>
                         </ul>
 
                         <hr>
@@ -441,12 +432,13 @@
                         <hr>
 
                         <h6 class="fw-bold text-secondary">
-                            <i class="bi bi-bar-chart me-1"></i> Kesulitan Soal
+                            <i class="bi bi-bar-chart me-1"></i> Kesulitan Soal & Delta
                         </h6>
                         <ul>
-                            <li><span class="badge bg-success">Mudah</span> – Untuk pemahaman dasar.</li>
-                            <li><span class="badge bg-warning text-dark">Sedang</span> – Untuk pemahaman menengah.</li>
-                            <li><span class="badge bg-danger">Sulit</span> – Untuk pemahaman tingkat lanjut.</li>
+                            <li><span class="badge bg-success">Mudah</span> – Untuk pemahaman dasar (Nilai Delta lebih rendah/negatif).</li>
+                            <li><span class="badge bg-warning text-dark">Sedang</span> – Untuk pemahaman menengah (Nilai Delta di kisaran 0.0).</li>
+                            <li><span class="badge bg-danger">Sulit</span> – Untuk pemahaman tingkat lanjut (Nilai Delta tinggi/positif).</li>
+                            <li>Nilai <strong>Delta</strong> ini digunakan oleh algoritma ujian adaptif untuk menentukan soal yang sesuai dengan kemampuan siswa.</li>
                         </ul>
 
                     </div>
@@ -460,19 +452,15 @@
             </div>
         </div>
 
-
-
     </div>
 
 @endsection
 
 @push('head')
-    <!-- DataTables CSS (hanya di-push ke head sekali) -->
     <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 @endpush
 
 @push('scripts')
-    <!-- Jangan muat jQuery di sini — layout sudah memuat jQuery -->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -484,7 +472,7 @@
                 return;
             }
 
-            // Inisialisasi DataTable (kolom No di-render dari meta)
+            // Inisialisasi DataTable
             var dt = $('#soalTable').DataTable({
                 responsive: true,
                 autoWidth: false,
@@ -516,7 +504,6 @@
 
             // fungsi bantu untuk meng-update elemen total berdasarkan baris yg terlihat
             function updateTotalLabel() {
-                // dt.rows({ search: 'applied' }) menghitung rows yang lolos filter/pencarian DataTables
                 var visibleCount = dt.rows({ search: 'applied' }).count();
                 var totalEl = document.getElementById('totalSoal');
                 if (totalEl) {
@@ -524,7 +511,7 @@
                 }
             }
 
-            // panggil sekali untuk set awal (jika server already rendered total, ini sinkronisasi)
+            // panggil sekali untuk set awal
             updateTotalLabel();
 
             function filterMobileCards(topicId) {
@@ -548,7 +535,7 @@
             }
 
 
-            // custom filter by topic id (ext.search)
+            // custom filter by topic id
             var currentTopicFilter = '';
             $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
                 if (settings.nTable.id !== 'soalTable') return true;
@@ -561,12 +548,11 @@
             // saat select berubah -> set filter dan redraw
             $('#filterTopik').on('change', function () {
                 currentTopicFilter = $(this).val() || '';
-
                 dt.draw(); // desktop
                 filterMobileCards(currentTopicFilter); // mobile
             });
 
-            // tombol reset filter: kosongkan select dan redraw
+            // tombol reset filter
             $('#resetFilterBtn').on('click', function () {
                 $('#filterTopik').val('');
                 currentTopicFilter = '';
@@ -584,16 +570,14 @@
             });
 
 
-            // update numbering & total saat table di-redraw (draw event)
+            // update numbering & total saat table di-redraw
             dt.on('draw.dt', function () {
-                // numbering sudah di-handle oleh render kolom, tapi tetap aman
                 dt.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
                     cell.innerHTML = i + 1;
                 });
-
-                // update total setiap kali draw (filter berubah / paging / search)
                 updateTotalLabel();
             });
+            
             // View soal modal
             $(document).on('click', '.view-soal', function () {
                 var btn = this;
@@ -608,16 +592,17 @@
                 $('#soalImage').html(q?.URL ? `<img src="${q.URL}" class="img-fluid rounded" style="max-height:250px">` : "");
                 var pilihan = $('#soalPilihan').empty();
 
+                // Karena kita tetap mengirimkan raw data-type, kode JavaScript ini tidak akan terpengaruh
                 if (type === "MultipleChoice" && opt) {
                     opt.forEach(o => {
                         var label = Object.keys(o)[0];
                         var d = o[label];
                         pilihan.append(`
-                                                                                                            <div class="border p-2 mb-2 rounded">
-                                                                                                                <strong>${label.toUpperCase()}.</strong> ${d.teks}
-                                                                                                                ${d.url ? `<br><img src="${d.url}" class="img-thumbnail mt-2" style="max-height:100px">` : ""}
-                                                                                                            </div>
-                                                                                                        `);
+                            <div class="border p-2 mb-2 rounded">
+                                <strong>${label.toUpperCase()}.</strong> ${d.teks}
+                                ${d.url ? `<br><img src="${d.url}" class="img-thumbnail mt-2" style="max-height:100px">` : ""}
+                            </div>
+                        `);
                     });
                 } else {
                     pilihan.html("<em>Tidak ada pilihan jawaban.</em>");
@@ -720,25 +705,25 @@
                     const form = this.closest('form');
                     const row = this.closest('tr');
 
-                    // ambil teks soal (aman, ringkas)
+                    // ambil teks soal
                     let soalText = row?.querySelector('td:nth-child(3)')?.innerText ?? 'soal ini';
                     soalText = soalText.length > 120 ? soalText.substring(0, 120) + '…' : soalText;
 
                     Swal.fire({
                         title: 'Hapus Soal?',
                         html: `
-                                                                <div class="text-start">
-                                                                    <p class="mb-2">
-                                                                        Anda akan menghapus:
-                                                                    </p>
-                                                                    <blockquote class="small border-start ps-2 text-muted">
-                                                                        ${soalText}
-                                                                    </blockquote>
-                                                                    <small class="text-danger">
-                                                                        ⚠️ Soal yang dihapus tidak dapat dikembalikan.
-                                                                    </small>
-                                                                </div>
-                                                            `,
+                            <div class="text-start">
+                                <p class="mb-2">
+                                    Anda akan menghapus:
+                                </p>
+                                <blockquote class="small border-start ps-2 text-muted">
+                                    ${soalText}
+                                </blockquote>
+                                <small class="text-danger">
+                                    ⚠️ Soal yang dihapus tidak dapat dikembalikan.
+                                </small>
+                            </div>
+                        `,
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#dc3545',

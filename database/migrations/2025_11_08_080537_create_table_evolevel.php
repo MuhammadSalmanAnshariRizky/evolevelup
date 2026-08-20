@@ -15,11 +15,13 @@ return new class extends Migration {
             $table->unsignedBigInteger('id_class');
             $table->timestamps();
         });
+
         Schema::create('teacher_classes', function (Blueprint $table) {
             $table->unsignedBigInteger('id_teacher');
             $table->unsignedBigInteger('id_class');
             $table->timestamps();
         });
+
         Schema::create('classes', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -31,6 +33,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('created_by');
             $table->timestamps();
         });
+
         Schema::create('subject', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -38,17 +41,19 @@ return new class extends Migration {
             $table->unsignedBigInteger('created_by');
             $table->timestamps();
         });
+
         Schema::create('topics', function (Blueprint $table) {
             $table->id();
-            $table->string(column: 'title');
-            $table->string(column: 'description')->nullable();
+            $table->string('title');
+            $table->string('description')->nullable();
             $table->unsignedBigInteger('id_subject');
             $table->unsignedBigInteger('created_by');
             $table->timestamps();
         });
+
         Schema::create('activities', function (Blueprint $table) {
             $table->id();
-            $table->string(column: 'title');
+            $table->string('title');
             $table->enum('addaptive', ['yes', 'no']);
             $table->enum('status', ['basic', 'additional', 'remedial']);
             $table->enum('type', ['task', 'quiz']);
@@ -59,11 +64,13 @@ return new class extends Migration {
             $table->unsignedBigInteger('id_topic');
             $table->timestamps();
         });
+
         Schema::create('activity_question', function (Blueprint $table) {
             $table->unsignedBigInteger('id_activity');
             $table->unsignedBigInteger('id_question');
             $table->timestamps();
         });
+
         Schema::create('question', function (Blueprint $table) {
             $table->id();
             $table->enum('type', ['MultipleChoice', 'ShortAnswer']);
@@ -72,30 +79,35 @@ return new class extends Migration {
             $table->json('SA_answer')->nullable();
             $table->char('MC_answer')->nullable();
             $table->enum('difficulty', ['mudah', 'sedang', 'sulit']);
+            $table->decimal('delta', 8, 2)->default(0.00);// nilai delta soal untuk adaptive test
             $table->unsignedBigInteger('id_topic');
             $table->unsignedBigInteger('created_by');
             $table->timestamps();
         });
+
         Schema::create('user_badge', function (Blueprint $table) {
             $table->unsignedBigInteger('id_student');
             $table->unsignedBigInteger('id_badge');
             $table->unsignedBigInteger('id_class')->nullable();
             $table->timestamps();
         });
+
         Schema::create('badge', function (Blueprint $table) {
             $table->id();
-            $table->string(column: 'name');
-            $table->string(column: 'description');
-            $table->string(column: 'path_icon');
+            $table->string('name');
+            $table->string('description');
+            $table->string('path_icon');
             $table->timestamps();
         });
+
         Schema::create('activity_result', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('id_user');
             $table->unsignedBigInteger('id_activity');
             $table->decimal('nilai_akhir', 5, 2)->nullable();
             $table->enum('result_status', ['Pass', 'Remedial'])->nullable();
-            $table->decimal('result', 5, 2)->nullable();
+            $table->decimal('result', 5, 2)->nullable(); //kolom untuk menyimpan nilai hasil akhir (misal: 85.50)
+            $table->decimal('skor_logit', 8, 4)->nullable();
             $table->integer('real_poin')->default(0)->nullable();
             $table->integer('bonus_poin')->default(0)->nullable();
             $table->integer('waktu_mengerjakan')->nullable();
@@ -105,11 +117,13 @@ return new class extends Migration {
             $table->timestamp('end_time')->nullable();
             $table->timestamps();
         });
+
         Schema::create('settings', function (Blueprint $table) {
             $table->id();
-            $table->string(column: 'name');
-            $table->integer(column: 'value');
+            $table->string('name');
+            $table->integer('value');
         });
+
         // --- activity_packages
         Schema::create('activity_packages', function (Blueprint $table) {
             $table->id();
@@ -135,7 +149,10 @@ return new class extends Migration {
             $table->unsignedBigInteger('id_question');
 
             $table->text('user_answer')->nullable();
-            $table->boolean('is_correct')->default(false);
+
+            // 2. BRIEF: TABEL RIWAYAT SEMENTARA (Jawaban 0/1 dan Delta)
+            $table->boolean('is_correct')->default(false)->comment('Jawaban benar (1) atau salah (0)');
+            $table->decimal('delta', 8, 4)->nullable()->comment('Menyimpan nilai delta soal saat dikerjakan untuk re-estimasi Theta');
 
             $table->timestamps();
 
@@ -150,7 +167,6 @@ return new class extends Migration {
             $table->index('id_user');
             $table->index('id_question');
         });
-
     }
 
     /**
@@ -158,7 +174,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
         Schema::dropIfExists('student_classes');
         Schema::dropIfExists('teacher_classes');
         Schema::dropIfExists('classes');
@@ -173,6 +188,5 @@ return new class extends Migration {
         Schema::dropIfExists('settings');
         Schema::dropIfExists('activity_packages');
         Schema::dropIfExists('activity_answers');
-
     }
 };

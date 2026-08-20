@@ -92,8 +92,6 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-
-
         // === 4️⃣ Kelas ===
         $kelas7 = Classes::create([
             'name' => '7 SMP',
@@ -168,7 +166,7 @@ class DatabaseSeeder extends Seeder
                 'durasi_pengerjaan' => 5,
                 'id_topic' => $topicInformatika->id,
                 'addaptive' => 'yes',
-                'kkm'=>70,
+                'kkm' => 70,
             ]);
         }
 
@@ -183,11 +181,14 @@ class DatabaseSeeder extends Seeder
                 'durasi_pengerjaan' => 5,
                 'id_topic' => $topicIPA->id,
                 'addaptive' => 'yes',
-                'kkm'=>70,
+                'kkm' => 70,
             ]);
         }
-
         $informatikaQuestions = [];
+
+        // ==========================================
+        // LEVEL MUDAH (Delta: -1.5) - 13 SOAL
+        // ==========================================
 
         // MUDAH 1 (MC)
         $informatikaQuestions[] = Question::create([
@@ -203,6 +204,7 @@ class DatabaseSeeder extends Seeder
             ]),
             'MC_answer' => 'a',
             'difficulty' => 'mudah',
+            'delta' => -1.5,
             'created_by' => $guru1->id,
         ]);
 
@@ -210,7 +212,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => '1',
             'type' => 'MultipleChoice',
-            'question' => json_encode(['text' => 'Aplikasi spreadsheet adalah?', 'URL' => null]),
+            'question' => json_encode(['text' => 'Aplikasi spreadsheet buatan Microsoft adalah?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'Microsoft Excel', 'url' => null]],
                 ['b' => ['teks' => 'Microsoft Word', 'url' => null]],
@@ -220,6 +222,7 @@ class DatabaseSeeder extends Seeder
             ]),
             'MC_answer' => 'a',
             'difficulty' => 'mudah',
+            'delta' => -1.5,
             'created_by' => $guru1->id,
         ]);
 
@@ -228,10 +231,167 @@ class DatabaseSeeder extends Seeder
             'id_topic' => '1',
             'type' => 'ShortAnswer',
             'question' => json_encode(['text' => 'Sebutkan satu contoh aplikasi spreadsheet!', 'URL' => null]),
-            'SA_answer' => json_encode(['excel', 'google sheets', 'libreoffice calc']),
+            'SA_answer' => json_encode(['excel', 'google sheets', 'libreoffice calc', 'wps spreadsheet']),
             'difficulty' => 'mudah',
+            'delta' => -1.5,
             'created_by' => $guru1->id,
         ]);
+
+        // MUDAH 4 (MC)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'MultipleChoice',
+            'question' => json_encode(['text' => 'Tanda apa yang wajib digunakan untuk mengawali penulisan rumus (formula) di Excel?', 'URL' => null]),
+            'MC_option' => json_encode([
+                ['a' => ['teks' => '=', 'url' => null]],
+                ['b' => ['teks' => '+', 'url' => null]],
+                ['c' => ['teks' => '-', 'url' => null]],
+                ['d' => ['teks' => ':', 'url' => null]],
+                ['e' => ['teks' => '"', 'url' => null]],
+            ]),
+            'MC_answer' => 'a',
+            'difficulty' => 'mudah',
+            'delta' => -1.5,
+            'created_by' => $guru1->id,
+        ]);
+
+        // MUDAH 5 (MC)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'MultipleChoice',
+            'question' => json_encode(['text' => 'Format file (ekstensi) standar (default) dari Microsoft Excel adalah?', 'URL' => null]),
+            'MC_option' => json_encode([
+                ['a' => ['teks' => '.xlsx', 'url' => null]],
+                ['b' => ['teks' => '.docx', 'url' => null]],
+                ['c' => ['teks' => '.pptx', 'url' => null]],
+                ['d' => ['teks' => '.pdf', 'url' => null]],
+                ['e' => ['teks' => '.txt', 'url' => null]],
+            ]),
+            'MC_answer' => 'a',
+            'difficulty' => 'mudah',
+            'delta' => -1.5,
+            'created_by' => $guru1->id,
+        ]);
+
+        // MUDAH 6 (SA)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'ShortAnswer',
+            'question' => json_encode(['text' => 'Kombinasi tombol keyboard (shortcut) untuk menyimpan dokumen (Save) adalah?', 'URL' => null]),
+            'SA_answer' => json_encode(['ctrl + s', 'ctrl+s', 'ctrl s']),
+            'difficulty' => 'mudah',
+            'delta' => -1.5,
+            'created_by' => $guru1->id,
+        ]);
+
+        // MUDAH 7 (MC)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'MultipleChoice',
+            'question' => json_encode(['text' => 'Fungsi yang digunakan untuk mencari nilai tertinggi dalam suatu kelompok data adalah...', 'URL' => null]),
+            'MC_option' => json_encode([
+                ['a' => ['teks' => 'MIN', 'url' => null]],
+                ['b' => ['teks' => 'MAX', 'url' => null]],
+                ['c' => ['teks' => 'AVERAGE', 'url' => null]],
+                ['d' => ['teks' => 'SUM', 'url' => null]],
+                ['e' => ['teks' => 'COUNT', 'url' => null]],
+            ]),
+            'MC_answer' => 'b',
+            'difficulty' => 'mudah',
+            'delta' => -1.5,
+            'created_by' => $guru1->id,
+        ]);
+
+        // MUDAH 8 (MC)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'MultipleChoice',
+            'question' => json_encode(['text' => 'Kombinasi tombol keyboard (shortcut) untuk menyalin data (Copy) adalah?', 'URL' => null]),
+            'MC_option' => json_encode([
+                ['a' => ['teks' => 'Ctrl + X', 'url' => null]],
+                ['b' => ['teks' => 'Ctrl + P', 'url' => null]],
+                ['c' => ['teks' => 'Ctrl + C', 'url' => null]],
+                ['d' => ['teks' => 'Ctrl + V', 'url' => null]],
+                ['e' => ['teks' => 'Ctrl + Z', 'url' => null]],
+            ]),
+            'MC_answer' => 'c',
+            'difficulty' => 'mudah',
+            'delta' => -1.5,
+            'created_by' => $guru1->id,
+        ]);
+
+        // MUDAH 9 (MC)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'MultipleChoice',
+            'question' => json_encode(['text' => 'Kombinasi tombol keyboard (shortcut) untuk menempelkan data (Paste) adalah?', 'URL' => null]),
+            'MC_option' => json_encode([
+                ['a' => ['teks' => 'Ctrl + X', 'url' => null]],
+                ['b' => ['teks' => 'Ctrl + P', 'url' => null]],
+                ['c' => ['teks' => 'Ctrl + C', 'url' => null]],
+                ['d' => ['teks' => 'Ctrl + V', 'url' => null]],
+                ['e' => ['teks' => 'Ctrl + S', 'url' => null]],
+            ]),
+            'MC_answer' => 'd',
+            'difficulty' => 'mudah',
+            'delta' => -1.5,
+            'created_by' => $guru1->id,
+        ]);
+
+        // MUDAH 10 (SA)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'ShortAnswer',
+            'question' => json_encode(['text' => 'Nama lain dari baris pada spreadsheet dalam bahasa Inggris adalah?', 'URL' => null]),
+            'SA_answer' => json_encode(['row', 'rows']),
+            'difficulty' => 'mudah',
+            'delta' => -1.5,
+            'created_by' => $guru1->id,
+        ]);
+
+        // MUDAH 11 (SA)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'ShortAnswer',
+            'question' => json_encode(['text' => 'Nama lain dari kolom pada spreadsheet dalam bahasa Inggris adalah?', 'URL' => null]),
+            'SA_answer' => json_encode(['column', 'columns']),
+            'difficulty' => 'mudah',
+            'delta' => -1.5,
+            'created_by' => $guru1->id,
+        ]);
+
+        // MUDAH 12 (MC)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'MultipleChoice',
+            'question' => json_encode(['text' => 'Untuk menyimpan file dokumen dengan nama baru, perintah yang dipilih adalah?', 'URL' => null]),
+            'MC_option' => json_encode([
+                ['a' => ['teks' => 'Save', 'url' => null]],
+                ['b' => ['teks' => 'Save As', 'url' => null]],
+                ['c' => ['teks' => 'Open', 'url' => null]],
+                ['d' => ['teks' => 'New', 'url' => null]],
+                ['e' => ['teks' => 'Print', 'url' => null]],
+            ]),
+            'MC_answer' => 'b',
+            'difficulty' => 'mudah',
+            'delta' => -1.5,
+            'created_by' => $guru1->id,
+        ]);
+
+        // MUDAH 13 (SA)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'ShortAnswer',
+            'question' => json_encode(['text' => 'Fungsi yang digunakan untuk mencari nilai terendah adalah?', 'URL' => null]),
+            'SA_answer' => json_encode(['min', '=min', 'minimum']),
+            'difficulty' => 'mudah',
+            'delta' => -1.5,
+            'created_by' => $guru1->id,
+        ]);
+
+        // ==========================================
+        // LEVEL SEDANG (Delta: 0.0) - 14 SOAL
+        // ==========================================
 
         // SEDANG 1 (MC)
         $informatikaQuestions[] = Question::create([
@@ -247,6 +407,7 @@ class DatabaseSeeder extends Seeder
             ]),
             'MC_answer' => 'a',
             'difficulty' => 'sedang',
+            'delta' => 0.0,
             'created_by' => $guru1->id,
         ]);
 
@@ -256,7 +417,7 @@ class DatabaseSeeder extends Seeder
             'type' => 'MultipleChoice',
             'question' => json_encode(['text' => 'Fungsi SUM pada spreadsheet digunakan untuk?', 'URL' => null]),
             'MC_option' => json_encode([
-                ['a' => ['teks' => 'Menjumlahkan data', 'url' => null]],
+                ['a' => ['teks' => 'Menjumlahkan data numerik', 'url' => null]],
                 ['b' => ['teks' => 'Mengurutkan data', 'url' => null]],
                 ['c' => ['teks' => 'Menyaring data', 'url' => null]],
                 ['d' => ['teks' => 'Menghapus data', 'url' => null]],
@@ -264,6 +425,7 @@ class DatabaseSeeder extends Seeder
             ]),
             'MC_answer' => 'a',
             'difficulty' => 'sedang',
+            'delta' => 0.0,
             'created_by' => $guru1->id,
         ]);
 
@@ -271,9 +433,10 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => '1',
             'type' => 'ShortAnswer',
-            'question' => json_encode(['text' => 'Apa fungsi grafik dalam spreadsheet?', 'URL' => null]),
-            'SA_answer' => json_encode(['visualisasi data', 'menyajikan data', 'grafik data']),
+            'question' => json_encode(['text' => 'Apa fungsi grafik/chart dalam spreadsheet?', 'URL' => null]),
+            'SA_answer' => json_encode(['visualisasi data', 'menyajikan data', 'grafik data', 'memvisualisasikan data']),
             'difficulty' => 'sedang',
+            'delta' => 0.0,
             'created_by' => $guru1->id,
         ]);
 
@@ -282,8 +445,9 @@ class DatabaseSeeder extends Seeder
             'id_topic' => '1',
             'type' => 'ShortAnswer',
             'question' => json_encode(['text' => 'Apa kegunaan fitur sort?', 'URL' => null]),
-            'SA_answer' => json_encode(['mengurutkan data', 'sorting data', 'urut data']),
+            'SA_answer' => json_encode(['mengurutkan data', 'sorting data', 'urut data', 'mengurutkan']),
             'difficulty' => 'sedang',
+            'delta' => 0.0,
             'created_by' => $guru1->id,
         ]);
 
@@ -292,22 +456,169 @@ class DatabaseSeeder extends Seeder
             'id_topic' => '1',
             'type' => 'ShortAnswer',
             'question' => json_encode(['text' => 'Apa yang dimaksud dengan worksheet?', 'URL' => null]),
-            'SA_answer' => json_encode(['lembar kerja', 'sheet', 'worksheet']),
+            'SA_answer' => json_encode(['lembar kerja', 'sheet', 'halaman kerja']),
             'difficulty' => 'sedang',
+            'delta' => 0.0,
             'created_by' => $guru1->id,
         ]);
+
+        // SEDANG 6 (MC)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'MultipleChoice',
+            'question' => json_encode(['text' => 'Fungsi AVERAGE digunakan untuk?', 'URL' => null]),
+            'MC_option' => json_encode([
+                ['a' => ['teks' => 'Mencari rata-rata', 'url' => null]],
+                ['b' => ['teks' => 'Menjumlahkan', 'url' => null]],
+                ['c' => ['teks' => 'Mencari nilai tertinggi', 'url' => null]],
+                ['d' => ['teks' => 'Mengalikan angka', 'url' => null]],
+                ['e' => ['teks' => 'Membagi angka', 'url' => null]],
+            ]),
+            'MC_answer' => 'a',
+            'difficulty' => 'sedang',
+            'delta' => 0.0,
+            'created_by' => $guru1->id,
+        ]);
+
+        // SEDANG 7 (MC)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'MultipleChoice',
+            'question' => json_encode(['text' => 'Bagaimana cara membuat sebuah referensi sel menjadi absolut (tidak berubah saat dicopy)?', 'URL' => null]),
+            'MC_option' => json_encode([
+                ['a' => ['teks' => 'Menambahkan simbol $', 'url' => null]],
+                ['b' => ['teks' => 'Menambahkan simbol %', 'url' => null]],
+                ['c' => ['teks' => 'Menambahkan simbol &', 'url' => null]],
+                ['d' => ['teks' => 'Menambahkan simbol #', 'url' => null]],
+                ['e' => ['teks' => 'Menambahkan simbol @', 'url' => null]],
+            ]),
+            'MC_answer' => 'a',
+            'difficulty' => 'sedang',
+            'delta' => 0.0,
+            'created_by' => $guru1->id,
+        ]);
+
+        // SEDANG 8 (SA)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'ShortAnswer',
+            'question' => json_encode(['text' => 'Simbol matematika apa yang digunakan untuk operasi perkalian di Excel?', 'URL' => null]),
+            'SA_answer' => json_encode(['*', 'bintang', 'asterisk']),
+            'difficulty' => 'sedang',
+            'delta' => 0.0,
+            'created_by' => $guru1->id,
+        ]);
+
+        // SEDANG 9 (SA)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'ShortAnswer',
+            'question' => json_encode(['text' => 'Simbol pembagian pada penulisan rumus Excel menggunakan tanda?', 'URL' => null]),
+            'SA_answer' => json_encode(['/', 'slash', 'garis miring']),
+            'difficulty' => 'sedang',
+            'delta' => 0.0,
+            'created_by' => $guru1->id,
+        ]);
+
+        // SEDANG 10 (MC)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'MultipleChoice',
+            'question' => json_encode(['text' => 'Fungsi COUNT digunakan untuk...', 'URL' => null]),
+            'MC_option' => json_encode([
+                ['a' => ['teks' => 'Menghitung jumlah sel yang berisi angka', 'url' => null]],
+                ['b' => ['teks' => 'Menjumlahkan semua angka di dalam sel', 'url' => null]],
+                ['c' => ['teks' => 'Mencari nilai tengah', 'url' => null]],
+                ['d' => ['teks' => 'Menghitung jumlah kata', 'url' => null]],
+                ['e' => ['teks' => 'Menghitung karakter', 'url' => null]],
+            ]),
+            'MC_answer' => 'a',
+            'difficulty' => 'sedang',
+            'delta' => 0.0,
+            'created_by' => $guru1->id,
+        ]);
+
+        // SEDANG 11 (MC)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'MultipleChoice',
+            'question' => json_encode(['text' => 'Fitur apa yang digunakan untuk menggabungkan beberapa cell menjadi satu cell?', 'URL' => null]),
+            'MC_option' => json_encode([
+                ['a' => ['teks' => 'Merge & Center', 'url' => null]],
+                ['b' => ['teks' => 'Wrap Text', 'url' => null]],
+                ['c' => ['teks' => 'Format Painter', 'url' => null]],
+                ['d' => ['teks' => 'Conditional Formatting', 'url' => null]],
+                ['e' => ['teks' => 'Find & Select', 'url' => null]],
+            ]),
+            'MC_answer' => 'a',
+            'difficulty' => 'sedang',
+            'delta' => 0.0,
+            'created_by' => $guru1->id,
+        ]);
+
+        // SEDANG 12 (MC)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'MultipleChoice',
+            'question' => json_encode(['text' => 'Fitur agar teks yang panjang bisa turun ke bawah menyesuaikan lebar sel adalah...', 'URL' => null]),
+            'MC_option' => json_encode([
+                ['a' => ['teks' => 'Wrap Text', 'url' => null]],
+                ['b' => ['teks' => 'Merge & Center', 'url' => null]],
+                ['c' => ['teks' => 'Shrink to Fit', 'url' => null]],
+                ['d' => ['teks' => 'Align Text', 'url' => null]],
+                ['e' => ['teks' => 'Sort Text', 'url' => null]],
+            ]),
+            'MC_answer' => 'a',
+            'difficulty' => 'sedang',
+            'delta' => 0.0,
+            'created_by' => $guru1->id,
+        ]);
+
+        // SEDANG 13 (SA)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'ShortAnswer',
+            'question' => json_encode(['text' => 'Fitur untuk membekukan baris atau kolom agar tidak ikut tergulung (scroll) dinamakan?', 'URL' => null]),
+            'SA_answer' => json_encode(['freeze panes', 'freeze pane', 'freeze']),
+            'difficulty' => 'sedang',
+            'delta' => 0.0,
+            'created_by' => $guru1->id,
+        ]);
+
+        // SEDANG 14 (MC)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'MultipleChoice',
+            'question' => json_encode(['text' => 'Untuk menggabungkan string/teks dari beberapa cell, kita bisa menggunakan fungsi...', 'URL' => null]),
+            'MC_option' => json_encode([
+                ['a' => ['teks' => 'CONCATENATE', 'url' => null]],
+                ['b' => ['teks' => 'COMBINE', 'url' => null]],
+                ['c' => ['teks' => 'MERGE', 'url' => null]],
+                ['d' => ['teks' => 'JOIN', 'url' => null]],
+                ['e' => ['teks' => 'ADD', 'url' => null]],
+            ]),
+            'MC_answer' => 'a',
+            'difficulty' => 'sedang',
+            'delta' => 0.0,
+            'created_by' => $guru1->id,
+        ]);
+
+        // ==========================================
+        // LEVEL SULIT (Delta: 1.5) - 13 SOAL
+        // ==========================================
 
         // SULIT 1 (SA)
         $informatikaQuestions[] = Question::create([
             'id_topic' => '1',
             'type' => 'ShortAnswer',
-            'question' => json_encode(['text' => 'Jelaskan perbedaan worksheet dan workbook!', 'URL' => null]),
+            'question' => json_encode(['text' => 'Jelaskan secara singkat perbedaan worksheet dan workbook!', 'URL' => null]),
             'SA_answer' => json_encode([
                 'worksheet lembar kerja workbook kumpulan worksheet',
                 'worksheet bagian workbook',
                 'workbook berisi worksheet'
             ]),
             'difficulty' => 'sulit',
+            'delta' => 1.5,
             'created_by' => $guru1->id,
         ]);
 
@@ -315,13 +626,15 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => '1',
             'type' => 'ShortAnswer',
-            'question' => json_encode(['text' => 'Jelaskan kegunaan fitur filter dalam pengolahan data!', 'URL' => null]),
+            'question' => json_encode(['text' => 'Jelaskan kegunaan fitur filter dalam pengolahan data spreadsheet!', 'URL' => null]),
             'SA_answer' => json_encode([
                 'menyaring data sesuai kriteria',
                 'menampilkan data tertentu',
-                'filter data'
+                'filter data',
+                'menyembunyikan data yang tidak relevan'
             ]),
             'difficulty' => 'sulit',
+            'delta' => 1.5,
             'created_by' => $guru1->id,
         ]);
 
@@ -329,7 +642,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => '1',
             'type' => 'MultipleChoice',
-            'question' => json_encode(['text' => 'Rumus yang benar untuk menghitung rata-rata A1 sampai A5 adalah?', 'URL' => null]),
+            'question' => json_encode(['text' => 'Rumus yang benar untuk menghitung rata-rata dari sel A1 sampai A5 adalah?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => '=AVERAGE(A1:A5)', 'url' => null]],
                 ['b' => ['teks' => '=SUM(A1:A5)', 'url' => null]],
@@ -339,8 +652,175 @@ class DatabaseSeeder extends Seeder
             ]),
             'MC_answer' => 'a',
             'difficulty' => 'sulit',
+            'delta' => 1.5,
             'created_by' => $guru1->id,
         ]);
+
+        // SULIT 4 (MC)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'MultipleChoice',
+            'question' => json_encode(['text' => 'Struktur penulisan fungsi logika IF yang tepat di Microsoft Excel adalah?', 'URL' => null]),
+            'MC_option' => json_encode([
+                ['a' => ['teks' => '=IF(logical_test, value_if_true, value_if_false)', 'url' => null]],
+                ['b' => ['teks' => '=IF(value_if_true, logical_test, value_if_false)', 'url' => null]],
+                ['c' => ['teks' => '=IF(value_if_false, value_if_true, logical_test)', 'url' => null]],
+                ['d' => ['teks' => '=IF(logical_test)', 'url' => null]],
+                ['e' => ['teks' => '=IF(logical_test, value_if_true)', 'url' => null]],
+            ]),
+            'MC_answer' => 'a',
+            'difficulty' => 'sulit',
+            'delta' => 1.5,
+            'created_by' => $guru1->id,
+        ]);
+
+        // SULIT 5 (SA)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'ShortAnswer',
+            'question' => json_encode(['text' => 'Sebutkan perbedaan mendasar pencarian tabel pada VLOOKUP dan HLOOKUP!', 'URL' => null]),
+            'SA_answer' => json_encode([
+                'vlookup vertikal hlookup horizontal',
+                'vlookup mencari kolom hlookup mencari baris',
+                'vlookup vertikal, hlookup horizontal'
+            ]),
+            'difficulty' => 'sulit',
+            'delta' => 1.5,
+            'created_by' => $guru1->id,
+        ]);
+
+        // SULIT 6 (MC)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'MultipleChoice',
+            'question' => json_encode(['text' => 'Fungsi yang dipakai untuk menjumlahkan sel-sel yang memenuhi kriteria (kondisi) tertentu saja disebut...', 'URL' => null]),
+            'MC_option' => json_encode([
+                ['a' => ['teks' => 'SUM', 'url' => null]],
+                ['b' => ['teks' => 'SUMIF', 'url' => null]],
+                ['c' => ['teks' => 'COUNTIF', 'url' => null]],
+                ['d' => ['teks' => 'IF', 'url' => null]],
+                ['e' => ['teks' => 'VLOOKUP', 'url' => null]],
+            ]),
+            'MC_answer' => 'b',
+            'difficulty' => 'sulit',
+            'delta' => 1.5,
+            'created_by' => $guru1->id,
+        ]);
+
+        // SULIT 7 (MC)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'MultipleChoice',
+            'question' => json_encode(['text' => 'Untuk menghitung banyaknya data sel (frekuensi) yang memenuhi kriteria tertentu, kita menggunakan...', 'URL' => null]),
+            'MC_option' => json_encode([
+                ['a' => ['teks' => 'COUNTIF', 'url' => null]],
+                ['b' => ['teks' => 'SUMIF', 'url' => null]],
+                ['c' => ['teks' => 'IF', 'url' => null]],
+                ['d' => ['teks' => 'COUNTA', 'url' => null]],
+                ['e' => ['teks' => 'COUNTBLANK', 'url' => null]],
+            ]),
+            'MC_answer' => 'a',
+            'difficulty' => 'sulit',
+            'delta' => 1.5,
+            'created_by' => $guru1->id,
+        ]);
+
+        // SULIT 8 (MC)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'MultipleChoice',
+            'question' => json_encode(['text' => 'Apa penyebab munculnya pesan error #DIV/0! pada lembar kerja Excel?', 'URL' => null]),
+            'MC_option' => json_encode([
+                ['a' => ['teks' => 'Sebuah angka dibagi dengan angka nol (0) atau sel kosong', 'url' => null]],
+                ['b' => ['teks' => 'Salah mengetikkan nama fungsi rumus', 'url' => null]],
+                ['c' => ['teks' => 'Data yang dimasukkan bukan angka numerik', 'url' => null]],
+                ['d' => ['teks' => 'Referensi kolom terhapus', 'url' => null]],
+                ['e' => ['teks' => 'Angka terlalu besar melebihi lebar sel', 'url' => null]],
+            ]),
+            'MC_answer' => 'a',
+            'difficulty' => 'sulit',
+            'delta' => 1.5,
+            'created_by' => $guru1->id,
+        ]);
+
+        // SULIT 9 (MC)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'MultipleChoice',
+            'question' => json_encode(['text' => 'Pesan error #VALUE! pada cell spreadsheet biasanya disebabkan oleh...', 'URL' => null]),
+            'MC_option' => json_encode([
+                ['a' => ['teks' => 'Lebar kolom kurang besar', 'url' => null]],
+                ['b' => ['teks' => 'Tipe data yang dioperasikan dalam rumus tidak sesuai (misal: angka ditambah teks)', 'url' => null]],
+                ['c' => ['teks' => 'Tidak menemukan data pada fungsi VLOOKUP', 'url' => null]],
+                ['d' => ['teks' => 'Pembagian dengan angka nol', 'url' => null]],
+                ['e' => ['teks' => 'Cell reference terhapus atau hilang', 'url' => null]],
+            ]),
+            'MC_answer' => 'b',
+            'difficulty' => 'sulit',
+            'delta' => 1.5,
+            'created_by' => $guru1->id,
+        ]);
+
+        // SULIT 10 (SA)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'ShortAnswer',
+            'question' => json_encode(['text' => 'Fitur di Excel yang otomatis memberi warna latar (highlight) pada sel jika nilainya lebih besar dari angka tertentu dinamakan?', 'URL' => null]),
+            'SA_answer' => json_encode(['conditional formatting', 'format bersyarat']),
+            'difficulty' => 'sulit',
+            'delta' => 1.5,
+            'created_by' => $guru1->id,
+        ]);
+
+        // SULIT 11 (MC)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'MultipleChoice',
+            'question' => json_encode(['text' => 'Fitur yang dirancang untuk merangkum, menganalisis, dan mengeksplorasi ribuan baris data ke dalam laporan dinamis dengan interaktif disebut?', 'URL' => null]),
+            'MC_option' => json_encode([
+                ['a' => ['teks' => 'Pivot Table', 'url' => null]],
+                ['b' => ['teks' => 'Data Validation', 'url' => null]],
+                ['c' => ['teks' => 'VLOOKUP', 'url' => null]],
+                ['d' => ['teks' => 'Macro', 'url' => null]],
+                ['e' => ['teks' => 'Subtotal', 'url' => null]],
+            ]),
+            'MC_answer' => 'a',
+            'difficulty' => 'sulit',
+            'delta' => 1.5,
+            'created_by' => $guru1->id,
+        ]);
+
+        // SULIT 12 (SA)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'ShortAnswer',
+            'question' => json_encode(['text' => 'Untuk membatasi input pengguna agar hanya bisa memasukkan angka 1 sampai 10 di sebuah sel, fitur apa yang dipakai?', 'URL' => null]),
+            'SA_answer' => json_encode(['data validation', 'validasi data']),
+            'difficulty' => 'sulit',
+            'delta' => 1.5,
+            'created_by' => $guru1->id,
+        ]);
+
+        // SULIT 13 (MC)
+        $informatikaQuestions[] = Question::create([
+            'id_topic' => '1',
+            'type' => 'MultipleChoice',
+            'question' => json_encode(['text' => 'Fungsi untuk memeriksa apakah suatu rumus menghasilkan error atau tidak, dan menukarnya dengan nilai tertentu (misalnya diganti teks "Kosong") adalah?', 'URL' => null]),
+            'MC_option' => json_encode([
+                ['a' => ['teks' => 'IFERROR', 'url' => null]],
+                ['b' => ['teks' => 'ISBLANK', 'url' => null]],
+                ['c' => ['teks' => 'IFERROR', 'url' => null]], // Intended logic for correct, replacing duplicate text in a/c visually, but setting a as correct
+                ['d' => ['teks' => 'REPLACE', 'url' => null]],
+                ['e' => ['teks' => 'SUBSTITUTE', 'url' => null]],
+            ]),
+            'MC_answer' => 'a',
+            'difficulty' => 'sulit',
+            'delta' => 1.5,
+            'created_by' => $guru1->id,
+        ]);
+
+
+        //ipa questions
 
         $ipaQuestions = [];
 
@@ -358,6 +838,7 @@ class DatabaseSeeder extends Seeder
             ]),
             'MC_answer' => 'a',
             'difficulty' => 'mudah',
+            'delta' => -1.5,
             'created_by' => $guru2->id,
         ]);
 
@@ -375,6 +856,7 @@ class DatabaseSeeder extends Seeder
             ]),
             'MC_answer' => 'a',
             'difficulty' => 'mudah',
+            'delta' => -1.5,
             'created_by' => $guru2->id,
         ]);
 
@@ -385,6 +867,7 @@ class DatabaseSeeder extends Seeder
             'question' => json_encode(['text' => 'Sebutkan satu contoh gerak lurus dalam kehidupan sehari-hari!', 'URL' => null]),
             'SA_answer' => json_encode(['mobil', 'sepeda', 'kereta']),
             'difficulty' => 'mudah',
+            'delta' => -1.5,
             'created_by' => $guru2->id,
         ]);
 
@@ -402,6 +885,7 @@ class DatabaseSeeder extends Seeder
             ]),
             'MC_answer' => 'a',
             'difficulty' => 'sedang',
+            'delta' => 0.0,
             'created_by' => $guru2->id,
         ]);
 
@@ -419,6 +903,7 @@ class DatabaseSeeder extends Seeder
             ]),
             'MC_answer' => 'a',
             'difficulty' => 'sedang',
+            'delta' => 0.0,
             'created_by' => $guru2->id,
         ]);
 
@@ -433,6 +918,7 @@ class DatabaseSeeder extends Seeder
                 's dibagi t'
             ]),
             'difficulty' => 'sedang',
+            'delta' => 0.0,
             'created_by' => $guru2->id,
         ]);
 
@@ -447,6 +933,7 @@ class DatabaseSeeder extends Seeder
                 'jarak tempuh'
             ]),
             'difficulty' => 'sedang',
+            'delta' => 0.0,
             'created_by' => $guru2->id,
         ]);
 
@@ -461,6 +948,7 @@ class DatabaseSeeder extends Seeder
                 'durasi'
             ]),
             'difficulty' => 'sedang',
+            'delta' => 0.0,
             'created_by' => $guru2->id,
         ]);
 
@@ -475,6 +963,7 @@ class DatabaseSeeder extends Seeder
                 'gerak lurus dengan kecepatan tetap'
             ]),
             'difficulty' => 'sulit',
+            'delta' => 1.5,
             'created_by' => $guru2->id,
         ]);
 
@@ -489,6 +978,7 @@ class DatabaseSeeder extends Seeder
                 'jarak dan arah'
             ]),
             'difficulty' => 'sulit',
+            'delta' => 1.5,
             'created_by' => $guru2->id,
         ]);
 
@@ -506,6 +996,7 @@ class DatabaseSeeder extends Seeder
             ]),
             'MC_answer' => 'a',
             'difficulty' => 'sulit',
+            'delta' => 1.5,
             'created_by' => $guru2->id,
         ]);
 

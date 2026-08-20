@@ -740,7 +740,7 @@ class guruController extends Controller
             ->join('subject', 'topics.id_subject', '=', 'subject.id')
             ->whereIn('subject.id_class', $kelasIds)
             ->select(
-                'question.*',
+                'question.*', // Ini sudah otomatis membawa atribut 'delta'
                 'topics.title as topic_title',
                 'topics.id_subject as topic_subject_id',
                 'subject.name as subject_name',
@@ -763,7 +763,6 @@ class guruController extends Controller
             'subjects' => $subjects
         ]);
     }
-
 
     public function editTopikSoal(Request $request, $id)
     {
@@ -922,19 +921,28 @@ class guruController extends Controller
             $saAnswer = $request->input('sa_answer') ? json_encode(array_values(array_filter($request->input('sa_answer')))) : null;
         }
 
+        // 🔹 LOGIKA PENENTUAN DELTA (RASCH MODEL)
+        $difficulty = $request->difficulty ?? 'sedang';
+        $delta = 0.0; // Default sedang
+        if ($difficulty === 'mudah') {
+            $delta = -1.5;
+        } elseif ($difficulty === 'sulit') {
+            $delta = 1.5;
+        }
+
         $question = Question::create([
             'type' => $request->type,
             'question' => json_encode($questionData),
             'MC_option' => $mcOption,
             'SA_answer' => $saAnswer,
             'MC_answer' => $mcAnswer,
-            'difficulty' => $request->difficulty ?? 'sedang',
+            'difficulty' => $difficulty,
+            'delta' => $delta,
             'id_topic' => $request->id_topic ?? null,
             'created_by' => Auth::id(),
         ]);
 
         return back()->with('success', 'Soal berhasil disimpan!');
-
     }
     // 🔹 Edit soal
     public function editSoal($id)
@@ -1073,17 +1081,26 @@ class guruController extends Controller
             $saAnswer = !empty($filtered) ? json_encode($filtered) : null;
         }
 
+        // 🔹 LOGIKA PENENTUAN DELTA UNTUK UPDATE
+        $difficulty = $request->difficulty ?? $data->difficulty;
+        $delta = 0.0;
+        if ($difficulty === 'mudah') {
+            $delta = -1.5;
+        } elseif ($difficulty === 'sulit') {
+            $delta = 1.5;
+        }
+
         // Update record
         $data->question = json_encode($questionData);
         $data->MC_option = $mcOption;
         $data->SA_answer = $saAnswer;
         $data->MC_answer = $mcAnswer;
-        $data->difficulty = $request->difficulty ?? $data->difficulty;
+        $data->difficulty = $difficulty;
+        $data->delta = $delta; 
         $data->id_topic = $request->id_topic ?? $data->id_topic;
         $data->save();
 
         return back()->with('success', 'Soal berhasil diedit!');
-
     }
 
     // 🔹 Hapus soal
