@@ -8,6 +8,7 @@ use App\Http\Controllers\BadgeController;
 use App\Http\Controllers\guruController;
 use App\Http\Controllers\loginController;
 use App\Http\Controllers\nilaicontroller;
+use App\Http\Controllers\LearningAnalyticsController;
 use App\Http\Controllers\registerController;
 use App\Http\Controllers\siswaController;
 use App\Http\Controllers\SoalController;
@@ -119,6 +120,12 @@ Route::middleware(['auth', RoleMiddleware::class . ':teacher'])->group(function 
     );
 
     Route::get('/get-question/{id}', [aturAktivitasController::class, 'getQuestion']);
+
+    // Learning Analytics
+    Route::get(
+        '/performa-siswa',
+        [LearningAnalyticsController::class, 'index']
+    )->name('guru.learningAnalytics');
 
 
     //manajemen soal

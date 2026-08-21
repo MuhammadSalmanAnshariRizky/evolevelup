@@ -16,6 +16,7 @@ class LearningAnalyticsService
         ?int $activityId = null,
         ?int $studentId = null
     ): Collection {
+
         $query = ActivityResult::query()
             ->with([
                 'nilaiSiswa',
@@ -24,42 +25,68 @@ class LearningAnalyticsService
 
         // Filter kelas.
         if ($classId !== null) {
+
             $query->whereHas(
                 'aktivitas.topic.subject',
                 function ($q) use ($classId) {
-                    $q->where('id_class', $classId);
+
+                    $q->where(
+                        'id_class',
+                        $classId
+                    );
+
                 }
             );
         }
 
         // Filter mata pelajaran.
         if ($subjectId !== null) {
+
             $query->whereHas(
                 'aktivitas.topic',
                 function ($q) use ($subjectId) {
-                    $q->where('id_subject', $subjectId);
+
+                    $q->where(
+                        'id_subject',
+                        $subjectId
+                    );
+
                 }
             );
         }
 
         // Filter topik.
         if ($topicId !== null) {
+
             $query->whereHas(
                 'aktivitas',
                 function ($q) use ($topicId) {
-                    $q->where('id_topic', $topicId);
+
+                    $q->where(
+                        'id_topic',
+                        $topicId
+                    );
+
                 }
             );
         }
 
         // Filter aktivitas.
         if ($activityId !== null) {
-            $query->where('id_activity', $activityId);
+
+            $query->where(
+                'id_activity',
+                $activityId
+            );
         }
 
         // Filter siswa.
         if ($studentId !== null) {
-            $query->where('id_user', $studentId);
+
+            $query->where(
+                'id_user',
+                $studentId
+            );
         }
 
         return $query
@@ -68,7 +95,8 @@ class LearningAnalyticsService
             ->get();
     }
 
-    // GET FILTERED ANSWERS — Mengambil jawaban siswa berdasarkan filter LA.
+
+    // GET FILTERED ANSWERS — Mengambil jawaban sebagai sumber utama LA.
     public function getFilteredAnswers(
         ?int $classId = null,
         ?int $subjectId = null,
@@ -76,6 +104,7 @@ class LearningAnalyticsService
         ?int $activityId = null,
         ?int $studentId = null
     ): Collection {
+
         $query = ActivityAnswer::query()
             ->with([
                 'user',
@@ -85,42 +114,68 @@ class LearningAnalyticsService
 
         // Filter kelas.
         if ($classId !== null) {
+
             $query->whereHas(
                 'activity.topic.subject',
                 function ($q) use ($classId) {
-                    $q->where('id_class', $classId);
+
+                    $q->where(
+                        'id_class',
+                        $classId
+                    );
+
                 }
             );
         }
 
         // Filter mata pelajaran.
         if ($subjectId !== null) {
+
             $query->whereHas(
                 'activity.topic',
                 function ($q) use ($subjectId) {
-                    $q->where('id_subject', $subjectId);
+
+                    $q->where(
+                        'id_subject',
+                        $subjectId
+                    );
+
                 }
             );
         }
 
         // Filter topik.
         if ($topicId !== null) {
+
             $query->whereHas(
                 'activity',
                 function ($q) use ($topicId) {
-                    $q->where('id_topic', $topicId);
+
+                    $q->where(
+                        'id_topic',
+                        $topicId
+                    );
+
                 }
             );
         }
 
         // Filter aktivitas.
         if ($activityId !== null) {
-            $query->where('id_activity', $activityId);
+
+            $query->where(
+                'id_activity',
+                $activityId
+            );
         }
 
         // Filter siswa.
         if ($studentId !== null) {
-            $query->where('id_user', $studentId);
+
+            $query->where(
+                'id_user',
+                $studentId
+            );
         }
 
         return $query
@@ -129,10 +184,14 @@ class LearningAnalyticsService
             ->get();
     }
 
+
     // PERFORMANCE SUMMARY — Ringkasan performa keseluruhan.
-    public function getPerformanceSummary(Collection $results): array
-    {
+    public function getPerformanceSummary(
+        Collection $results
+    ): array {
+
         if ($results->isEmpty()) {
+
             return [
                 'total_students' => 0,
                 'total_results' => 0,
@@ -143,232 +202,364 @@ class LearningAnalyticsService
             ];
         }
 
-        $totalResults = $results->count();
+        // Jumlah hasil aktivitas.
+        $totalResults =
+            $results->count();
 
         // Rata-rata nilai akhir.
-        $averageScore = round(
-            $results->avg(
-                fn($result) => (float) $result->nilai_akhir
-            ),
-            2
-        );
-
-        // Accuracy berdasarkan jumlah soal aktivitas.
-        $accuracies = $results
-            ->map(function ($result) {
-
-                $totalQuestions = (int) (
-                    $result->aktivitas->jumlah_soal ?? 0
-                );
-
-                if ($totalQuestions <= 0) {
-                    return null;
-                }
-
-                return (
-                    ((int) $result->total_benar / $totalQuestions)
-                    * 100
-                );
-            })
-            ->filter(
-                fn($value) => $value !== null
+        $averageScore =
+            round(
+                $results->avg(
+                    fn($result) =>
+                    (float) $result->nilai_akhir
+                ),
+                2
             );
 
-        $averageAccuracy = $accuracies->isNotEmpty()
-            ? round($accuracies->avg(), 2)
-            : 0;
+        // Hitung accuracy setiap aktivitas.
+        $accuracies =
+            $results
+                ->map(
+                    function ($result) {
 
-        // Persentase hasil yang lulus.
-        $passCount = $results
-            ->filter(
-                fn($result) =>
-                $result->result_status === 'Pass'
-            )
-            ->count();
+                        $totalQuestions =
+                            (int) (
+                                $result
+                                    ->aktivitas
+                                    ->jumlah_soal
+                                    ?? 0
+                            );
 
-        $passRate = round(
-            ($passCount / $totalResults) * 100,
-            2
-        );
+                        if (
+                            $totalQuestions <= 0
+                        ) {
 
-        // Rata-rata durasi.
-        $durations = $results
-            ->pluck('waktu_mengerjakan')
-            ->filter(
-                fn($value) => $value !== null
-            )
-            ->map(
-                fn($value) => (int) $value
-            );
-
-        $averageDuration = $durations->isNotEmpty()
-            ? round($durations->avg())
-            : 0;
-
-        return [
-            'total_students' => $results
-                ->pluck('id_user')
-                ->unique()
-                ->count(),
-
-            'total_results' => $totalResults,
-
-            'average_score' => $averageScore,
-
-            'average_accuracy' => $averageAccuracy,
-
-            'pass_rate' => $passRate,
-
-            'average_duration' => $averageDuration,
-        ];
-    }
-
-    // STUDENT SUMMARY — Rekap performa setiap siswa.
-    public function getStudentSummary(Collection $results): Collection
-    {
-        return $results
-            ->groupBy('id_user')
-            ->map(function (Collection $studentResults) {
-
-                $student = $studentResults
-                    ->first()
-                    ->nilaiSiswa;
-
-                // Rata-rata nilai siswa.
-                $averageScore = round(
-                    $studentResults->avg(
-                        fn($result) =>
-                        (float) $result->nilai_akhir
-                    ),
-                    2
-                );
-
-                // Accuracy siswa.
-                $accuracies = $studentResults
-                    ->map(function ($result) {
-
-                        $totalQuestions = (int) (
-                            $result->aktivitas->jumlah_soal ?? 0
-                        );
-
-                        if ($totalQuestions <= 0) {
                             return null;
                         }
 
                         return (
-                            ((int) $result->total_benar / $totalQuestions)
+                            (
+                                (int)
+                                $result->total_benar
+                                /
+                                $totalQuestions
+                            )
                             * 100
                         );
-                    })
-                    ->filter(
-                        fn($value) => $value !== null
-                    );
+                    }
+                )
+                ->filter(
+                    fn($value) =>
+                    $value !== null
+                );
 
-                $averageAccuracy = $accuracies->isNotEmpty()
-                    ? round($accuracies->avg(), 2)
-                    : 0;
+        // Rata-rata accuracy.
+        $averageAccuracy =
+            $accuracies->isNotEmpty()
+                ? round(
+                    $accuracies->avg(),
+                    2
+                )
+                : 0;
 
-                // Rata-rata durasi.
-                $durations = $studentResults
-                    ->pluck('waktu_mengerjakan')
-                    ->filter(
-                        fn($value) => $value !== null
-                    )
-                    ->map(
-                        fn($value) => (int) $value
-                    );
+        // Jumlah hasil yang lulus.
+        $passCount =
+            $results
+                ->filter(
+                    fn($result) =>
+                    $result->result_status === 'Pass'
+                )
+                ->count();
 
-                $averageDuration = $durations->isNotEmpty()
-                    ? round($durations->avg())
-                    : 0;
+        // Tingkat ketuntasan.
+        $passRate =
+            round(
+                (
+                    $passCount
+                    /
+                    $totalResults
+                )
+                * 100,
+                2
+            );
 
-                // Jumlah aktivitas.
-                $totalActivities = $studentResults
-                    ->pluck('id_activity')
+        // Rata-rata durasi.
+        $durations =
+            $results
+                ->pluck(
+                    'waktu_mengerjakan'
+                )
+                ->filter(
+                    fn($value) =>
+                    $value !== null
+                )
+                ->map(
+                    fn($value) =>
+                    (int) $value
+                );
+
+        $averageDuration =
+            $durations->isNotEmpty()
+                ? round(
+                    $durations->avg()
+                )
+                : 0;
+
+        return [
+
+            'total_students' =>
+                $results
+                    ->pluck('id_user')
                     ->unique()
-                    ->count();
+                    ->count(),
 
-                // Jumlah aktivitas lulus.
-                $passedActivities = $studentResults
-                    ->filter(
-                        fn($result) =>
-                        $result->result_status === 'Pass'
-                    )
-                    ->count();
+            'total_results' =>
+                $totalResults,
 
-                // Status keseluruhan.
-                $overallStatus = $averageScore >= 70
-                    ? 'Pass'
-                    : 'Remedial';
+            'average_score' =>
+                $averageScore,
 
-                return [
-                    'student_id' => $student->id,
-                    'student_name' => $student->name,
+            'average_accuracy' =>
+                $averageAccuracy,
 
-                    'average_score' => $averageScore,
+            'pass_rate' =>
+                $passRate,
 
-                    'average_accuracy' => $averageAccuracy,
+            'average_duration' =>
+                $averageDuration,
+        ];
+    }
 
-                    'average_duration' => $averageDuration,
 
-                    'total_activities' => $totalActivities,
+    // STUDENT SUMMARY — Rekap performa setiap siswa.
+    public function getStudentSummary(
+        Collection $results
+    ): Collection {
 
-                    'passed_activities' => $passedActivities,
+        return $results
+            ->groupBy('id_user')
+            ->map(
+                function (
+                    Collection $studentResults
+                ) {
 
-                    'overall_status' => $overallStatus,
-                ];
-            })
+                    $student =
+                        $studentResults
+                            ->first()
+                            ->nilaiSiswa;
+
+                    // Rata-rata nilai.
+                    $averageScore =
+                        round(
+                            $studentResults->avg(
+                                fn($result) =>
+                                (float)
+                                $result->nilai_akhir
+                            ),
+                            2
+                        );
+
+                    // Accuracy setiap aktivitas.
+                    $accuracies =
+                        $studentResults
+                            ->map(
+                                function ($result) {
+
+                                    $totalQuestions =
+                                        (int) (
+                                            $result
+                                                ->aktivitas
+                                                ->jumlah_soal
+                                                ?? 0
+                                        );
+
+                                    if (
+                                        $totalQuestions <= 0
+                                    ) {
+
+                                        return null;
+                                    }
+
+                                    return (
+                                        (
+                                            (int)
+                                            $result->total_benar
+                                            /
+                                            $totalQuestions
+                                        )
+                                        * 100
+                                    );
+                                }
+                            )
+                            ->filter(
+                                fn($value) =>
+                                $value !== null
+                            );
+
+                    // Rata-rata accuracy.
+                    $averageAccuracy =
+                        $accuracies->isNotEmpty()
+                            ? round(
+                                $accuracies->avg(),
+                                2
+                            )
+                            : 0;
+
+                    // Rata-rata durasi.
+                    $durations =
+                        $studentResults
+                            ->pluck(
+                                'waktu_mengerjakan'
+                            )
+                            ->filter(
+                                fn($value) =>
+                                $value !== null
+                            )
+                            ->map(
+                                fn($value) =>
+                                (int) $value
+                            );
+
+                    $averageDuration =
+                        $durations->isNotEmpty()
+                            ? round(
+                                $durations->avg()
+                            )
+                            : 0;
+
+                    // Jumlah aktivitas.
+                    $totalActivities =
+                        $studentResults
+                            ->pluck(
+                                'id_activity'
+                            )
+                            ->unique()
+                            ->count();
+
+                    // Jumlah aktivitas lulus.
+                    $passedActivities =
+                        $studentResults
+                            ->filter(
+                                fn($result) =>
+                                $result->result_status
+                                === 'Pass'
+                            )
+                            ->count();
+
+                    // Status keseluruhan.
+                    $overallStatus =
+                        $averageScore >= 70
+                            ? 'Pass'
+                            : 'Remedial';
+
+                    return [
+
+                        'student_id' =>
+                            $student->id,
+
+                        'student_name' =>
+                            $student->name,
+
+                        'average_score' =>
+                            $averageScore,
+
+                        'average_accuracy' =>
+                            $averageAccuracy,
+
+                        'average_duration' =>
+                            $averageDuration,
+
+                        'total_activities' =>
+                            $totalActivities,
+
+                        'passed_activities' =>
+                            $passedActivities,
+
+                        'overall_status' =>
+                            $overallStatus,
+                    ];
+                }
+            )
             ->values();
     }
+
 
     // RASCH PROBABILITY — Menghitung probabilitas menjawab benar.
     private function calculateRaschProbability(
         float $theta,
         float $delta
     ): float {
-        $exponent = $theta - $delta;
 
-        $exponent = max(
-            -50,
-            min(50, $exponent)
-        );
+        $exponent =
+            $theta - $delta;
 
-        $e = exp($exponent);
+        // Membatasi eksponen untuk menjaga stabilitas numerik.
+        $exponent =
+            max(
+                -50,
+                min(
+                    50,
+                    $exponent
+                )
+            );
 
-        return $e / (1 + $e);
+        $e =
+            exp($exponent);
+
+        return
+            $e /
+            (1 + $e);
     }
 
-    // GET DELTA — Mengambil delta soal dari jawaban.
-    private function getAnswerDelta($answer): float
-    {
+
+    // GET DELTA — Mengambil delta dari jawaban atau soal.
+    private function getAnswerDelta(
+        $answer
+    ): float {
+
         if (
             isset($answer->delta) &&
             $answer->delta !== null
         ) {
-            return (float) $answer->delta;
+
+            return
+                (float)
+                $answer->delta;
         }
 
-        return (float) (
-            $answer->question->delta ?? 0
-        );
+        return
+            (float) (
+                $answer
+                    ->question
+                    ->delta
+                    ?? 0
+            );
     }
 
-    // ESTIMATE THETA — Mengestimasi kemampuan siswa pada satu topik.
+
+    // ESTIMATE THETA — Estimasi kemampuan menggunakan Newton-Raphson Rasch.
     private function estimateTheta(
         Collection $answers
     ): float {
-        if ($answers->isEmpty()) {
+
+        if (
+            $answers->isEmpty()
+        ) {
+
             return 0.0;
         }
 
         // Nilai awal theta.
-        $theta = 0.0;
+        $theta =
+            0.0;
 
         // Maksimum iterasi.
-        $maxIterations = 30;
+        $maxIterations =
+            30;
 
-        // Toleransi perubahan theta.
-        $tolerance = 0.0001;
+        // Toleransi konvergensi.
+        $tolerance =
+            0.0001;
 
         for (
             $iteration = 0;
@@ -376,22 +567,29 @@ class LearningAnalyticsService
             $iteration++
         ) {
 
-            $firstDerivative = 0.0;
-            $secondDerivative = 0.0;
+            $firstDerivative =
+                0.0;
 
-            foreach ($answers as $answer) {
+            $secondDerivative =
+                0.0;
 
-                $delta = $this->getAnswerDelta(
-                    $answer
-                );
+            foreach (
+                $answers as $answer
+            ) {
 
-                $isCorrect = (bool) (
-                    $answer->is_correct
-                );
+                $delta =
+                    $this->getAnswerDelta(
+                        $answer
+                    );
 
-                $x = $isCorrect
-                    ? 1.0
-                    : 0.0;
+                $isCorrect =
+                    (bool)
+                    $answer->is_correct;
+
+                $x =
+                    $isCorrect
+                        ? 1.0
+                        : 0.0;
 
                 $probability =
                     $this->calculateRaschProbability(
@@ -400,178 +598,173 @@ class LearningAnalyticsService
                     );
 
                 $firstDerivative +=
-                    $x - $probability;
+                    $x -
+                    $probability;
 
                 $secondDerivative -=
                     $probability *
-                    (1 - $probability);
+                    (
+                        1 -
+                        $probability
+                    );
             }
 
-            // Hindari pembagian dengan nol.
+            // Hindari pembagian dengan nilai terlalu kecil.
             if (
-                abs($secondDerivative) < 0.0000001
+                abs(
+                    $secondDerivative
+                ) < 0.0000001
             ) {
+
                 break;
             }
 
             $change =
-                $firstDerivative /
+                $firstDerivative
+                /
                 $secondDerivative;
 
             $newTheta =
-                $theta - $change;
+                $theta -
+                $change;
 
-            // Batasi theta pada rentang -3 sampai 3.
-            $newTheta = max(
-                -3.0,
-                min(3.0, $newTheta)
-            );
+            // Batas theta sesuai skala yang digunakan LA.
+            $newTheta =
+                max(
+                    -3.0,
+                    min(
+                        3.0,
+                        $newTheta
+                    )
+                );
 
             // Periksa konvergensi.
             if (
-                abs($newTheta - $theta)
-                < $tolerance
+                abs(
+                    $newTheta -
+                    $theta
+                )
+                <
+                $tolerance
             ) {
-                $theta = $newTheta;
+
+                $theta =
+                    $newTheta;
 
                 break;
             }
 
-            $theta = $newTheta;
+            $theta =
+                $newTheta;
         }
 
-        return round(
-            $theta,
-            4
-        );
+        return
+            round(
+                $theta,
+                4
+            );
     }
 
-    // RASCH MASTERY — Menghitung mastery berdasarkan expected performance Rasch.
-    private function calculateRaschMastery(
-        Collection $answers,
+
+    // THETA TO MASTERY — Mengubah theta Rasch menjadi mastery 0-100.
+    //
+    // Rumus:
+    //
+    // Mastery =
+    // 1 / (1 + e^(-theta)) × 100
+    //
+    // Mastery tidak lagi dihitung dari expected score.
+    private function thetaToMastery(
         float $theta
     ): float {
-        if ($answers->isEmpty()) {
-            return 0.0;
-        }
 
-        $expectedScore = 0.0;
-
-        foreach ($answers as $answer) {
-
-            $delta = $this->getAnswerDelta(
-                $answer
+        $exponent =
+            max(
+                -50,
+                min(
+                    50,
+                    -$theta
+                )
             );
 
-            $expectedScore +=
-                $this->calculateRaschProbability(
-                    $theta,
-                    $delta
-                );
-        }
+        $mastery =
+            (
+                1 /
+                (
+                    1 +
+                    exp($exponent)
+                )
+            )
+            * 100;
 
-        $totalItems = $answers->count();
-
-        return round(
-            ($expectedScore / $totalItems) * 100,
-            2
-        );
+        return
+            round(
+                $mastery,
+                2
+            );
     }
 
-    // MASTERY CATEGORY — Menentukan kategori penguasaan topik.
+
+    // MASTERY CATEGORY — Menentukan kategori mastery.
+    //
+    // 0-49   : Belum Menguasai
+    // 50-69  : Cukup
+    // 70-84  : Menguasai
+    // 85-100 : Mahir
     private function getMasteryCategory(
         float $mastery
     ): array {
 
-        if ($mastery >= 85) {
+        if (
+            $mastery >= 85
+        ) {
 
             return [
-                'key' => 'mahir',
-                'label' => 'Mahir',
+                'key' =>
+                    'mahir',
+
+                'label' =>
+                    'Mahir',
             ];
         }
 
-        if ($mastery >= 70) {
+        if (
+            $mastery >= 70
+        ) {
 
             return [
-                'key' => 'menguasai',
-                'label' => 'Menguasai',
+                'key' =>
+                    'menguasai',
+
+                'label' =>
+                    'Menguasai',
             ];
         }
 
-        if ($mastery >= 50) {
+        if (
+            $mastery >= 50
+        ) {
 
             return [
-                'key' => 'cukup',
-                'label' => 'Cukup',
+                'key' =>
+                    'cukup',
+
+                'label' =>
+                    'Cukup',
             ];
         }
 
         return [
-            'key' => 'belum',
-            'label' => 'Belum Menguasai',
+            'key' =>
+                'belum',
+
+            'label' =>
+                'Belum Menguasai',
         ];
     }
 
-    // DIFFICULTY ANALYSIS — Analisis performa berdasarkan tingkat kesulitan.
-    public function getDifficultyAnalysis(
-        Collection $answers
-    ): array {
 
-        $difficulties = [
-            'mudah',
-            'sedang',
-            'sulit',
-        ];
-
-        $analysis = [];
-
-        foreach ($difficulties as $difficulty) {
-
-            $difficultyAnswers = $answers
-                ->filter(
-                    fn($answer) =>
-                    $answer->question &&
-                    $answer->question->difficulty === $difficulty
-                );
-
-            $total =
-                $difficultyAnswers->count();
-
-            $correct =
-                $difficultyAnswers
-                    ->filter(
-                        fn($answer) =>
-                        (bool) $answer->is_correct
-                    )
-                    ->count();
-
-            $accuracy = $total > 0
-                ? round(
-                    ($correct / $total) * 100,
-                    2
-                )
-                : 0;
-
-            $analysis[$difficulty] = [
-                'total_answers' =>
-                    $total,
-
-                'correct_answers' =>
-                    $correct,
-
-                'incorrect_answers' =>
-                    $total - $correct,
-
-                'accuracy' =>
-                    $accuracy,
-            ];
-        }
-
-        return $analysis;
-    }
-
-    // TOPIC MASTERY — Mastery Rasch untuk setiap topik.
+    // TOPIC MASTERY — Mastery agregat berdasarkan topik.
     public function getTopicMastery(
         Collection $answers
     ): Collection {
@@ -583,7 +776,9 @@ class LearningAnalyticsService
             )
             ->groupBy(
                 fn($answer) =>
-                $answer->question->id_topic
+                $answer
+                    ->question
+                    ->id_topic
             )
             ->map(
                 function (
@@ -592,19 +787,28 @@ class LearningAnalyticsService
                 ) {
 
                     $firstAnswer =
-                        $topicAnswers->first();
+                        $topicAnswers
+                            ->first();
 
                     $topic =
-                        $firstAnswer->question->topic;
+                        $firstAnswer
+                            ->question
+                            ->topic;
+
+                    $subject =
+                        $topic
+                            ->subject;
 
                     $totalAnswers =
-                        $topicAnswers->count();
+                        $topicAnswers
+                            ->count();
 
                     $correctAnswers =
                         $topicAnswers
                             ->filter(
                                 fn($answer) =>
-                                (bool) $answer->is_correct
+                                (bool)
+                                $answer->is_correct
                             )
                             ->count();
 
@@ -616,36 +820,43 @@ class LearningAnalyticsService
                     $accuracy =
                         $totalAnswers > 0
                             ? (
-                                $correctAnswers /
+                                $correctAnswers
+                                /
                                 $totalAnswers
                             ) * 100
                             : 0;
 
-                    // Estimasi theta Rasch.
+                    // Theta Rasch.
                     $theta =
                         $this->estimateTheta(
                             $topicAnswers
                         );
 
-                    // Mastery Rasch.
+                    // Mastery dari theta.
                     $mastery =
-                        $this->calculateRaschMastery(
-                            $topicAnswers,
+                        $this->thetaToMastery(
                             $theta
                         );
 
                     // Kategori mastery.
-                    $masteryCategory =
+                    $category =
                         $this->getMasteryCategory(
                             $mastery
                         );
 
                     return [
+
                         'topic_id' =>
                             $topicId,
 
                         'topic_name' =>
                             $topic->title,
+
+                        'subject_id' =>
+                            $subject->id,
+
+                        'subject_name' =>
+                            $subject->name,
 
                         'total_answers' =>
                             $totalAnswers,
@@ -656,30 +867,45 @@ class LearningAnalyticsService
                         'incorrect_answers' =>
                             $incorrectAnswers,
 
+                        // Performa aktual.
                         'accuracy' =>
                             round(
                                 $accuracy,
                                 2
                             ),
 
+                        // Kemampuan Rasch.
                         'theta' =>
                             $theta,
 
+                        // Mastery turunan theta.
                         'mastery' =>
                             $mastery,
 
+                        // Kategori mastery.
                         'mastery_category' =>
-                            $masteryCategory['key'],
+                            $category['key'],
 
                         'mastery_category_label' =>
-                            $masteryCategory['label'],
+                            $category['label'],
                     ];
                 }
             )
+            ->sortBy([
+                [
+                    'subject_name',
+                    'asc',
+                ],
+                [
+                    'topic_name',
+                    'asc',
+                ],
+            ])
             ->values();
     }
 
-    // STUDENT TOPIC MASTERY — Mastery Rasch setiap siswa pada setiap topik.
+
+    // STUDENT TOPIC MASTERY — Mastery setiap siswa pada setiap topik.
     public function getStudentTopicMastery(
         Collection $answers
     ): Collection {
@@ -696,7 +922,10 @@ class LearningAnalyticsService
                     return
                         $answer->user->id
                         . '-'
-                        . $answer->question->id_topic;
+                        .
+                        $answer
+                            ->question
+                            ->id_topic;
                 }
             )
             ->map(
@@ -705,22 +934,32 @@ class LearningAnalyticsService
                 ) {
 
                     $firstAnswer =
-                        $studentTopicAnswers->first();
+                        $studentTopicAnswers
+                            ->first();
 
                     $student =
-                        $firstAnswer->user;
+                        $firstAnswer
+                            ->user;
 
                     $topic =
-                        $firstAnswer->question->topic;
+                        $firstAnswer
+                            ->question
+                            ->topic;
+
+                    $subject =
+                        $topic
+                            ->subject;
 
                     $totalAnswers =
-                        $studentTopicAnswers->count();
+                        $studentTopicAnswers
+                            ->count();
 
                     $correctAnswers =
                         $studentTopicAnswers
                             ->filter(
                                 fn($answer) =>
-                                (bool) $answer->is_correct
+                                (bool)
+                                $answer->is_correct
                             )
                             ->count();
 
@@ -732,31 +971,32 @@ class LearningAnalyticsService
                     $accuracy =
                         $totalAnswers > 0
                             ? (
-                                $correctAnswers /
+                                $correctAnswers
+                                /
                                 $totalAnswers
                             ) * 100
                             : 0;
 
-                    // Estimasi theta Rasch.
+                    // Theta Rasch siswa pada topik.
                     $theta =
                         $this->estimateTheta(
                             $studentTopicAnswers
                         );
 
-                    // Mastery Rasch.
+                    // Mastery dari theta.
                     $mastery =
-                        $this->calculateRaschMastery(
-                            $studentTopicAnswers,
+                        $this->thetaToMastery(
                             $theta
                         );
 
                     // Kategori mastery.
-                    $masteryCategory =
+                    $category =
                         $this->getMasteryCategory(
                             $mastery
                         );
 
                     return [
+
                         'student_id' =>
                             $student->id,
 
@@ -769,6 +1009,12 @@ class LearningAnalyticsService
                         'topic_name' =>
                             $topic->title,
 
+                        'subject_id' =>
+                            $subject->id,
+
+                        'subject_name' =>
+                            $subject->name,
+
                         'total_answers' =>
                             $totalAnswers,
 
@@ -778,34 +1024,123 @@ class LearningAnalyticsService
                         'incorrect_answers' =>
                             $incorrectAnswers,
 
+                        // Performa aktual.
                         'accuracy' =>
                             round(
                                 $accuracy,
                                 2
                             ),
 
+                        // Theta Rasch.
                         'theta' =>
                             $theta,
 
+                        // Mastery dari theta.
                         'mastery' =>
                             $mastery,
 
+                        // Kategori mastery.
                         'mastery_category' =>
-                            $masteryCategory['key'],
+                            $category['key'],
 
                         'mastery_category_label' =>
-                            $masteryCategory['label'],
+                            $category['label'],
                     ];
                 }
             )
             ->sortBy([
-                ['student_name', 'asc'],
-                ['topic_name', 'asc'],
+                [
+                    'student_name',
+                    'asc',
+                ],
+                [
+                    'subject_name',
+                    'asc',
+                ],
+                [
+                    'topic_name',
+                    'asc',
+                ],
             ])
             ->values();
     }
 
-    // STUDENT TOPIC DIFFICULTY — Performa siswa berdasarkan tingkat kesulitan.
+
+    // DIFFICULTY ANALYSIS — Analisis difficulty keseluruhan.
+    public function getDifficultyAnalysis(
+        Collection $answers
+    ): array {
+
+        $difficulties = [
+            'mudah',
+            'sedang',
+            'sulit',
+        ];
+
+        $analysis = [];
+
+        foreach (
+            $difficulties as $difficulty
+        ) {
+
+            $difficultyAnswers =
+                $answers->filter(
+                    fn($answer) =>
+                    $answer->question &&
+                    $answer
+                        ->question
+                        ->difficulty
+                    ===
+                    $difficulty
+                );
+
+            $total =
+                $difficultyAnswers
+                    ->count();
+
+            $correct =
+                $difficultyAnswers
+                    ->filter(
+                        fn($answer) =>
+                        (bool)
+                        $answer->is_correct
+                    )
+                    ->count();
+
+            $accuracy =
+                $total > 0
+                    ? round(
+                        (
+                            $correct
+                            /
+                            $total
+                        ) * 100,
+                        2
+                    )
+                    : 0;
+
+            $analysis[$difficulty] = [
+
+                'total_answers' =>
+                    $total,
+
+                'correct_answers' =>
+                    $correct,
+
+                'incorrect_answers' =>
+                    $total -
+                    $correct,
+
+                'accuracy' =>
+                    $accuracy,
+            ];
+        }
+
+        return $analysis;
+    }
+
+
+    // STUDENT TOPIC DIFFICULTY — Performa siswa berdasarkan difficulty.
     public function getStudentTopicDifficulty(
         Collection $answers
     ): Collection {
@@ -822,9 +1157,15 @@ class LearningAnalyticsService
                     return
                         $answer->user->id
                         . '-'
-                        . $answer->question->id_topic
+                        .
+                        $answer
+                            ->question
+                            ->id_topic
                         . '-'
-                        . $answer->question->difficulty;
+                        .
+                        $answer
+                            ->question
+                            ->difficulty;
                 }
             )
             ->map(
@@ -833,40 +1174,49 @@ class LearningAnalyticsService
                 ) {
 
                     $firstAnswer =
-                        $difficultyAnswers->first();
+                        $difficultyAnswers
+                            ->first();
 
                     $student =
-                        $firstAnswer->user;
+                        $firstAnswer
+                            ->user;
 
                     $question =
-                        $firstAnswer->question;
+                        $firstAnswer
+                            ->question;
 
                     $topic =
-                        $question->topic;
+                        $question
+                            ->topic;
 
                     $difficulty =
-                        $question->difficulty;
+                        $question
+                            ->difficulty;
 
                     $totalAnswers =
-                        $difficultyAnswers->count();
+                        $difficultyAnswers
+                            ->count();
 
                     $correctAnswers =
                         $difficultyAnswers
                             ->filter(
                                 fn($answer) =>
-                                (bool) $answer->is_correct
+                                (bool)
+                                $answer->is_correct
                             )
                             ->count();
 
                     $accuracy =
                         $totalAnswers > 0
                             ? (
-                                $correctAnswers /
+                                $correctAnswers
+                                /
                                 $totalAnswers
                             ) * 100
                             : 0;
 
                     return [
+
                         'student_id' =>
                             $student->id,
 
@@ -901,278 +1251,22 @@ class LearningAnalyticsService
                 }
             )
             ->sortBy([
-                ['student_name', 'asc'],
-                ['topic_name', 'asc'],
-                ['difficulty', 'asc'],
+                [
+                    'student_name',
+                    'asc',
+                ],
+                [
+                    'topic_name',
+                    'asc',
+                ],
+                [
+                    'difficulty',
+                    'asc',
+                ],
             ])
             ->values();
     }
 
-    // RECOMMENDATIONS — Recommendation berdasarkan kategori mastery.
-    public function getRecommendations(
-        Collection $studentMastery,
-        Collection $topicDifficulty
-    ): Collection {
-
-        return $studentMastery
-            ->map(
-                function (
-                    array $masteryData
-                ) use ($topicDifficulty) {
-
-                    $studentId =
-                        $masteryData['student_id'];
-
-                    $topicId =
-                        $masteryData['topic_id'];
-
-                    $mastery =
-                        (float) $masteryData['mastery'];
-
-                    // Ambil kategori mastery.
-                    $masteryCategory =
-                        $this->getMasteryCategory(
-                            $mastery
-                        );
-
-                    // Data difficulty siswa pada topik.
-                    $difficultyData =
-                        $topicDifficulty
-                            ->filter(
-                                function ($item)
-                                use (
-                                    $studentId,
-                                    $topicId
-                                ) {
-
-                                    return
-                                        $item['student_id']
-                                        == $studentId
-                                        &&
-                                        $item['topic_id']
-                                        == $topicId;
-                                }
-                            );
-
-                    // Accuracy mudah.
-                    $easyAccuracy =
-                        $difficultyData
-                            ->firstWhere(
-                                'difficulty',
-                                'mudah'
-                            )['accuracy']
-                            ?? null;
-
-                    // Accuracy sedang.
-                    $mediumAccuracy =
-                        $difficultyData
-                            ->firstWhere(
-                                'difficulty',
-                                'sedang'
-                            )['accuracy']
-                            ?? null;
-
-                    // Accuracy sulit.
-                    $hardAccuracy =
-                        $difficultyData
-                            ->firstWhere(
-                                'difficulty',
-                                'sulit'
-                            )['accuracy']
-                            ?? null;
-
-                    $recommendation =
-                        '';
-
-                    $recommendationCategory =
-                        '';
-
-                    // RECOMMENDATION 1 — Belum Menguasai.
-                    if (
-                        $mastery < 50
-                    ) {
-
-                        $recommendationCategory =
-                            'penguatan';
-
-                        if (
-                            $mediumAccuracy !== null &&
-                            $mediumAccuracy < 50
-                        ) {
-
-                            $recommendation =
-                                "Penguasaan topik "
-                                . $masteryData['topic_name']
-                                . " masih rendah. "
-                                . "Disarankan mempelajari kembali materi "
-                                . "dan melakukan latihan dasar pada topik tersebut.";
-
-                        } elseif (
-                            $hardAccuracy !== null &&
-                            $hardAccuracy < 50
-                        ) {
-
-                            $recommendation =
-                                "Penguasaan topik "
-                                . $masteryData['topic_name']
-                                . " masih rendah. "
-                                . "Disarankan mempelajari kembali materi "
-                                . "dan memperbanyak latihan pada soal tingkat sulit.";
-
-                        } else {
-
-                            $recommendation =
-                                "Penguasaan topik "
-                                . $masteryData['topic_name']
-                                . " masih rendah. "
-                                . "Disarankan mempelajari kembali materi "
-                                . "dan melakukan latihan pada topik tersebut.";
-                        }
-
-                    // RECOMMENDATION 2 — Cukup.
-                    } elseif (
-                        $mastery < 70
-                    ) {
-
-                        $recommendationCategory =
-                            'perlu_ditingkatkan';
-
-                        if (
-                            $mediumAccuracy !== null &&
-                            $mediumAccuracy < 60
-                        ) {
-
-                            $recommendation =
-                                "Penguasaan topik "
-                                . $masteryData['topic_name']
-                                . " masih perlu ditingkatkan. "
-                                . "Disarankan mempelajari kembali materi "
-                                . "dan berlatih pada soal tingkat sedang.";
-
-                        } elseif (
-                            $hardAccuracy !== null &&
-                            $hardAccuracy < 60
-                        ) {
-
-                            $recommendation =
-                                "Penguasaan topik "
-                                . $masteryData['topic_name']
-                                . " masih perlu ditingkatkan. "
-                                . "Disarankan memperbanyak latihan pada "
-                                . "soal tingkat sulit.";
-
-                        } else {
-
-                            $recommendation =
-                                "Penguasaan topik "
-                                . $masteryData['topic_name']
-                                . " cukup baik, namun masih dapat ditingkatkan. "
-                                . "Disarankan melakukan latihan secara berkala.";
-                        }
-
-                    // RECOMMENDATION 3 — Menguasai.
-                    } elseif (
-                        $mastery < 85
-                    ) {
-
-                        $recommendationCategory =
-                            'pengayaan';
-
-                        if (
-                            $hardAccuracy !== null &&
-                            $hardAccuracy < 60
-                        ) {
-
-                            $recommendation =
-                                "Penguasaan topik "
-                                . $masteryData['topic_name']
-                                . " sudah baik. "
-                                . "Disarankan melakukan latihan tambahan "
-                                . "pada soal tingkat sulit untuk memperkuat penguasaan.";
-
-                        } elseif (
-                            $mediumAccuracy !== null &&
-                            $mediumAccuracy < 60
-                        ) {
-
-                            $recommendation =
-                                "Penguasaan topik "
-                                . $masteryData['topic_name']
-                                . " sudah baik. "
-                                . "Disarankan melakukan latihan tambahan "
-                                . "pada soal tingkat sedang.";
-
-                        } else {
-
-                            $recommendation =
-                                "Penguasaan topik "
-                                . $masteryData['topic_name']
-                                . " sudah baik. "
-                                . "Disarankan mempertahankan penguasaan "
-                                . "melalui latihan dan mencoba soal yang lebih menantang.";
-                        }
-
-                    // RECOMMENDATION 4 — Mahir.
-                    } else {
-
-                        $recommendationCategory =
-                            'pengayaan_lanjutan';
-
-                        if (
-                            $hardAccuracy !== null &&
-                            $hardAccuracy < 70
-                        ) {
-
-                            $recommendation =
-                                "Penguasaan topik "
-                                . $masteryData['topic_name']
-                                . " sangat baik. "
-                                . "Disarankan mempertahankan hasil belajar "
-                                . "dan melakukan latihan pada soal tingkat sulit.";
-
-                        } else {
-
-                            $recommendation =
-                                "Penguasaan topik "
-                                . $masteryData['topic_name']
-                                . " sangat baik. "
-                                . "Pertahankan penguasaan melalui latihan "
-                                . "dan soal tingkat sulit.";
-                        }
-                    }
-
-                    return [
-                        'student_id' =>
-                            $studentId,
-
-                        'topic_id' =>
-                            $topicId,
-
-                        'topic_name' =>
-                            $masteryData['topic_name'],
-
-                        'mastery' =>
-                            $mastery,
-
-                        'mastery_category' =>
-                            $masteryCategory['key'],
-
-                        'mastery_category_label' =>
-                            $masteryCategory['label'],
-
-                        'theta' =>
-                            $masteryData['theta'],
-
-                        'recommendation_category' =>
-                            $recommendationCategory,
-
-                        'recommendation' =>
-                            $recommendation,
-                    ];
-                }
-            )
-            ->values();
-    }
 
     // STUDENT ACTIVITY PERFORMANCE — Performa siswa pada setiap aktivitas.
     public function getStudentActivityPerformance(
@@ -1192,7 +1286,8 @@ class LearningAnalyticsService
                     return
                         $answer->user->id
                         . '-'
-                        . $answer->activity->id;
+                        .
+                        $answer->activity->id;
                 }
             )
             ->map(
@@ -1201,25 +1296,31 @@ class LearningAnalyticsService
                 ) {
 
                     $firstAnswer =
-                        $activityAnswers->first();
+                        $activityAnswers
+                            ->first();
 
                     $student =
-                        $firstAnswer->user;
+                        $firstAnswer
+                            ->user;
 
                     $activity =
-                        $firstAnswer->activity;
+                        $firstAnswer
+                            ->activity;
 
                     $topic =
-                        $activity->topic;
+                        $activity
+                            ->topic;
 
                     $totalAnswers =
-                        $activityAnswers->count();
+                        $activityAnswers
+                            ->count();
 
                     $correctAnswers =
                         $activityAnswers
                             ->filter(
                                 fn($answer) =>
-                                (bool) $answer->is_correct
+                                (bool)
+                                $answer->is_correct
                             )
                             ->count();
 
@@ -1230,12 +1331,22 @@ class LearningAnalyticsService
                     $accuracy =
                         $totalAnswers > 0
                             ? (
-                                $correctAnswers /
+                                $correctAnswers
+                                /
                                 $totalAnswers
                             ) * 100
                             : 0;
 
+                    // Ambil status aktivitas jika tersedia.
+                    $activityStatus =
+                        $activity->status
+                        ??
+                        $activity->activity_status
+                        ??
+                        'basic';
+
                     return [
+
                         'student_id' =>
                             $student->id,
 
@@ -1248,14 +1359,14 @@ class LearningAnalyticsService
                         'activity_name' =>
                             $activity->title,
 
-                        'activity_status' =>
-                            $activity->status,
-
                         'topic_id' =>
                             $topic->id,
 
                         'topic_name' =>
                             $topic->title,
+
+                        'activity_status' =>
+                            $activityStatus,
 
                         'total_answers' =>
                             $totalAnswers,
@@ -1275,10 +1386,349 @@ class LearningAnalyticsService
                 }
             )
             ->sortBy([
-                ['student_name', 'asc'],
-                ['topic_name', 'asc'],
-                ['activity_name', 'asc'],
+                [
+                    'student_name',
+                    'asc',
+                ],
+                [
+                    'topic_name',
+                    'asc',
+                ],
+                [
+                    'activity_name',
+                    'asc',
+                ],
             ])
+            ->values();
+    }
+
+
+    // RECOMMENDATIONS — Recommendation personal berdasarkan mastery dan difficulty.
+    public function getRecommendations(
+        Collection $studentMastery,
+        Collection $topicDifficulty
+    ): Collection {
+
+        return $studentMastery
+            ->map(
+                function (
+                    array $masteryData
+                ) use (
+                    $topicDifficulty
+                ) {
+
+                    $studentId =
+                        $masteryData[
+                            'student_id'
+                        ];
+
+                    $topicId =
+                        $masteryData[
+                            'topic_id'
+                        ];
+
+                    $mastery =
+                        (float)
+                        $masteryData[
+                            'mastery'
+                        ];
+
+                    // Ambil difficulty siswa dan topik yang sama.
+                    $difficultyData =
+                        $topicDifficulty
+                            ->filter(
+                                function ($item)
+                                use (
+                                    $studentId,
+                                    $topicId
+                                ) {
+
+                                    return
+                                        $item[
+                                            'student_id'
+                                        ]
+                                        ==
+                                        $studentId
+
+                                        &&
+
+                                        $item[
+                                            'topic_id'
+                                        ]
+                                        ==
+                                        $topicId;
+                                }
+                            );
+
+                    // Akurasi mudah.
+                    $easyAccuracy =
+                        data_get(
+                            $difficultyData
+                                ->firstWhere(
+                                    'difficulty',
+                                    'mudah'
+                                ),
+                            'accuracy'
+                        );
+
+                    // Akurasi sedang.
+                    $mediumAccuracy =
+                        data_get(
+                            $difficultyData
+                                ->firstWhere(
+                                    'difficulty',
+                                    'sedang'
+                                ),
+                            'accuracy'
+                        );
+
+                    // Akurasi sulit.
+                    $hardAccuracy =
+                        data_get(
+                            $difficultyData
+                                ->firstWhere(
+                                    'difficulty',
+                                    'sulit'
+                                ),
+                            'accuracy'
+                        );
+
+                    $recommendation =
+                        '';
+
+                    $category =
+                        '';
+
+
+                    // RULE 1 — Belum Menguasai.
+                    if (
+                        $mastery < 50
+                    ) {
+
+                        $category =
+                            'penguatan';
+
+                        if (
+                            $mediumAccuracy !== null
+                            &&
+                            $mediumAccuracy < 50
+                        ) {
+
+                            $recommendation =
+                                "Penguasaan topik "
+                                . $masteryData[
+                                    'topic_name'
+                                ]
+                                . " masih rendah. "
+                                . "Disarankan mempelajari kembali "
+                                . "materi dan melakukan latihan "
+                                . "dasar pada topik tersebut.";
+
+                        } elseif (
+                            $hardAccuracy !== null
+                            &&
+                            $hardAccuracy < 50
+                        ) {
+
+                            $recommendation =
+                                "Penguasaan topik "
+                                . $masteryData[
+                                    'topic_name'
+                                ]
+                                . " masih rendah. "
+                                . "Disarankan mempelajari kembali "
+                                . "materi dan memperbanyak latihan "
+                                . "pada soal tingkat sulit.";
+
+                        } else {
+
+                            $recommendation =
+                                "Penguasaan topik "
+                                . $masteryData[
+                                    'topic_name'
+                                ]
+                                . " masih rendah. "
+                                . "Disarankan mempelajari kembali "
+                                . "materi dan melakukan latihan "
+                                . "dasar pada topik tersebut.";
+                        }
+                    }
+
+
+                    // RULE 2 — Cukup.
+                    elseif (
+                        $mastery < 70
+                    ) {
+
+                        $category =
+                            'perlu_ditingkatkan';
+
+                        if (
+                            $mediumAccuracy !== null
+                            &&
+                            $mediumAccuracy < 60
+                        ) {
+
+                            $recommendation =
+                                "Penguasaan topik "
+                                . $masteryData[
+                                    'topic_name'
+                                ]
+                                . " masih perlu ditingkatkan. "
+                                . "Disarankan mempelajari kembali "
+                                . "materi dan melakukan latihan "
+                                . "pada soal tingkat sedang.";
+
+                        } elseif (
+                            $hardAccuracy !== null
+                            &&
+                            $hardAccuracy < 60
+                        ) {
+
+                            $recommendation =
+                                "Penguasaan topik "
+                                . $masteryData[
+                                    'topic_name'
+                                ]
+                                . " masih perlu ditingkatkan. "
+                                . "Disarankan memperbanyak latihan "
+                                . "pada soal tingkat sulit.";
+
+                        } else {
+
+                            $recommendation =
+                                "Penguasaan topik "
+                                . $masteryData[
+                                    'topic_name'
+                                ]
+                                . " cukup baik. "
+                                . "Disarankan mempertahankan "
+                                . "pemahaman dan melakukan latihan "
+                                . "secara berkala.";
+                        }
+                    }
+
+
+                    // RULE 3 — Menguasai.
+                    elseif (
+                        $mastery < 85
+                    ) {
+
+                        $category =
+                            'pengayaan';
+
+                        if (
+                            $hardAccuracy !== null
+                            &&
+                            $hardAccuracy < 60
+                        ) {
+
+                            $recommendation =
+                                "Penguasaan topik "
+                                . $masteryData[
+                                    'topic_name'
+                                ]
+                                . " sudah baik. "
+                                . "Disarankan melakukan latihan "
+                                . "tambahan pada soal tingkat sulit "
+                                . "untuk memperkuat penguasaan.";
+
+                        } elseif (
+                            $mediumAccuracy !== null
+                            &&
+                            $mediumAccuracy < 60
+                        ) {
+
+                            $recommendation =
+                                "Penguasaan topik "
+                                . $masteryData[
+                                    'topic_name'
+                                ]
+                                . " sudah baik. "
+                                . "Disarankan melakukan latihan "
+                                . "tambahan pada soal tingkat sedang "
+                                . "untuk meningkatkan konsistensi "
+                                . "pemahaman.";
+
+                        } else {
+
+                            $recommendation =
+                                "Penguasaan topik "
+                                . $masteryData[
+                                    'topic_name'
+                                ]
+                                . " sudah baik. "
+                                . "Disarankan mempertahankan penguasaan "
+                                . "melalui latihan dan mencoba soal "
+                                . "dengan tingkat kesulitan lebih tinggi.";
+                        }
+                    }
+
+
+                    // RULE 4 — Mahir.
+                    else {
+
+                        $category =
+                            'pengayaan_lanjutan';
+
+                        if (
+                            $hardAccuracy !== null
+                            &&
+                            $hardAccuracy < 70
+                        ) {
+
+                            $recommendation =
+                                "Penguasaan topik "
+                                . $masteryData[
+                                    'topic_name'
+                                ]
+                                . " sangat baik. "
+                                . "Untuk memperkuat penguasaan, "
+                                . "disarankan melakukan latihan "
+                                . "tambahan pada soal tingkat sulit.";
+
+                        } else {
+
+                            $recommendation =
+                                "Penguasaan topik "
+                                . $masteryData[
+                                    'topic_name'
+                                ]
+                                . " sangat baik. "
+                                . "Pertahankan penguasaan melalui "
+                                . "latihan dan soal tingkat sulit.";
+                        }
+                    }
+
+                    return [
+
+                        'student_id' =>
+                            $studentId,
+
+                        'topic_id' =>
+                            $topicId,
+
+                        'topic_name' =>
+                            $masteryData[
+                                'topic_name'
+                            ],
+
+                        'mastery' =>
+                            $mastery,
+
+                        'theta' =>
+                            $masteryData[
+                                'theta'
+                            ],
+
+                        'category' =>
+                            $category,
+
+                        'recommendation' =>
+                            $recommendation,
+                    ];
+                }
+            )
             ->values();
     }
 }

@@ -256,6 +256,12 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link @yield('learningAnalytics')" href="{{ route('guru.learningAnalytics') }}">
+                        <i class="fas fa-fw fa-chart-line"></i>
+                        <span>Performa Siswa</span>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link @yield('dataMatrix')" href="{{ route('activity.matrix.list') }}">
                         <i class="fas fa-fw fa-table"></i>
                         <span>Matriks Aktivitas</span>

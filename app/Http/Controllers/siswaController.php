@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Classes;
 use App\Models\StudentClasses;
+use App\Services\LearningAnalyticsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class siswaController extends Controller
 {
-    public function dashboardSiswa()
+    public function dashboardSiswa(Request $request)
     {
         $user = Auth::user();
 
@@ -204,6 +205,243 @@ class siswaController extends Controller
 
         $claimedBadgeIds = $userBadges->pluck('id')->toArray();
 
+        // ==========================================
+        // FILTER LEARNING ANALYTICS
+        // ==========================================
+
+        $filterClassId = $request->filled('class_id')
+            ? (int) $request->class_id
+            : null;
+
+        $filterSubjectId = $request->filled('subject_id')
+            ? (int) $request->subject_id
+            : null;
+
+        $filterTopicId = $request->filled('topic_id')
+            ? (int) $request->topic_id
+            : null;
+
+        $filterActivityId = $request->filled('activity_id')
+            ? (int) $request->activity_id
+            : null;
+
+        // ==========================================
+        // DATA FILTER LA SISWA
+        // ==========================================
+
+        $studentClassIds = $kelasList
+            ->pluck('id')
+            ->map(fn($id) => (int) $id)
+            ->toArray();
+
+
+        // ------------------------------------------
+        // Validasi kelas
+        // ------------------------------------------
+
+        if (
+            $filterClassId !== null &&
+            !in_array($filterClassId, $studentClassIds)
+        ) {
+            $filterClassId = null;
+        }
+
+
+        // ------------------------------------------
+        // Mata pelajaran
+        // ------------------------------------------
+
+        $subjectQuery = DB::table('subject')
+            ->whereIn('id_class', $studentClassIds);
+
+        if ($filterClassId !== null) {
+            $subjectQuery->where('id_class', $filterClassId);
+        }
+
+        $analyticsSubjects = $subjectQuery
+            ->select('id', 'name', 'id_class')
+            ->orderBy('name')
+            ->get();
+
+        $subjectIds = $analyticsSubjects
+            ->pluck('id')
+            ->map(fn($id) => (int) $id)
+            ->toArray();
+
+
+        // ------------------------------------------
+        // Validasi mata pelajaran
+        // ------------------------------------------
+
+        if (
+            $filterSubjectId !== null &&
+            !in_array($filterSubjectId, $subjectIds)
+        ) {
+            $filterSubjectId = null;
+        }
+
+
+        // ------------------------------------------
+        // Topik
+        // ------------------------------------------
+
+        $topicQuery = DB::table('topics')
+            ->join('subject', 'topics.id_subject', '=', 'subject.id')
+            ->whereIn('subject.id_class', $studentClassIds);
+
+        if ($filterClassId !== null) {
+            $topicQuery->where('subject.id_class', $filterClassId);
+        }
+
+        if ($filterSubjectId !== null) {
+            $topicQuery->where('topics.id_subject', $filterSubjectId);
+        }
+
+        $analyticsTopics = $topicQuery
+            ->select(
+                'topics.id',
+                'topics.title',
+                'topics.id_subject'
+            )
+            ->orderBy('topics.title')
+            ->get();
+
+        $topicIds = $analyticsTopics
+            ->pluck('id')
+            ->map(fn($id) => (int) $id)
+            ->toArray();
+
+
+        // ------------------------------------------
+        // Validasi topik
+        // ------------------------------------------
+
+        if (
+            $filterTopicId !== null &&
+            !in_array($filterTopicId, $topicIds)
+        ) {
+            $filterTopicId = null;
+        }
+
+
+        // ------------------------------------------
+        // Aktivitas
+        // ------------------------------------------
+
+        $activityQuery = DB::table('activities')
+            ->join('topics', 'activities.id_topic', '=', 'topics.id')
+            ->join('subject', 'topics.id_subject', '=', 'subject.id')
+            ->whereIn('subject.id_class', $studentClassIds);
+
+        if ($filterClassId !== null) {
+            $activityQuery->where('subject.id_class', $filterClassId);
+        }
+
+        if ($filterSubjectId !== null) {
+            $activityQuery->where('topics.id_subject', $filterSubjectId);
+        }
+
+        if ($filterTopicId !== null) {
+            $activityQuery->where('activities.id_topic', $filterTopicId);
+        }
+
+        $analyticsActivities = $activityQuery
+            ->select(
+                'activities.id',
+                'activities.title',
+                'activities.id_topic'
+            )
+            ->orderBy('activities.title')
+            ->get();
+
+        $activityIds = $analyticsActivities
+            ->pluck('id')
+            ->map(fn($id) => (int) $id)
+            ->toArray();
+
+
+        // ------------------------------------------
+        // Validasi aktivitas
+        // ------------------------------------------
+
+        if (
+            $filterActivityId !== null &&
+            !in_array($filterActivityId, $activityIds)
+        ) {
+            $filterActivityId = null;
+        }
+
+        // ==========================================
+        // LEARNING ANALYTICS
+        // ==========================================
+
+        $analyticsService = app(LearningAnalyticsService::class);
+
+
+        // Hasil aktivitas siswa
+        $analyticsResults = $analyticsService->getFilteredResults(
+            $filterClassId,
+            $filterSubjectId,
+            $filterTopicId,
+            $filterActivityId,
+            $user->id
+        );
+
+
+        // Jawaban soal siswa
+        $analyticsAnswers = $analyticsService->getFilteredAnswers(
+            $filterClassId,
+            $filterSubjectId,
+            $filterTopicId,
+            $filterActivityId,
+            $user->id
+        );
+
+
+        // Ringkasan performa
+        $performanceSummary = $analyticsService->getPerformanceSummary(
+            $analyticsResults
+        );
+
+
+        // ==========================================
+        // MASTERY PER TOPIK
+        // ==========================================
+
+        $studentMastery = $analyticsService->getTopicMastery(
+            $analyticsAnswers
+        );
+
+
+        // ==========================================
+        // DIFFICULTY PER TOPIK
+        // ==========================================
+
+        $studentDifficulty =
+            $analyticsService->getStudentTopicDifficulty(
+                $analyticsAnswers
+            );
+
+
+        // ==========================================
+        // PERFORMA PER AKTIVITAS
+        // ==========================================
+
+        $studentActivityPerformance =
+            $analyticsService->getStudentActivityPerformance(
+                $analyticsAnswers
+            );
+
+
+        // ==========================================
+        // RECOMMENDATION
+        // ==========================================
+
+        $recommendations = $analyticsService->getRecommendations(
+            $analyticsService->getStudentTopicMastery($analyticsAnswers),
+            $studentDifficulty
+        );
+
         // -----------------------------
         // Tambahan: Daftar Nilai (ambil dari activity_result + relasi)
         // -----------------------------
@@ -244,7 +482,26 @@ class siswaController extends Controller
             'jumlahAktivitas' => $jumlahAktivitas,
             'jumlahRemedial' => $jumlahRemedial,
             'leaderboardsPerClass' => $leaderboardsPerClass,
-            'nilaiList' => $nilaiList
+            'nilaiList' => $nilaiList,
+
+            // Learning Analytics
+            'performanceSummary' => $performanceSummary,
+            'studentMastery' => $studentMastery,
+            'studentDifficulty' => $studentDifficulty,
+            'studentActivityPerformance' => $studentActivityPerformance,
+            'recommendations' => $recommendations,
+
+            // Filter LA
+            'analyticsClasses' => $kelasList,
+            'analyticsSubjects' => $analyticsSubjects,
+            'analyticsTopics' => $analyticsTopics,
+            'analyticsActivities' => $analyticsActivities,
+
+            // Filter aktif
+            'filterClassId' => $filterClassId,
+            'filterSubjectId' => $filterSubjectId,
+            'filterTopicId' => $filterTopicId,
+            'filterActivityId' => $filterActivityId,
         ]);
     }
 
@@ -254,11 +511,11 @@ class siswaController extends Controller
             'token' => 'required|string'
         ]);
 
-       
+
         $token = trim($request->token);
 
         $kelas = Classes::whereRaw('LOWER(token) = ?', [strtolower($token)])->first();
-       
+
         if (!$kelas) {
             return redirect()
                 ->back()
@@ -280,10 +537,9 @@ class siswaController extends Controller
             'id_class' => $kelas->id,
         ]);
 
- 
+
         return redirect()
             ->back()
             ->with('swal_success', 'Berhasil bergabung ke kelas: ' . $kelas->name);
     }
-
 }
