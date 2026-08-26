@@ -29,6 +29,10 @@ class Activity extends Model
     {
         return $this->belongsTo(Topic::class, 'id_topic');
     }
+    public function topics()
+    {
+        return $this->belongsToMany(Topic::class, 'activity_topics', 'id_activity', 'id_topic');
+    }
 
     public function questions()
     {

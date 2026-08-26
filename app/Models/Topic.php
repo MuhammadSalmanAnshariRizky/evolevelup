@@ -24,6 +24,15 @@ class Topic extends Model
         return $this->hasMany(Activity::class, 'id_topic');
     }
 
+    public function pivotActivities()
+    {
+        return $this->belongsToMany(
+            Activity::class,
+            'activity_topics',
+            'id_topic',
+            'id_activity'
+        );
+    }
     public function questions()
     {
         return $this->hasMany(Question::class, 'id_topic');

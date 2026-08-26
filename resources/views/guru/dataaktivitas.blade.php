@@ -49,9 +49,22 @@
                                 @enderror
                             </div>
 
+                            <!-- Tambahkan Input Tipe Aktivitas -->
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Tipe Aktivitas</label>
+                                <select name="type" class="form-select shadow-sm select-type" required>
+                                    <option value="">Pilih Tipe</option>
+                                    <option value="evaluation">Evaluation (Bisa Pilih Banyak Topik)</option>
+                                    <option value="quiz">Latihan / Lainnya (Hanya Satu Topik)</option>
+                                </select>
+                            </div>
+
+                            <!-- Ubah Input Topik menjadi dinamis (Select untuk Latihan, Checkbox untuk Evaluation) -->
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Topik</label>
-                                <select name="id_topic" class="form-select shadow-sm" required>
+
+                                <!-- Select biasa untuk Latihan / Lainnya (Single) -->
+                                <select name="id_topic" class="form-select shadow-sm single-topic-select" required>
                                     <option value="">Pilih Topik</option>
                                     @foreach(\App\Models\Topic::with('subject')->where('created_by', Auth::id())->get() as $topicOption)
                                         <option value="{{ $topicOption->id }}">
@@ -59,8 +72,34 @@
                                         </option>
                                     @endforeach
                                 </select>
+
+                                <!-- Wadah Checkbox untuk Evaluation (Multiple) -->
+                                <div class="multiple-topic-container d-none border rounded p-3 bg-light shadow-sm"
+                                    style="max-height: 200px; overflow-y: auto;">
+                                    <p class="text-muted small mb-2">Pilih satu atau lebih topik untuk evaluasi:</p>
+                                    <div class="row g-2">
+                                        @foreach(\App\Models\Topic::with('subject')->where('created_by', Auth::id())->get() as $topicOption)
+                                            <div class="col-12">
+                                                <div class="form-check">
+                                                    <input class="form-check-input topic-checkbox" type="checkbox"
+                                                        name="id_topic[]" value="{{ $topicOption->id }}"
+                                                        id="topic_{{ $topicOption->id }}">
+                                                    <label class="form-check-label" for="topic_{{ $topicOption->id }}">
+                                                        {{ $topicOption->title }} <span
+                                                            class="text-muted small">({{ $topicOption->subject->name ?? 'Tanpa Subject' }})</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
                                 @error('id_topic')
-                                    <div class="invalid-feedback">
+                                    <div class="text-danger small mt-1">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                                @error('id_topic.*')
+                                    <div class="text-danger small mt-1">
                                         {{ $message }}
                                     </div>
                                 @enderror
@@ -174,7 +213,7 @@
                                         </td>
 
                                         <td class="align-middle col-title">
-                                            <div class="cell-inner" title="{{ $r->title }}">{{ $r->title }}</div>
+                                            <div class="cell-inner" title="{{ $r->topic_title }}">{{ $r->topic_title }}</div>
                                         </td>
 
                                         <td class="align-middle col-subject hide-sm">
@@ -206,16 +245,16 @@
                                                     <i class="bi bi-pencil"></i>
                                                 </button>
 
-                                                <button type="button" class="btn btn-success btn-sm btn-create-package"
-                                                    data-url="{{ route('activity.package.create', $r->id) }}"
-                                                    title="Buat Paket Soal">
-                                                    <i class="bi bi-archive"></i>
-                                                </button>
+                                                <!-- <button type="button" class="btn btn-success btn-sm btn-create-package"
+                                                                            data-url="{{ route('activity.package.create', $r->id) }}"
+                                                                            title="Buat Paket Soal">
+                                                                            <i class="bi bi-archive"></i>
+                                                                        </button> -->
 
 
-                                                <a href="{{ url('/guru/aktivitas/' . $r->id . '/atur-soal?topic=' . $r->topic_id) }}"
+                                                <a href="{{ route('guru.aktivitas.aturSoal', $r->id) }}"
                                                     class="btn btn-warning btn-sm" title="Atur Soal" aria-label="Atur Soal">
-                                                    <i class="bi bi-gear"></i>
+                                                    <i class="bi bi-gear"></i> Soal
                                                 </a>
 
                                                 <button class="btn btn-info btn-sm text-white" data-bs-toggle="modal"
@@ -306,10 +345,10 @@
                                 <i class="bi bi-pencil"></i> Edit
                             </button>
 
-                            <button type="button" class="btn btn-success btn-sm btn-create-package"
-                                data-url="{{ route('activity.package.create', $r->id) }}">
-                                <i class="bi bi-archive"></i> Paket
-                            </button>
+                            <!-- <button type="button" class="btn btn-success btn-sm btn-create-package"
+                                                        data-url="{{ route('activity.package.create', $r->id) }}">
+                                                        <i class="bi bi-archive"></i> Paket
+                                                    </button> -->
 
                             <a href="{{ url('/guru/aktivitas/' . $r->id . '/atur-soal?topic=' . $r->topic_id) }}"
                                 class="btn btn-warning btn-sm">
@@ -378,13 +417,50 @@
 
                                 <div class="mb-3">
                                     <label class="form-label">Topik</label>
-                                    <select name="id_topic" class="form-select" required>
+
+                                    <!-- Select biasa untuk Edit (Single) -->
+                                    <select name="id_topic" class="form-select edit-single-topic" {{ $r->type !== 'evaluation' ? 'required' : '' }} style="{{ $r->type === 'evaluation' ? 'display: none;' : '' }}">
                                         @foreach(\App\Models\Topic::with('subject')->where('created_by', Auth::id())->get() as $topicOpt)
-                                            <option value="{{ $topicOpt->id }}" {{ $topicOpt->id === $r->topic_id ? 'selected' : '' }}> {{ $topicOpt->title }} ({{ $topicOpt->subject->name ?? 'Tanpa Subject' }})
+                                            <option value="{{ $topicOpt->id }}" {{ $topicOpt->id === $r->topic_id ? 'selected' : '' }}>{{ $topicOpt->title }} ({{ $topicOpt->subject->name ?? 'Tanpa Subject' }})
                                             </option>
                                         @endforeach
                                     </select>
+
+                                    <!-- Wadah Checkbox untuk Edit (Multiple) -->
+                                    <div class="edit-multiple-topic border rounded p-3 bg-light shadow-sm {{ $r->type === 'evaluation' ? '' : 'd-none' }}"
+                                        style="max-height: 180px; overflow-y: auto;">
+                                        <p class="text-muted small mb-2">Pilih satu atau lebih topik untuk evaluasi:</p>
+                                        <div class="row g-2">
+                                            @php
+                                                // Ambil topik yang terpilih sebelumnya (sesuaikan dengan struktur database Anda, apakah single atau array)
+                                                $selectedTopicIds = is_array($r->topic_ids ?? null) ? $r->topic_ids : [$r->topic_ids];
+                                            @endphp
+                                            @foreach(\App\Models\Topic::with('subject')->where('created_by', Auth::id())->get() as $topicOpt)
+                                                <div class="col-12">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input edit-topic-checkbox" type="checkbox"
+                                                            name="id_topic[]" value="{{ $topicOpt->id }}"
+                                                            id="edit_topic_{{ $r->id }}_{{ $topicOpt->id }}" {{ in_array($topicOpt->id, $selectedTopicIds) ? 'checked' : '' }}>
+                                                        <label class="form-check-label"
+                                                            for="edit_topic_{{ $r->id }}_{{ $topicOpt->id }}">
+                                                            {{ $topicOpt->title }} <span
+                                                                class="text-muted small">({{ $topicOpt->subject->name ?? 'Tanpa Subject' }})</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
                                 </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Tipe Aktivitas</label>
+                                    <select name="type" class="form-select edit-select-type" required>
+                                        <option value="evaluation" {{ $r->type === 'evaluation' ? 'selected' : '' }}>Evaluation
+                                            (Bisa Pilih Banyak Topik)</option>
+                                        <option value="quiz" {{ $r->type !== 'evaluation' ? 'selected' : '' }}>Latihan /
+                                            Lainnya (Hanya Satu Topik)</option>
+                                    </select>
 
                                 <div class="form-check mb-1">
                                     <input type="hidden" name="addaptive" value="no">
@@ -714,7 +790,7 @@
     @push('styles')
         <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
         <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
-
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
         <style>
             /* truncate dengan ellipsis */
             .text-ellipsis {
@@ -793,6 +869,17 @@
             .dt-scroll-wrapper {
                 overflow-x: auto;
             }
+
+            .multiple-topic-container {
+                background-color: #f8f9fa;
+                border: 1px solid #dee2e6;
+                transition: all 0.3s ease-in-out;
+            }
+
+            .form-check-input:checked {
+                background-color: #198754;
+                border-color: #198754;
+            }
         </style>
     @endpush
 
@@ -804,6 +891,63 @@
         <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
         <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                document.querySelectorAll('.select-type').forEach(function (selectType) {
+                    selectType.addEventListener('change', function () {
+                        let form = this.closest('form');
+                        let singleSelect = form.querySelector('.single-topic-select');
+                        let checkboxContainer = form.querySelector('.multiple-topic-container');
+                        let checkboxes = checkboxContainer.querySelectorAll('.topic-checkbox');
+
+                        if (this.value === 'evaluation') {
+                            // Sembunyikan select tunggal dan buang atribut required-nya
+                            singleSelect.classList.add('d-none');
+                            singleSelect.removeAttribute('required');
+                            singleSelect.value = ''; // Reset pilihan
+
+                            // Tampilkan container checkbox
+                            checkboxContainer.classList.remove('d-none');
+
+                            // Beri tanda bahwa minimal satu checkbox harus dipilih (opsional melalui JS/Validasi Backend)
+                        } else {
+                            // Tampilkan kembali select tunggal dan aktifkan required
+                            singleSelect.classList.remove('d-none');
+                            singleSelect.setAttribute('required', 'required');
+
+                            // Sembunyikan container checkbox dan uncheck semuanya
+                            checkboxContainer.classList.add('d-none');
+                            checkboxes.forEach(cb => cb.checked = false);
+                        }
+                    });
+                });
+            });
+            document.addEventListener('DOMContentLoaded', function () {
+                // Handler untuk Modal Edit
+                document.querySelectorAll('.edit-select-type').forEach(function (selectType) {
+                    selectType.addEventListener('change', function () {
+                        let modalBody = this.closest('.modal-body');
+                        let singleSelect = modalBody.querySelector('.edit-single-topic');
+                        let checkboxContainer = modalBody.querySelector('.edit-multiple-topic');
+                        let checkboxes = checkboxContainer.querySelectorAll('.edit-topic-checkbox');
+
+                        if (this.value === 'evaluation') {
+                            singleSelect.style.display = 'none';
+                            singleSelect.removeAttribute('required');
+                            singleSelect.value = '';
+
+                            checkboxContainer.classList.remove('d-none');
+                        } else {
+                            singleSelect.style.display = 'block';
+                            singleSelect.setAttribute('required', 'required');
+
+                            checkboxContainer.classList.add('d-none');
+                            checkboxes.forEach(cb => cb.checked = false);
+                        }
+                    });
+                });
+            });
+        </script>
         <script>
             document.addEventListener('DOMContentLoaded', function () {
 

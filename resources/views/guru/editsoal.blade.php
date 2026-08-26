@@ -56,7 +56,7 @@
 
                     <!-- BARIS 1 -->
                     <div class="row mt-3">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label fw-semibold">Tipe Soal</label>
                             <select name="type" class="form-select" id="tipeSoal" disabled>
                                 <option value="MultipleChoice" {{ $data->type == 'MultipleChoice' ? 'selected' : '' }}>Pilihan
@@ -67,7 +67,7 @@
                             <small class="text-muted">Jenis soal tidak dapat diubah.</small>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label fw-semibold">Tingkat Kesulitan</label>
                             <select name="difficulty" class="form-select" id="difficulty" required>
                                 {{-- gunakan value sesuai enum pada migrasi: mudah, sedang, sulit --}}
@@ -77,7 +77,7 @@
                             </select>
                         </div>
                         {{-- contoh: letakkan tepat di bawah textarea question_text --}}
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label fw-semibold">Topik</label>
                             <select name="id_topic" class="form-select">
                                 <option value="">-- Pilih Topik --</option>
@@ -91,7 +91,25 @@
                             </select>
                             <div class="form-text">Topik yang tampil hanya untuk mata pelajaran/kls yang Anda ampu.</div>
                         </div>
+                        <div class="col-md-3">
 
+                            @php
+                                $tags = $data->tags
+                                    ? json_decode($data->tags, true)
+                                    : [];
+                            @endphp
+
+                            <label class="form-label fw-semibold">Tags</label>
+
+                            <input type="text" name="tags" id="tags" class="form-control"
+                                value="{{ is_array($tags) ? implode(', ', $tags) : '' }}"
+                                placeholder="Contoh: vlan, switch, jaringan">
+
+                            <div class="form-text">
+                                Pisahkan beberapa tag dengan koma.
+                            </div>
+
+                        </div>
                     </div>
 
                     <!-- BARIS 2 -->
@@ -366,8 +384,8 @@
                 });
             @endif
 
-                    // VALIDASI CLIENT-SIDE sebelum submit (sama aturan seperti halaman tambah)
-                    const form = document.getElementById('editSoalForm');
+                        // VALIDASI CLIENT-SIDE sebelum submit (sama aturan seperti halaman tambah)
+                        const form = document.getElementById('editSoalForm');
             const submitBtn = document.getElementById('submitBtn');
 
             form?.addEventListener('submit', function (e) {

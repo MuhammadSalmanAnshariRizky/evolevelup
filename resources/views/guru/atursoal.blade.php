@@ -62,7 +62,12 @@
                         <div class="p-2 border rounded mb-2 bg-light d-flex justify-content-between align-items-start"
                             id="selectedItem-{{ $s->id }}">
                             <div>
-                                <small class="text-muted">{{ $s->difficulty }} — {{ $s->type }}</small>
+                                <small class="text-muted">
+                                    {{ $s->difficulty }} — {{ $s->type }}
+                                    @if($s->tags)
+                                        — <span class="badge bg-info text-dark">{{ $s->tags }}</span>
+                                    @endif
+                                </small>
                                 <div class="mt-1">{{ Str::limit($sData->text ?? '-', 240) }}</div>
                             </div>
 
@@ -183,6 +188,7 @@
                                             <th style="width:56px">No</th>
                                             <th style="min-width:120px">Tipe</th>
                                             <th style="min-width:100px">Kesulitan</th>
+                                            <th style="min-width:100px">Tags</th>
                                             <th>Pertanyaan</th>
                                         </tr>
                                     </thead>
@@ -204,6 +210,13 @@
                                                 <td class="text-center">{{ $loop->iteration }}</td>
                                                 <td>{{ $q->type }}</td>
                                                 <td>{{ $q->difficulty }}</td>
+                                                <td>
+                                                    @if($q->tags)
+                                                        <span class="badge bg-info text-dark">{{ $q->tags }}</span>
+                                                    @else
+                                                        -
+                                                    @endif
+                                                </td>
                                                 <td style="white-space:normal;">{{ Str::limit($qData->text ?? '-', 300) }}</td>
                                             </tr>
                                         @endforeach
@@ -349,9 +362,9 @@
 
             if (!ids || ids.length === 0) {
                 area.innerHTML = `<div id="noSelectedPlaceholder" class="text-center text-muted py-4">
-                                            <i class="bi bi-clipboard-x" style="font-size:2rem"></i>
-                                            <div class="mt-2">Belum ada soal.</div>
-                                         </div>`;
+                                                            <i class="bi bi-clipboard-x" style="font-size:2rem"></i>
+                                                            <div class="mt-2">Belum ada soal.</div>
+                                                         </div>`;
                 document.getElementById('currentTotal') && (document.getElementById('currentTotal').innerText = 0);
                 return;
             }
@@ -359,17 +372,21 @@
             let html = '';
             ids.forEach(id => {
                 const q = questionsMap && questionsMap[id] ? questionsMap[id] : null;
-                const smallText = q ? (q.difficulty + ' — ' + q.type) : '';
+                let tagHtml = '';
+                if (q && q.tags && q.tags !== '-') {
+                    tagHtml = ` — <span class="badge bg-info text-dark">${q.tags}</span>`;
+                }
+                const smallText = q ? (`${q.difficulty} — ${q.type}${tagHtml}`) : '';
                 const bodyText = q ? escapeHtml(q.text) : `Memuat soal #${id}...`;
                 html += `<div class="p-2 border rounded mb-2 bg-light d-flex justify-content-between align-items-start" id="selectedItem-${id}">
-                                <div>
-                                    <small class="text-muted">${smallText}</small>
-                                    <div class="mt-1" id="selectedText-${id}">${bodyText}</div>
-                                </div>
-                                <button class="btn btn-sm btn-danger" onclick="hapusDariTerpilih(${id})">
-                                    <i class="bi bi-x-circle"></i>
-                                </button>
-                            </div>`;
+                                                <div>
+                                                    <small class="text-muted">${smallText}</small>
+                                                    <div class="mt-1" id="selectedText-${id}">${bodyText}</div>
+                                                </div>
+                                                <button class="btn btn-sm btn-danger" onclick="hapusDariTerpilih(${id})">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            </div>`;
             });
             area.innerHTML = html;
             document.getElementById('currentTotal') && (document.getElementById('currentTotal').innerText = ids.length);
@@ -387,7 +404,10 @@
                     const el = document.getElementById(`selectedText-${id}`);
                     if (el) el.innerHTML = escapeHtml(q.text);
                     const smallEl = document.querySelector(`#selectedItem-${id} small.text-muted`);
-                    if (smallEl && q.difficulty && q.type) smallEl.innerText = `${q.difficulty} — ${q.type}`;
+                    if (smallEl && q.difficulty && q.type) {
+                        let tagHtml = (q.tags && q.tags !== '-') ? ` — <span class="badge bg-info text-dark">${q.tags}</span>` : '';
+                        smallEl.innerHTML = `${q.difficulty} — ${q.type}${tagHtml}`;
+                    }
                 } else {
                     const el = document.getElementById(`selectedText-${id}`);
                     if (el) el.innerHTML = `Soal #${id}`;
@@ -509,10 +529,10 @@
                                     id,
                                     type: tds[2]?.innerText.trim() || '',
                                     difficulty: tds[3]?.innerText.trim() || '',
-                                    text: tds[4]?.innerText.trim() || ''
+                                    tags: tds[4]?.innerText.trim() || '',
+                                    text: tds[5]?.innerText.trim() || ''
                                 };
                             });
-
                             renderSelectedArea(modalSelected, questionsMap);
                             window.lastPicked = modalSelected.slice();
 
@@ -786,9 +806,9 @@
                     icon: 'warning',
                     title: 'Jumlah soal belum mencukupi',
                     html: `
-                        Jumlah soal yang dipilih: <b>${totalDipilih}</b><br>
-                        Jumlah soal minimal yang ditentukan: <b>${n}</b><br><br>
-                        Silakan tambah <b>${n - totalDipilih}</b> soal lagi ke dalam aktivitas ini.`
+                                        Jumlah soal yang dipilih: <b>${totalDipilih}</b><br>
+                                        Jumlah soal minimal yang ditentukan: <b>${n}</b><br><br>
+                                        Silakan tambah <b>${n - totalDipilih}</b> soal lagi ke dalam aktivitas ini.`
                 });
                 return;
             }

@@ -13,24 +13,44 @@ class aturAktivitasController extends Controller
 {
     public function halamanAturSoal($idAktivitas, Request $request)
     {
-        // ambil aktivitas (Eloquent)
         $aktivitas = Activity::findOrFail($idAktivitas);
 
-        // ambil id_topic dari query (utk safety kita fallback ke aktivitas->id_topic)
-        $idTopic = $request->query('topic') ?? $aktivitas->id_topic;
+        // 1. Ambil daftar ID topik menggunakan relasi Eloquent
+        $topicIds = [];
 
-        // ambil topic & subject (dengan relasi)
-        $topic = Topic::with('subject')->find($idTopic);
-        if (!$topic) {
+        // Cek apakah ada data di tabel pivot (tipe evaluation/multiple topic)
+        if ($aktivitas->topics()->exists()) {
+            $topicIds = $aktivitas->topics()->pluck('topics.id')->toArray();
+        }
+        // Jika tidak ada di tabel pivot, gunakan kolom id_topic di tabel activities (tipe exercise/single topic)
+        elseif (!empty($aktivitas->id_topic)) {
+            $savedTopics = $aktivitas->id_topic;
+
+            // Antisipasi jika data tunggal tersimpan sebagai array JSON string (contoh: '["1", "2"]')
+            if (is_string($savedTopics) && is_array(json_decode($savedTopics, true))) {
+                $topicIds = json_decode($savedTopics, true);
+            } else {
+                $topicIds = [$savedTopics];
+            }
+        }
+
+        if (empty($topicIds)) {
+            abort(404, 'Topik untuk aktivitas ini belum ditentukan.');
+        }
+
+        // Ambil semua data topik & pastikan guru punya akses ke subject-nya
+        $topics = Topic::with('subject')->whereIn('id', $topicIds)->get();
+        if ($topics->isEmpty()) {
             abort(404, 'Topik tidak ditemukan.');
         }
 
-        $subject = $topic->subject;
+        // Ambil subject pertama (atau sesuaikan validasi kelas Anda)
+        $subject = $topics->first()->subject;
         if (!$subject) {
             abort(404, 'Subject untuk topik ini tidak ditemukan.');
         }
 
-        // pastikan guru tergabung di kelas subject ini
+        // Validasi guru tergabung di kelas subject ini
         $classId = $subject->id_class;
         $idGuru = Auth::id();
         $isTeacherInClass = DB::table('teacher_classes')
@@ -39,12 +59,11 @@ class aturAktivitasController extends Controller
             ->exists();
 
         if (!$isTeacherInClass) {
-            // Jika bukan anggota kelas -> larang akses
             abort(403, 'Anda tidak memiliki akses ke kelas/topik ini.');
         }
 
-        // Ambil semua soal yang punya id_topic = $idTopic
-        $questions = Question::where('id_topic', $idTopic)
+        // 2. AMBIL SEMUA SOAL DARI SEMUA TOPIK YANG DIPILIH (`whereIn`)
+        $questions = Question::whereIn('id_topic', $topicIds)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -56,16 +75,16 @@ class aturAktivitasController extends Controller
 
         $selectedQuestions = Question::whereIn('id', $selectedIds)->get();
 
+        // Kirim variabel ke view
         return view('guru.atursoal', compact(
             'aktivitas',
             'questions',
             'selectedIds',
             'selectedQuestions',
-            'topic',
+            'topics',
             'subject'
         ));
     }
-
     public function ambilSoalAjax(Request $request, $idAktivitas)
     {
         $request->validate([
@@ -73,10 +92,26 @@ class aturAktivitasController extends Controller
         ]);
 
         $aktivitas = Activity::findOrFail($idAktivitas);
-        $idTopic = $aktivitas->id_topic;
 
-        // pastikan guru tergabung di kelas topik ini (security)
-        $topic = Topic::with('subject')->find($idTopic);
+        // Ambil ID topik menggunakan logika yang sama persis via Eloquent
+        $topicIds = [];
+        if ($aktivitas->topics()->exists()) {
+            $topicIds = $aktivitas->topics()->pluck('topics.id')->toArray();
+        } elseif (!empty($aktivitas->id_topic)) {
+            $savedTopics = $aktivitas->id_topic;
+            if (is_string($savedTopics) && is_array(json_decode($savedTopics, true))) {
+                $topicIds = json_decode($savedTopics, true);
+            } else {
+                $topicIds = [$savedTopics];
+            }
+        }
+
+        if (empty($topicIds)) {
+            return response()->json(['success' => false, 'message' => 'Topik tidak ditemukan.'], 404);
+        }
+
+        // Validasi keamanan guru
+        $topic = Topic::with('subject')->whereIn('id', $topicIds)->first();
         if (!$topic || !$topic->subject) {
             return response()->json(['success' => false, 'message' => 'Topik/subject tidak ditemukan.'], 404);
         }
@@ -94,12 +129,13 @@ class aturAktivitasController extends Controller
 
         $n = intval($request->jumlah);
 
-        // Ambil secara acak n soal dari topik ini
-        $final = Question::where('id_topic', $idTopic)
+        // AMBIL SOAL SECARA ACAK DARI SEMUA TOPIK TERKAIT (`whereIn`)
+        $final = Question::whereIn('id_topic', $topicIds)
             ->inRandomOrder()
             ->take($n)
             ->get();
 
+        //identitas soal
         return response()->json([
             'success' => true,
             'total' => $final->count(),
@@ -108,6 +144,7 @@ class aturAktivitasController extends Controller
                     'id' => $q->id,
                     'difficulty' => $q->difficulty,
                     'type' => $q->type,
+                    'tags' => $q->tags, // <--- TAMBAHKAN INI
                     'text' => optional(json_decode($q->question))->text ?? '-'
                 ];
             })->values()
@@ -198,6 +235,7 @@ class aturAktivitasController extends Controller
             'id' => $q->id,
             'difficulty' => $q->difficulty,
             'type' => $q->type,
+            'tags' => $q->tags,
             'text' => $qData->text ?? '-',
         ]);
     }

@@ -48,7 +48,8 @@
 
                     <!-- baris 1 -->
                     <div class="row mt-3">
-                        <!-- tipe soal -->
+
+                        {{-- Tipe Soal --}}
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Tipe Soal</label>
                             <select name="type" class="form-select" id="tipeSoal" required>
@@ -58,7 +59,7 @@
                             </select>
                         </div>
 
-                        <!-- tingkat kesulitan -->
+                        {{-- Kesulitan --}}
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Tingkat Kesulitan</label>
                             <select name="difficulty" class="form-select" id="difficulty" required>
@@ -69,18 +70,40 @@
                             </select>
                         </div>
 
-                        <!-- pilih topik -->
+                        {{-- Topik --}}
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Topik (opsional)</label>
                             <select name="id_topic" class="form-select" id="id_topic">
                                 <option value="">-- Pilih Topik --</option>
+
                                 @if(isset($topics) && $topics->count())
                                     @foreach($topics as $t)
-                                        <option value="{{ $t->id }}">{{ $t->title }}</option>
+                                        <option value="{{ $t->id }}">
+                                            {{ $t->title }}
+                                        </option>
                                     @endforeach
                                 @endif
                             </select>
-                            <div class="form-text">Topik muncul berdasarkan mata pelajaran/kls yang Anda ajar.</div>
+
+                            <div class="form-text">
+                                Topik muncul berdasarkan mata pelajaran/kelas yang Anda ajar.
+                            </div>
+                        </div>
+
+                    </div>
+
+                    {{-- TAGS --}}
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">Tags</label>
+
+                            <input type="text" name="tags" id="tags" class="form-control"
+                                placeholder="Contoh: vlan, switch, jaringan">
+
+                            <div class="form-text">
+                                Masukkan beberapa tag dan pisahkan dengan koma.
+                                Contoh: <strong>vlan, switch, jaringan</strong>
+                            </div>
                         </div>
                     </div>
 

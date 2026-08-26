@@ -711,8 +711,10 @@
                         <hr class="border-2 border-secondary">
                         <div class="text-center bg-light p-3 rounded-3 shadow-sm border">
                             <p class="mb-1 text-muted small">Estimasi Kemampuan Akhir (&theta; Logit)</p>
-                            <h4 class="text-primary mb-3">${thetaAkhir > 0 ? '+' + fmt(thetaAkhir) : fmt(thetaAkhir)}</h4>
-                            <p class="mb-1 text-muted small">Nilai Skala (0-100)</p>
+                            <h4 class="text-primary mb-2">${thetaAkhir > 0 ? '+' + fmt(thetaAkhir) : fmt(thetaAkhir)}</h4>
+                            <p class="mb-1 text-muted small">Nilai Kemampuan</p>
+                            <h6 class="text-secondary mb-3">${fmt(expectedScore)}</h6>
+                            <p class="mb-1 text-muted small">Nilai Akhir dari Total Benar</p>
                             <h2 class="mb-2 fw-bolder ${isLulus ? 'text-success' : 'text-danger'}">${fmt(nilaiAkhir)}</h2>
                             <span class="badge ${isLulus ? 'bg-success' : 'bg-danger'} fs-6 px-4 py-2 mt-1">${isLulus ? 'LULUS (PASS)' : 'REMEDIAL'}</span>
                         </div>

@@ -526,36 +526,58 @@ class guruController extends Controller
             return view('guru.dataaktivitas', compact('rows', 'questionsMap'));
         }
 
-        // 2) ambil topik beserta subject + classes, tapi hanya yg subject.id_class ada di $classIds
-        $topics = Topic::with(['activities', 'subject.classes'])
-            ->whereHas('subject', function ($q) use ($classIds) {
-                $q->whereIn('id_class', $classIds);
+        // 2) Ambil SEMUA Activity langsung (termasuk relasi single topic & pivot topics)
+        $activities = Activity::with(['topic.subject.classes', 'topics.subject.classes'])
+            ->where(function ($query) use ($classIds) {
+                // Cek jika kelasnya cocok dari relasi id_topic (single)
+                $query->whereHas('topic.subject', function ($q) use ($classIds) {
+                    $q->whereIn('id_class', $classIds);
+                })
+                    // ATAU cek jika kelasnya cocok dari relasi pivot topics (evaluation)
+                    ->orWhereHas('topics.subject', function ($q) use ($classIds) {
+                    $q->whereIn('id_class', $classIds);
+                });
             })
             ->get();
 
-        // 3) flatten activities ke collection $rows (sertakan semester & class_name)
+        // 3) Susun data ke collection $rows
         $rows = collect();
-        foreach ($topics as $topic) {
-            $subject = $topic->subject;
+        foreach ($activities as $a) {
+
+            // Tentukan subject dan class name tergantung tipenya
+            if ($a->type === 'evaluation') {
+                $topicTitles = $a->topics->pluck('title')->join(', ');
+                $subject = $a->topics->first()->subject ?? null;
+                // Ambil semua ID topik dalam bentuk array
+                $topicIdsArray = $a->topics->pluck('id')->toArray();
+            } else {
+                $topicTitles = $a->topic->title ?? '-';
+                $subject = $a->topic->subject ?? null;
+                // Masukkan ID topik single ke dalam array
+                $topicIdsArray = isset($a->topic->id) ? [$a->topic->id] : [];
+            }
+
             $className = $subject && $subject->classes ? $subject->classes->name : null;
             $semester = $subject && $subject->classes ? $subject->classes->semester : null;
 
-            foreach ($topic->activities as $a) {
-                $rows->push((object) [
-                    'id' => $a->id,
-                    'title' => $a->title,
-                    'deadline' => $a->deadline,
-                    'kkm' => $a->kkm,
-                    'addaptive' => $a->addaptive,
-                    'topic_id' => $topic->id,
-                    'topic_title' => $topic->title,
-                    'subject_name' => $subject->name ?? null,
-                    'class_name' => $className,
-                    'semester' => $semester,
-                    'durasi_pengerjaan' => $a->durasi_pengerjaan,
-                    'created_at' => $a->created_at,
-                ]);
-            }
+            $rows->push((object) [
+                'id' => $a->id,
+                'title' => $a->title,
+                'type' => $a->type,
+                'deadline' => $a->deadline,
+                'kkm' => $a->kkm,
+                'addaptive' => $a->addaptive,
+                'topic_title' => $topicTitles,
+                'subject_name' => $subject->name ?? null,
+                'class_name' => $className,
+                'semester' => $semester,
+                'durasi_pengerjaan' => $a->durasi_pengerjaan,
+                'created_at' => $a->created_at,
+
+                // --- TAMBAHKAN DUA BARIS INI ---
+                'topic_ids' => $topicIdsArray, // Untuk memunculkan data di Modal Edit
+                'topic_id' => $topicIdsArray[0] ?? null, // Fallback untuk link Atur Soal
+            ]);
         }
 
         if ($rows->isEmpty()) {
@@ -616,48 +638,53 @@ class guruController extends Controller
     /**
      * Menyimpan aktivitas baru.
      */
+    /**
+     * Menyimpan aktivitas baru.
+     */
     public function simpanAktivitas(Request $request)
     {
+        // 1. PASTIKAN id_topic SELALU ARRAY SEBELUM DIVALIDASI
+        // Jika frontend mengirim data tunggal (bukan array), kita bungkus ke dalam array.
+        if ($request->has('id_topic') && !is_array($request->id_topic)) {
+            $request->merge([
+                'id_topic' => [$request->id_topic]
+            ]);
+        }
+
+        // 2. VALIDASI
         $request->validate([
             'title' => ['required', 'string', 'min:3', 'max:255'],
-
-            // deadline wajib & harus setelah sekarang
+            'type' => ['required', 'string'],
             'deadline' => ['required', 'date', 'after:now'],
-
-            'id_topic' => ['required', 'exists:topics,id'],
-
-            // wajib yes / no
+            'id_topic' => ['required', 'array'], // Sekarang validasi array tidak akan gagal
+            'id_topic.*' => ['exists:topics,id'],
             'addaptive' => ['required', 'in:yes,no'],
-
-            // durasi wajib
             'durasi_pengerjaan' => ['required', 'integer', 'min:1'],
-
-            // kkm wajib
             'kkm' => ['required', 'integer', 'min:0', 'max:100'],
-        ], [
-            // 🔴 Pesan error custom (opsional tapi direkomendasikan)
-            'title.required' => 'Judul aktivitas wajib diisi.',
-            'deadline.required' => 'Deadline wajib diisi.',
-            'deadline.after' => 'Deadline harus lebih dari waktu sekarang.',
-            'id_topic.required' => 'Topik wajib dipilih.',
-            'durasi_pengerjaan.required' => 'Durasi pengerjaan wajib diisi.',
-            'kkm.required' => 'KKM wajib diisi.',
         ]);
 
-        Activity::create([
+        // 3. TENTUKAN SINGLE TOPIC ID (Hanya untuk non-evaluation)
+        $singleTopicId = $request->type !== 'evaluation' ? $request->id_topic[0] : null;
+
+        // 4. SIMPAN ACTIVITY
+        $activity = Activity::create([
             'title' => $request->title,
+            'type' => $request->type,
             'deadline' => $request->deadline,
-            'id_topic' => $request->id_topic,
+            'id_topic' => $singleTopicId,
             'addaptive' => $request->addaptive,
             'durasi_pengerjaan' => $request->durasi_pengerjaan,
             'kkm' => $request->kkm,
         ]);
 
-        return redirect()
-            ->route('guru.aktivitas.tampil')
+        // 5. SIMPAN KE TABEL PIVOT JIKA TIPE EVALUATION
+        if ($request->type === 'evaluation') {
+            $activity->topics()->attach($request->id_topic);
+        }
+
+        return redirect()->route('guru.aktivitas.tampil')
             ->with('success', 'Aktivitas berhasil ditambahkan.');
     }
-
 
 
     /**
@@ -667,6 +694,8 @@ class guruController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
+            'type' => 'required|string',
+            'id_topic' => 'required|array',
             'deadline' => 'nullable|date',
             'addaptive' => 'required|in:yes,no',
             'durasi_pengerjaan' => 'nullable|integer|min:1',
@@ -674,14 +703,25 @@ class guruController extends Controller
         ]);
 
         $aktivitas = Activity::findOrFail($id);
+        $singleTopicId = $request->type !== 'evaluation' ? $request->id_topic[0] : null;
 
         $aktivitas->update([
             'title' => $request->title,
+            'type' => $request->type,
+            'id_topic' => $singleTopicId,
             'deadline' => $request->deadline,
             'addaptive' => $request->addaptive,
             'kkm' => $request->kkm,
             'durasi_pengerjaan' => $request->durasi_pengerjaan ?? null,
         ]);
+
+        // Sinkronisasi tabel pivot (menyimpan yang baru, menghapus yang tidak dipilih)
+        if ($request->type === 'evaluation') {
+            $aktivitas->topics()->sync($request->id_topic);
+        } else {
+            // Jika diubah jadi bukan evaluation, hapus semua relasi di pivot
+            $aktivitas->topics()->detach();
+        }
 
         return redirect()->route('guru.aktivitas.tampil')
             ->with('success', 'Aktivitas berhasil diperbarui.');
@@ -704,43 +744,56 @@ class guruController extends Controller
     {
         $guruId = Auth::id();
 
-        // 1) ambil kelas yang diajar guru
+        // 1. Ambil kelas yang diajar guru
         $kelasIds = DB::table('teacher_classes')
             ->where('id_teacher', $guruId)
             ->pluck('id_class')
             ->toArray();
 
-        // jika guru tidak mengajar kelas apapun -> return view kosong
+        // Jika guru tidak mengajar kelas apapun
         if (empty($kelasIds)) {
             $data = collect();
             $topics = collect();
             $subjects = collect();
-            return view('guru.datasoal', compact('data', 'topics', 'subjects'));
+
+            return view('guru.datasoal', compact(
+                'data',
+                'topics',
+                'subjects'
+            ));
         }
 
-        // 2) ambil subject yang masuk ke kelas tersebut (bila butuh di view)
+        // 2. Ambil subject yang masuk ke kelas guru
         $subjects = DB::table('subject')
             ->whereIn('id_class', $kelasIds)
-            ->select('id', 'name', 'id_class')
+            ->select(
+                'id',
+                'name',
+                'id_class'
+            )
             ->orderBy('name')
             ->get();
 
-        // 3) ambil topics hanya untuk subject di atas (bila butuh di view)
+        // 3. Ambil topic berdasarkan subject
         $subjectIds = $subjects->pluck('id')->toArray();
+
         $topics = DB::table('topics')
             ->whereIn('id_subject', $subjectIds)
-            ->select('id', 'title', 'id_subject')
+            ->select(
+                'id',
+                'title',
+                'id_subject'
+            )
             ->orderBy('title')
             ->get();
 
-        // 4) ambil semua question yang terhubung ke topics pada kelas ini
-        // join: question.id_topic -> topics.id -> subject.id_subject -> classes (subject.id_class)
+        // 4. Ambil soal
         $questions = DB::table('question')
             ->join('topics', 'question.id_topic', '=', 'topics.id')
             ->join('subject', 'topics.id_subject', '=', 'subject.id')
             ->whereIn('subject.id_class', $kelasIds)
             ->select(
-                'question.*', // Ini sudah otomatis membawa atribut 'delta'
+                'question.*',
                 'topics.title as topic_title',
                 'topics.id_subject as topic_subject_id',
                 'subject.name as subject_name',
@@ -749,14 +802,42 @@ class guruController extends Controller
             ->orderBy('question.created_at', 'desc')
             ->get();
 
-        // decode json fields for view convenience
+        // 5. Decode data JSON
         foreach ($questions as $item) {
-            $item->question = is_string($item->question) ? json_decode($item->question) : $item->question;
-            $item->MC_option = $item->MC_option ? (is_string($item->MC_option) ? json_decode($item->MC_option) : $item->MC_option) : null;
-            $item->SA_answer = $item->SA_answer ? (is_string($item->SA_answer) ? json_decode($item->SA_answer) : $item->SA_answer) : null;
+
+            // Pertanyaan
+            $item->question = is_string($item->question)
+                ? json_decode($item->question)
+                : $item->question;
+
+            // Pilihan ganda
+            $item->MC_option = $item->MC_option
+                ? (
+                    is_string($item->MC_option)
+                    ? json_decode($item->MC_option)
+                    : $item->MC_option
+                )
+                : null;
+
+            // Jawaban isian
+            $item->SA_answer = $item->SA_answer
+                ? (
+                    is_string($item->SA_answer)
+                    ? json_decode($item->SA_answer)
+                    : $item->SA_answer
+                )
+                : null;
+
+            // TAGS
+            $item->tags = $item->tags
+                ? (
+                    is_string($item->tags)
+                    ? json_decode($item->tags, true)
+                    : $item->tags
+                )
+                : [];
         }
 
-        // kirim ke view: semua soal yang topiknya berada di kelas yang diajar guru
         return view('guru.datasoal', [
             'data' => $questions,
             'topics' => $topics,
@@ -882,7 +963,8 @@ class guruController extends Controller
             'type' => 'required|in:MultipleChoice,ShortAnswer',
             'question_text' => 'required|string',
             'difficulty' => 'nullable|in:mudah,sedang,sulit',
-            'id_topic' => 'nullable|exists:topics,id'
+            'id_topic' => 'nullable|exists:topics,id',
+            'tags' => 'nullable|string|max:500',
         ]);
 
         $questionData = [
@@ -921,6 +1003,20 @@ class guruController extends Controller
             $saAnswer = $request->input('sa_answer') ? json_encode(array_values(array_filter($request->input('sa_answer')))) : null;
         }
 
+        $tags = null;
+
+        if ($request->filled('tags')) {
+            $tagsArray = array_values(
+                array_filter(
+                    array_map('trim', explode(',', $request->tags))
+                )
+            );
+
+            $tags = !empty($tagsArray)
+                ? json_encode($tagsArray)
+                : null;
+        }
+
         // 🔹 LOGIKA PENENTUAN DELTA (RASCH MODEL)
         $difficulty = $request->difficulty ?? 'sedang';
         $delta = 0.0; // Default sedang
@@ -939,9 +1035,9 @@ class guruController extends Controller
             'difficulty' => $difficulty,
             'delta' => $delta,
             'id_topic' => $request->id_topic ?? null,
+            'tags' => $tags,
             'created_by' => Auth::id(),
         ]);
-
         return back()->with('success', 'Soal berhasil disimpan!');
     }
     // 🔹 Edit soal
@@ -1002,6 +1098,7 @@ class guruController extends Controller
             'question_url' => 'nullable|url',
             'difficulty' => 'nullable|in:mudah,sedang,sulit',
             'id_topic' => 'nullable|exists:topics,id',
+            'tags' => 'nullable|string|max:500',
         ];
 
         // Jika tipe multiple choice, validasi minimal struktur
@@ -1090,14 +1187,30 @@ class guruController extends Controller
             $delta = 1.5;
         }
 
+        $tags = null;
+
+        if ($request->filled('tags')) {
+            $tagsArray = array_values(
+                array_filter(
+                    array_map('trim', explode(',', $request->tags))
+                )
+            );
+
+            $tags = !empty($tagsArray)
+                ? json_encode($tagsArray)
+                : null;
+        }
+
         // Update record
         $data->question = json_encode($questionData);
         $data->MC_option = $mcOption;
         $data->SA_answer = $saAnswer;
         $data->MC_answer = $mcAnswer;
         $data->difficulty = $difficulty;
-        $data->delta = $delta; 
+        $data->delta = $delta;
         $data->id_topic = $request->id_topic ?? $data->id_topic;
+        $data->tags = $tags;
+
         $data->save();
 
         return back()->with('success', 'Soal berhasil diedit!');

@@ -91,8 +91,9 @@
                         <tr>
                             <th class="w-5">No</th>
                             <th class="w-10">Tipe</th>
-                            <th class="w-40">Pertanyaan</th>
-                            <th class="w-20">Topik</th>
+                            <th class="w-30">Pertanyaan</th>
+                            <th class="w-15">Topik</th>
+                            <th class="w-20">Tags</th>
                             <th class="w-15">Kesulitan</th>
                             <th class="w-10">Aksi</th>
                         </tr>
@@ -107,9 +108,9 @@
                             <tr data-question-id="{{ $item->id }}" data-topic-title="{{ $topicTitle }}"
                                 data-id_topic="{{ $item->id_topic ?? '' }}">
                                 <td class="fw-bold"></td>
-                                
+
                                 <td>{{ $item->type == 'MultipleChoice' ? 'Pilihan Ganda' : 'Isian Singkat' }}</td>
-                                
+
                                 <td class="text-start">
                                     {!! nl2br(e($item->question->text ?? ($item->question['text'] ?? '-'))) !!}
                                 </td>
@@ -123,13 +124,20 @@
                                     </div>
                                 </td>
                                 <td>
+                                    @forelse($item->tags as $tag)
+                                        {{ $tag }}@if (!$loop->last), @endif
+                                    @empty
+                                        -
+                                    @endforelse
+                                </td>
+                                <td>
                                     <span class="badge 
-                                        @if($item->difficulty == 'mudah') bg-success 
-                                        @elseif($item->difficulty == 'sedang') bg-warning text-dark 
-                                        @else bg-danger @endif">
+                                                                                        @if($item->difficulty == 'mudah') bg-success 
+                                                                                        @elseif($item->difficulty == 'sedang') bg-warning text-dark 
+                                                                                        @else bg-danger @endif">
                                         {{ ucfirst($item->difficulty) }}
                                     </span>
-                                    
+
                                     <div class="mt-1 small text-muted">
                                         <strong>Delta:</strong> {{ number_format($item->delta, 2) }}
                                     </div>
@@ -142,7 +150,7 @@
                                             data-opt="{{ base64_encode(json_encode($item->MC_option)) }}"
                                             data-mcanswer="{{ $item->MC_answer }}"
                                             data-sa="{{ base64_encode(json_encode($item->SA_answer)) }}"
-                                            data-type="{{ $item->type }}"> 
+                                            data-type="{{ $item->type }}">
                                             <i class="bi bi-eye-fill"></i>
                                         </button>
 
@@ -180,13 +188,14 @@
                     <div class="card-body">
 
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="badge bg-secondary">{{ $item->type == 'MultipleChoice' ? 'Pilihan Ganda' : 'Isian Singkat' }}</span>
-                            
+                            <span
+                                class="badge bg-secondary">{{ $item->type == 'MultipleChoice' ? 'Pilihan Ganda' : 'Isian Singkat' }}</span>
+
                             <div class="text-end">
                                 <span class="badge 
-                                    @if($item->difficulty == 'mudah') bg-success 
-                                    @elseif($item->difficulty == 'sedang') bg-warning text-dark 
-                                    @else bg-danger @endif">
+                                                                                    @if($item->difficulty == 'mudah') bg-success 
+                                                                                    @elseif($item->difficulty == 'sedang') bg-warning text-dark 
+                                                                                    @else bg-danger @endif">
                                     {{ ucfirst($item->difficulty) }}
                                 </span>
                                 <span class="badge bg-light text-dark border ms-1" title="Tingkat Kesulitan / Delta">
@@ -199,9 +208,33 @@
                             {{ Str::limit(strip_tags($item->question->text ?? '-'), 120) }}
                         </p>
 
-                        <small class="text-muted d-block mb-3">
+                        <small class="text-muted d-block mb-2">
                             Topik: {{ $topicTitle }}
                         </small>
+
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-1">
+                                Tags:
+                            </small>
+
+                            <div class="d-flex flex-wrap gap-1">
+
+                                @forelse($item->tags as $tag)
+
+                                    <span class="badge bg-info text-dark">
+                                        {{ $tag }}
+                                    </span>
+
+                                @empty
+
+                                    <span class="text-muted small">
+                                        Tidak ada tag
+                                    </span>
+
+                                @endforelse
+
+                            </div>
+                        </div>
 
                         <div class="d-flex gap-2">
                             <button class="btn btn-outline-primary btn-sm view-soal" data-bs-toggle="modal"
@@ -301,7 +334,7 @@
                 </div>
             </div>
         </div>
-        
+
         {{-- MODAL INFO DAFTAR SOAL --}}
         <div class="modal fade" id="modalInfoSoal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
@@ -435,10 +468,14 @@
                             <i class="bi bi-bar-chart me-1"></i> Kesulitan Soal & Delta
                         </h6>
                         <ul>
-                            <li><span class="badge bg-success">Mudah</span> – Untuk pemahaman dasar (Nilai Delta lebih rendah/negatif).</li>
-                            <li><span class="badge bg-warning text-dark">Sedang</span> – Untuk pemahaman menengah (Nilai Delta di kisaran 0.0).</li>
-                            <li><span class="badge bg-danger">Sulit</span> – Untuk pemahaman tingkat lanjut (Nilai Delta tinggi/positif).</li>
-                            <li>Nilai <strong>Delta</strong> ini digunakan oleh algoritma ujian adaptif untuk menentukan soal yang sesuai dengan kemampuan siswa.</li>
+                            <li><span class="badge bg-success">Mudah</span> – Untuk pemahaman dasar (Nilai Delta lebih
+                                rendah/negatif).</li>
+                            <li><span class="badge bg-warning text-dark">Sedang</span> – Untuk pemahaman menengah (Nilai
+                                Delta di kisaran 0.0).</li>
+                            <li><span class="badge bg-danger">Sulit</span> – Untuk pemahaman tingkat lanjut (Nilai Delta
+                                tinggi/positif).</li>
+                            <li>Nilai <strong>Delta</strong> ini digunakan oleh algoritma ujian adaptif untuk menentukan
+                                soal yang sesuai dengan kemampuan siswa.</li>
                         </ul>
 
                     </div>
@@ -486,7 +523,7 @@
                         className: 'text-center fw-bold'
                     },
                     {
-                        targets: 5,          // kolom Aksi
+                        targets: 6,
                         orderable: false,
                         searchable: false
                     }
@@ -577,7 +614,7 @@
                 });
                 updateTotalLabel();
             });
-            
+
             // View soal modal
             $(document).on('click', '.view-soal', function () {
                 var btn = this;
@@ -598,11 +635,11 @@
                         var label = Object.keys(o)[0];
                         var d = o[label];
                         pilihan.append(`
-                            <div class="border p-2 mb-2 rounded">
-                                <strong>${label.toUpperCase()}.</strong> ${d.teks}
-                                ${d.url ? `<br><img src="${d.url}" class="img-thumbnail mt-2" style="max-height:100px">` : ""}
-                            </div>
-                        `);
+                                                    <div class="border p-2 mb-2 rounded">
+                                                        <strong>${label.toUpperCase()}.</strong> ${d.teks}
+                                                        ${d.url ? `<br><img src="${d.url}" class="img-thumbnail mt-2" style="max-height:100px">` : ""}
+                                                    </div>
+                                                `);
                     });
                 } else {
                     pilihan.html("<em>Tidak ada pilihan jawaban.</em>");
@@ -712,18 +749,18 @@
                     Swal.fire({
                         title: 'Hapus Soal?',
                         html: `
-                            <div class="text-start">
-                                <p class="mb-2">
-                                    Anda akan menghapus:
-                                </p>
-                                <blockquote class="small border-start ps-2 text-muted">
-                                    ${soalText}
-                                </blockquote>
-                                <small class="text-danger">
-                                    ⚠️ Soal yang dihapus tidak dapat dikembalikan.
-                                </small>
-                            </div>
-                        `,
+                                                    <div class="text-start">
+                                                        <p class="mb-2">
+                                                            Anda akan menghapus:
+                                                        </p>
+                                                        <blockquote class="small border-start ps-2 text-muted">
+                                                            ${soalText}
+                                                        </blockquote>
+                                                        <small class="text-danger">
+                                                            ⚠️ Soal yang dihapus tidak dapat dikembalikan.
+                                                        </small>
+                                                    </div>
+                                                `,
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#dc3545',

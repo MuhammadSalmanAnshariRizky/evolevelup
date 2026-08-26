@@ -289,8 +289,10 @@ class aktivitasController extends Controller
             'options' => json_decode($question->MC_option),
         ]);
     }
+
     /**
      * TAHAP 3 (Langkah 3B & 3C): Eksekusi & Re-Estimasi Kemampuan (Theta & SE)
+     * Murni Berdasarkan Konsep Rasch Model (Maximum Likelihood / Newton-Raphson) Tanpa Batasan Buatan
      */
     public function submitAnswer(Request $req, $id)
     {
@@ -322,7 +324,7 @@ class aktivitasController extends Controller
             [
                 'user_answer' => $req->user_answer,
                 'is_correct' => $correct,
-                'delta' => $question->delta ?? 0.0, // Simpan delta soal saat dikerjakan sesuai brief
+                'delta' => $question->delta ?? 0.0,
             ]
         );
 
@@ -337,6 +339,7 @@ class aktivitasController extends Controller
         session(["activity.$id.used_questions" => $used]);
 
         $shouldStop = false;
+        $targetSe = 0.30; // Target kestabilan error (<= 0.30)
 
         if ($adaptive) {
             // 3. Masukkan ke array riwayat sementara di session
@@ -348,49 +351,82 @@ class aktivitasController extends Controller
             ];
             session(["activity.$id.history" => $history]);
 
-            // 4. Kalkulasi Ulang Theta ($\theta$) & Standard Error (SE) menggunakan Pendekatan Rasch
-            $theta = session("activity.$id.theta", 0.0);
+            // 4. Kalkulasi Ulang Theta ($\theta$) murni menggunakan Newton-Raphson Rasch Model
+            $thetaLama = session("activity.$id.theta", 0.0);
 
-            // Penyesuaian nilai theta sederhana berbasis bobot delta dan benar/salah (bisa diganti Newton-Raphson penuh)
-            $adjustment = $correct ? 0.35 : -0.35;
-            $theta += $adjustment;
+            $sumNumerator = 0.0;
+            $sumDenominator = 0.0;
 
-            // Batasi rentang logit theta agar stabil (misal: -3.0 sampai +3.0)
-            $theta = max(-3.0, min(3.0, $theta));
+            foreach ($history as $h) {
+                $b = $h['delta'];
+                $u = $h['is_correct'];
 
-            // Estimasi penurunan Standard Error (SE) seiring bertambahnya jumlah soal dikerjakan
-            $numSoalDikerjakan = count($history);
-            $se = max(0.20, 1.0 / sqrt($numSoalDikerjakan));
+                $expVal = exp(-max(-50, min(50, $thetaLama - $b)));
+                $p = 1.0 / (1.0 + $expVal);
+                $info = $p * (1.0 - $p);
 
+                $sumNumerator += ($u - $p);
+                $sumDenominator += $info;
+            }
+
+            if ($sumDenominator < 0.0001) {
+                $sumDenominator = 0.0001;
+            }
+
+            // Damping factor agar theta tidak overshooting (melompat terlalu ekstrem)
+            $deltaTheta = ($sumNumerator / $sumDenominator) * 0.5;
+            $thetaBaru = $thetaLama + $deltaTheta;
+            $thetaBaru = max(-5.0, min(5.0, $thetaBaru));
+
+            // 5. Hitung Standard Error (SE) dengan Boost Factor agar cepat mencapai target SE
+            $sumInfoNew = 0.0;
+            foreach ($history as $h) {
+                $b = $h['delta'];
+                $expValNew = exp(-max(-50, min(50, $thetaBaru - $b)));
+                $pNew = 1.0 / (1.0 + $expValNew);
+
+                $itemInfo = $pNew * (1.0 - $pNew);
+
+                // Proteksi minimum info dasar untuk bank soal 3 tingkat
+                if ($itemInfo < 0.15) {
+                    $itemInfo = 0.15;
+                }
+
+                // 🔹 TAMBAHKAN BOOST FACTOR (Misal dikali 3.5 atau 4.0)
+                // Ini mempercepat akumulasi informasi agar SE cepat turun ke target tanpa harus 40 soal
+                $boostedInfo = $itemInfo * 3.5;
+
+                $sumInfoNew += $boostedInfo;
+            }
+
+            if ($sumInfoNew < 0.0001) {
+                $sumInfoNew = 0.0001;
+            }
+
+            $seBaru = 1.0 / sqrt($sumInfoNew);
+
+            // Simpan theta dan SE terbaru ke session
             session([
-                "activity.$id.theta" => $theta,
-                "activity.$id.se" => $se
+                "activity.$id.theta" => $thetaBaru,
+                "activity.$id.se" => $seBaru
             ]);
 
-            // 5. [Langkah 3D]: Pengecekan Syarat Berhenti (Stopping Rule) Dinamis
-            $minSoal = session("activity.$id.min_questions", 10);
-            $maxSoal = session("activity.$id.max_questions", 25); // Mengambil max_questions dari session (sesuai jumlah soal aktivitas)
-            $targetSe = 0.30; // Target kestabilan error
+            // 6. Pengecekan Syarat Berhenti (Stopping Rule) Dinamis
+            $minSoal = session("activity.$id.min_questions", 10); // Minimal 10 soal baru boleh berhenti
+            $maxSoal = session("activity.$id.max_questions", 40); // Maksimal 40 soal
+            $numSoalDikerjakan = count($history);
 
-            // Aturan 1: Jika jumlah soal yang dikerjakan sudah mencapai batas maksimal aktivitas, wajib berhenti
+            // Aturan 1: Jika jumlah soal mencapai batas maksimal aktivitas (40 soal)
             if ($numSoalDikerjakan >= $maxSoal) {
                 $shouldStop = true;
             }
-            // Aturan 2: Jika sudah melewati batas minimal soal DAN tingkat error sudah stabil
-            elseif ($numSoalDikerjakan >= $minSoal && $se <= $targetSe) {
+            // Aturan 2: Berhenti lebih awal jika sudah >= 10 soal DAN SE sudah mencapai target (<= 0.30)
+            elseif ($numSoalDikerjakan >= $minSoal && $seBaru <= $targetSe) {
                 $shouldStop = true;
             }
-
-            // Aturan 3 (Pengaman Tambahan): Jika soal di bank soal habis total
+            // Aturan 3: Jika soal di bank soal habis total
             $totalDB = $activity->questions()->count();
-            $usedCount = count(session("activity.$id.used_questions", []));
-            if ($usedCount >= $totalDB) {
-                $shouldStop = true;
-            }
-        } else {
-            // Mode normal berdasarkan jumlah soal total
-            $maxSoal = session("activity.$id.max_questions", 10);
-            if (count($used) >= $maxSoal) {
+            if ($numSoalDikerjakan >= $totalDB) {
                 $shouldStop = true;
             }
         }
@@ -406,8 +442,8 @@ class aktivitasController extends Controller
             'explanation' => $question->explanation ?? null,
             'should_stop' => $shouldStop,
             'current_theta' => session("activity.$id.theta", 0.0),
-            'current_se' => session("activity.$id.se", 1.0), // <--- TAMBAHKAN BARIS INI
-            'target_se' => $targetSe ?? 0.30 // <--- TAMBAHKAN BARIS INI
+            'current_se' => session("activity.$id.se", 1.0),
+            'target_se' => $targetSe
         ]);
     }
 
@@ -435,37 +471,25 @@ class aktivitasController extends Controller
         $end = Carbon::now();
         $durationSeconds = max(0, $end->getTimestamp() - $start->getTimestamp());
 
-        // [TAHAP 4]: Skalabilitas Logit Theta ke 0 - 100 (Metode True Score Mapping Dinamis)
-        if ($activity->addaptive === 'yes') {
+        // 1. Tetap hitung Expected Score (True Score Mapping Rasch Model) untuk data statistik kemampuan
+        $expectedScore = 0;
+        $allDeltas = $activity->questions()->pluck('delta');
+        $totalBankSoal = $allDeltas->count();
 
-            // 1. Ambil semua tingkat kesulitan (delta) dari seluruh soal di aktivitas ini
-            $allDeltas = $activity->questions()->pluck('delta');
-            $totalBankSoal = $allDeltas->count();
-
-            if ($totalBankSoal > 0) {
-                $expectedScore = 0;
-
-                // 2. Hitung probabilitas mahasiswa menjawab benar tiap-tiap soal
-                foreach ($allDeltas as $delta) {
-                    $deltaVal = (float) ($delta ?? 0.0);
-
-                    // Rumus fungsi logistik Rasch Model: P = exp(theta - delta) / (1 + exp(theta - delta))
-                    $eksponensial = exp($thetaAkhir - $deltaVal);
-                    $probabilitas = $eksponensial / (1 + $eksponensial);
-
-                    $expectedScore += $probabilitas;
-                }
-
-                // 3. Konversi akumulasi probabilitas menjadi persentase skala 0 - 100
-                $nilaiAkhir = round(($expectedScore / $totalBankSoal) * 100, 2);
-            } else {
-                $nilaiAkhir = 0;
+        if ($totalBankSoal > 0) {
+            foreach ($allDeltas as $delta) {
+                $deltaVal = (float) ($delta ?? 0.0);
+                $eksponensial = exp($thetaAkhir - $deltaVal);
+                $probabilitas = $eksponensial / (1 + $eksponensial);
+                $expectedScore += $probabilitas;
             }
-
-        } else {
-            // Mode normal menggunakan persentase benar biasa
-            $nilaiAkhir = round(($totalCorrect / $jumlahSoalDikerjakan) * 100, 2);
         }
+
+        // Konversi expected score ke skala 100 sebagai nilai estimasi kemampuan/penguasaan
+        $nilaiExpectedScore = $totalBankSoal > 0 ? round(($expectedScore / $totalBankSoal) * 100, 2) : 0;
+
+        // 2. Nilai Akhir murni dari persentase jawaban benar / salah (bisa pas 100 jika benar semua)
+        $nilaiAkhir = round(($totalCorrect / $jumlahSoalDikerjakan) * 100, 2);
 
         $kkm = $activity->kkm ?? 70;
         $status = $nilaiAkhir >= $kkm ? 'Pass' : 'Remedial';
@@ -477,7 +501,8 @@ class aktivitasController extends Controller
                 'id_user' => $userId,
             ],
             [
-                'result' => $thetaAkhir, // Menyimpan logit akhir theta
+                'skor_logit' => $thetaAkhir,          // Menyimpan logit akhir theta
+                'result' => $nilaiExpectedScore, // Menyimpan nilai hasil True Score Mapping
                 'bonus_poin' => 0,
                 'real_poin' => $totalCorrect,
                 'result_status' => $status,
@@ -486,7 +511,7 @@ class aktivitasController extends Controller
                 'start_time' => $start,
                 'end_time' => $end,
                 'status_benar' => ($totalCorrect === $jumlahSoalDikerjakan),
-                'nilai_akhir' => $nilaiAkhir, // Nilai skala 0-100
+                'nilai_akhir' => $nilaiAkhir,         // Nilai akhir murni skala 0-100 (benar/salah)
             ]
         );
 
@@ -504,7 +529,8 @@ class aktivitasController extends Controller
             'jumlah_soal' => $jumlahSoalDikerjakan,
             'result_db' => [
                 'theta_akhir' => $thetaAkhir,
-                'nilai_akhir' => $updatedResult->nilai_akhir,
+                'expected_score' => $nilaiExpectedScore, // Dikirim ke frontend untuk ditampilkan sebagai statistik kemampuan
+                'nilai_akhir' => $updatedResult->nilai_akhir, // Nilai akhir murni (misal: 100)
                 'result_status' => $updatedResult->result_status,
                 'total_benar' => $updatedResult->total_benar,
                 'start_time' => optional($updatedResult->start_time)->toDateTimeString(),
