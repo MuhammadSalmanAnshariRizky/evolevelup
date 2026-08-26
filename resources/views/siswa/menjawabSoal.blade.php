@@ -142,50 +142,7 @@
             }
         }
 
-        /* Dashboard Metrik Adaptif */
-        .adaptive-dashboard {
-            border-radius: 0.75rem;
-            border: 2px solid var(--primary-color);
-            overflow: hidden;
-            margin-bottom: 1.5rem;
-            background: #fff;
-        }
-
-        .adaptive-dashboard-header {
-            background-color: #f1f3f9;
-            padding: 12px 20px;
-            border-bottom: 1px solid #e3e6f0;
-        }
-
-        .progress-adaptive {
-            height: 26px;
-            border-radius: 0;
-            background-color: #eaecf4;
-            position: relative;
-        }
-
-        .kkm-marker {
-            position: absolute;
-            left: 72.16%;
-            /* (1.33 + 3.0) / 6.0 * 100 */
-            top: 0;
-            bottom: 0;
-            width: 3px;
-            background-color: var(--danger-color);
-            z-index: 10;
-        }
-
-        .kkm-label {
-            position: absolute;
-            left: 72.16%;
-            top: 28px;
-            transform: translateX(-50%);
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: var(--danger-color);
-        }
-
-        /* Floating Widgets */
+        /* Floating Widgets (Combo & Fire) */
         #comboMeter {
             position: fixed;
             top: 20px;
@@ -277,8 +234,8 @@
 
                     <p class="text-muted small mb-4 px-2">
                         <i class="bi bi-info-circle-fill text-info me-1"></i> <b>Mode Ujian Adaptif:</b> Sistem secara
-                        dinamis menyesuaikan tingkat kesulitan soal berdasarkan kemampuan Anda. Ujian dapat diselesaikan
-                        lebih awal jika tingkat presisi psikometrik telah tercapai.
+                        dinamis menyesuaikan alur soal berdasarkan kemampuan Anda. Ujian dapat diselesaikan
+                        lebih awal jika kompetensi telah terpenuhi.
                     </p>
 
                     <div class="d-flex justify-content-center gap-3">
@@ -308,47 +265,9 @@
                 </div>
             </div>
 
-            <div class="adaptive-dashboard shadow-sm">
-                <div
-                    class="adaptive-dashboard-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <div>
-                        <span class="fw-bold text-primary mb-1 d-inline-block">
-                            🧠 Kemampuan (<span style="font-style: italic;">&theta;</span>):
-                            <span id="currentThetaDisplay" class="badge bg-primary fs-6 ms-1">0.00</span>
-                        </span>
-                        <span class="fw-bold text-secondary mb-1 d-inline-block ms-md-3">
-                            🎯 Error (SE):
-                            <span id="currentSeDisplay" class="badge bg-secondary fs-6 ms-1">1.00</span>
-                            <span class="text-muted fw-normal" style="font-size: 0.8rem;">/ Target: <span
-                                    id="targetSeDisplay">0.30</span></span>
-                        </span>
-                    </div>
-                    <div>
-                        <span class="text-muted fw-semibold">Soal ke-<span id="questionCounter"
-                                class="text-dark fw-bold">1</span></span>
-                    </div>
-                </div>
-                <div style="position: relative; margin-bottom: 20px;">
-                    <div class="progress progress-adaptive">
-                        <div class="kkm-marker" title="Target KKM: Theta +1.33"></div>
-                        <div id="adaptiveProgressBar"
-                            class="progress-bar progress-bar-striped progress-bar-animated bg-info"
-                            style="width: 50%; font-weight:bold; font-size: 0.85rem;">
-                            START
-                        </div>
-                    </div>
-                    <div class="kkm-label">TARGET KKM (+1.33)</div>
-                </div>
-            </div>
-
             <div class="question-panel">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 pb-2 border-bottom">
                     <h5 class="mb-0 fw-bold text-dark">Pertanyaan No. <span id="soalNumHeader">1</span></h5>
-                    <div class="d-flex align-items-center gap-2">
-                        <span id="badgeDifficulty" class="badge bg-secondary px-3 py-2 shadow-sm">Tingkat: —</span>
-                        <span id="badgeDelta" class="badge bg-dark px-3 py-2 shadow-sm font-monospace"
-                            title="Parameter Kesulitan Soal (Delta)">δ: —</span>
-                    </div>
                 </div>
 
                 <div id="questionText" class="question-box mb-4"></div>
@@ -378,9 +297,6 @@
         let totalBenar = 0;
         let totalSalah = 0;
         let currentStreak = 0;
-        let currentTheta = 0.00;
-        let currentSE = 1.00;
-        let targetSE = 0.30;
 
         function startTimer() {
             timerInterval = setInterval(() => {
@@ -420,15 +336,6 @@
                     totalQuestions = data.totalQuestions;
                     answers = Array(totalQuestions).fill(null);
 
-                    currentTheta = data.theta_initial !== undefined ? parseFloat(data.theta_initial) : 0.00;
-
-                    // --- BARIS BARU UNTUK SE ---
-                    targetSE = data.target_se !== undefined ? parseFloat(data.target_se) : 0.30;
-                    document.getElementById("targetSeDisplay").innerText = targetSE.toFixed(2);
-                    document.getElementById("currentSeDisplay").innerText = "1.00";
-                    document.getElementById("currentSeDisplay").className = "badge bg-secondary fs-6 ms-1";
-                    // ---------------------------
-
                     document.getElementById("info-test").hidden = true;
                     document.getElementById("soal-test").hidden = false;
 
@@ -439,14 +346,12 @@
                     timeLeft = durasiMenit * 60;
 
                     loadQuestion();
-                    updateAdaptiveProgress(currentTheta);
                     startTimer();
                 })
                 .catch(err => console.warn('Start dibatalkan:', err.message));
         }
 
         function loadQuestion() {
-            document.getElementById("questionCounter").innerText = (currentIndex + 1);
             document.getElementById("soalNumHeader").innerText = (currentIndex + 1);
 
             fetch(`/activity/{{ $id_activity }}/question?index=${currentIndex}`)
@@ -462,27 +367,7 @@
                     // 1. Tampilkan Teks Soal
                     document.getElementById('questionText').innerHTML = q.question.text;
 
-                    // 2. Olah & Tampilkan Badge Difficulty & Delta Soal
-                    let diffText = q.difficulty ? q.difficulty.toLowerCase() : 'sedang';
-                    let badgeColor = 'bg-secondary';
-                    let badgeLabel = diffText.toUpperCase();
-
-                    if (diffText === 'mudah') {
-                        badgeColor = 'bg-success';
-                    } else if (diffText === 'sedang') {
-                        badgeColor = 'bg-warning text-dark';
-                    } else if (diffText === 'sulit') {
-                        badgeColor = 'bg-danger';
-                    }
-
-                    document.getElementById('badgeDifficulty').className = `badge ${badgeColor} px-3 py-2 shadow-sm`;
-                    document.getElementById('badgeDifficulty').innerText = `Tingkat: ${badgeLabel}`;
-
-                    // Menampilkan Nilai Delta Soal (jika ada dari backend)
-                    let deltaVal = q.delta !== undefined && q.delta !== null ? parseFloat(q.delta).toFixed(2) : '0.00';
-                    document.getElementById('badgeDelta').innerText = `δ: ${deltaVal > 0 ? '+' + deltaVal : deltaVal}`;
-
-                    // 3. Render Pilihan Jawaban
+                    // 2. Render Pilihan Jawaban
                     let html = "";
                     if (q.type === "MultipleChoice") {
                         q.options.forEach(o => {
@@ -560,26 +445,6 @@
                         currentStreak = 0;
                     }
 
-                    if (res.current_theta !== undefined) {
-                        currentTheta = parseFloat(res.current_theta);
-                        updateAdaptiveProgress(currentTheta);
-                    }
-
-                    // --- BARIS BARU UNTUK UPDATE UI SE ---
-                    if (res.current_se !== undefined) {
-                        currentSE = parseFloat(res.current_se);
-                        let seBadge = document.getElementById("currentSeDisplay");
-                        seBadge.innerText = currentSE.toFixed(2);
-
-                        // Beri warna hijau jika SE sudah mencapai target/stabil
-                        if (currentSE <= targetSE) {
-                            seBadge.className = "badge bg-success fs-6 ms-1";
-                        } else {
-                            seBadge.className = "badge bg-secondary fs-6 ms-1";
-                        }
-                    }
-                    // -------------------------------------
-
                     showAnswerFeedback(res);
                     updateComboUI(currentStreak);
 
@@ -600,31 +465,6 @@
                 });
         }
 
-        function updateAdaptiveProgress(theta) {
-            let percent = ((theta + 3.0) / 6.0) * 100;
-            percent = Math.max(0, Math.min(100, percent));
-
-            const bar = document.getElementById("adaptiveProgressBar");
-            const thetaDisplay = document.getElementById("currentThetaDisplay");
-
-            bar.style.width = percent + "%";
-            thetaDisplay.innerText = theta > 0 ? "+" + theta.toFixed(2) : theta.toFixed(2);
-
-            if (theta >= 1.33) {
-                bar.className = "progress-bar progress-bar-striped progress-bar-animated bg-success";
-                bar.innerText = "Target KKM Tercapai!";
-                thetaDisplay.className = "badge bg-success fs-6 ms-1";
-            } else if (theta >= 0.0) {
-                bar.className = "progress-bar progress-bar-striped progress-bar-animated bg-info";
-                bar.innerText = "Kemampuan Meningkat";
-                thetaDisplay.className = "badge bg-info fs-6 ms-1 text-dark";
-            } else {
-                bar.className = "progress-bar progress-bar-striped progress-bar-animated bg-warning text-dark";
-                bar.innerText = "Butuh Perbaikan";
-                thetaDisplay.className = "badge bg-warning fs-6 ms-1 text-dark";
-            }
-        }
-
         function showAnswerFeedback(res) {
             const isCorrect = res.correct === true;
             Swal.fire({
@@ -633,8 +473,8 @@
                 html: `
                     <div style="text-align:center">
                         ${isCorrect
-                        ? `<p class="mb-0 text-success fw-bold">Estimasi Kemampuan Kamu Naik!</p>`
-                        : `<p class="mb-0 text-danger fw-bold">Sistem menurunkan tingkat kesulitan soal berikutnya.</p>`
+                        ? `<p class="mb-0 text-success fw-bold">Bagus! Jawaban kamu tepat.</p>`
+                        : `<p class="mb-0 text-danger fw-bold">Tetap semangat! Coba lebih baik di soal berikutnya.</p>`
                     }
                     </div>
                 `,
@@ -670,8 +510,8 @@
             clearInterval(timerInterval);
 
             Swal.fire({
-                title: 'Mengkalkulasi Nilai...',
-                html: 'Sistem sedang menganalisis kestabilan psikometrik Anda.',
+                title: 'Menyimpan Hasil...',
+                html: 'Sistem sedang memproses nilai Anda.',
                 allowOutsideClick: false,
                 didOpen: () => {
                     Swal.showLoading()
@@ -696,7 +536,6 @@
                     const jumlahSoalDik = res.jumlah_soal ?? '-';
                     const totalBnr = res.total_correct ?? 0;
 
-                    const thetaAkhir = db ? (db.theta_akhir ?? null) : null;
                     const nilaiAkhir = db ? (db.nilai_akhir ?? null) : null;
                     const statusText = db ? (db.result_status ?? '-') : '-';
 
@@ -710,19 +549,15 @@
                         <p class="mb-3"><strong>Benar:</strong> <span class="text-success fw-bold">${totalBnr}</span> | <strong>Salah:</strong> <span class="text-danger fw-bold">${jumlahSoalDik !== '-' ? (jumlahSoalDik - totalBnr) : '-'}</span></p>
                         <hr class="border-2 border-secondary">
                         <div class="text-center bg-light p-3 rounded-3 shadow-sm border">
-                            <p class="mb-1 text-muted small">Estimasi Kemampuan Akhir (&theta; Logit)</p>
-                            <h4 class="text-primary mb-2">${thetaAkhir > 0 ? '+' + fmt(thetaAkhir) : fmt(thetaAkhir)}</h4>
-                            <p class="mb-1 text-muted small">Nilai Kemampuan</p>
-                            <h6 class="text-secondary mb-3">${fmt(expectedScore)}</h6>
-                            <p class="mb-1 text-muted small">Nilai Akhir dari Total Benar</p>
+                            <p class="mb-1 text-muted small">Nilai Akhir</p>
                             <h2 class="mb-2 fw-bolder ${isLulus ? 'text-success' : 'text-danger'}">${fmt(nilaiAkhir)}</h2>
-                            <span class="badge ${isLulus ? 'bg-success' : 'bg-danger'} fs-6 px-4 py-2 mt-1">${isLulus ? 'LULUS (PASS)' : 'REMEDIAL'}</span>
+                            <span class="badge ${isLulus ? 'bg-success' : 'bg-danger'} fs-6 px-4 py-2 mt-1">${isLulus ? 'LULUS' : 'REMEDIAL'}</span>
                         </div>
                     </div>
                 `;
 
                     Swal.fire({
-                        title: "Ujian Adaptif Selesai!",
+                        title: "Ujian Selesai!",
                         html: html,
                         icon: "success",
                         confirmButtonText: "Kembali ke Beranda",
