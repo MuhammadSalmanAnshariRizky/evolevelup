@@ -428,13 +428,33 @@ class LearningAnalyticsController extends Controller
                     $answers
                 );
 
+        // DATA PERFORMA PER SUB-TOPIK SISWA.
+        //
+        // Data ini menjadi dasar baru untuk rekomendasi.
+        // Sub-topik akan ditentukan dari tag pada soal.
+        // Struktur relasi/tag disesuaikan di Service.
+
+        $studentSubTopicPerformance =
+            $analyticsService
+                ->getStudentSubTopicPerformance(
+                    $answers
+                );
+
         // REKOMENDASI PER SISWA.
+        //
+        // Rekomendasi sekarang menggunakan:
+        // 1. Mastery topik.
+        // 2. Performa/accuracy topik.
+        // 3. Performa sub-topik.
+        //
+        // Difficulty tetap tersedia sebagai indikator LA,
+        // tetapi tidak lagi menjadi dasar rekomendasi.
 
         $recommendations =
             $analyticsService
                 ->getRecommendations(
                     $studentTopicMastery,
-                    $studentTopicDifficulty
+                    $studentSubTopicPerformance
                 );
 
         // RENDER VIEW.
@@ -497,6 +517,9 @@ class LearningAnalyticsController extends Controller
 
                 'studentActivityPerformance' =>
                     $studentActivityPerformance,
+
+                'studentSubTopicPerformance' =>
+                    $studentSubTopicPerformance,
 
                 'recommendations' =>
                     $recommendations,

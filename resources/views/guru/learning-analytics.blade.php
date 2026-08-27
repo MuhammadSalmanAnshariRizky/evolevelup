@@ -13,11 +13,11 @@
             --la-line-soft: #eaecf4;
             --la-blue: #4e73df;
             --la-blue-soft: #e8eefc;
-            --la-gold: #f6c23e;
+            --la-gold: #ec7d14;
             --la-gold-soft: #fff5d8;
-            --la-green: #1cc88a;
+            --la-green: #07a96d;
             --la-green-soft: #e3f8f0;
-            --la-amber: #f6c23e;
+            --la-amber: #e98315;
             --la-amber-soft: #fff5d8;
             --la-rust: #e74a3b;
             --la-rust-soft: #fbe8e6
@@ -39,7 +39,7 @@
         .la-topbar-inner,
         .la-filterbar,
         .la-main {
-            max-width: 1180px;
+            max-width: 1300px;
             margin: auto
         }
 
@@ -55,7 +55,7 @@
             margin: 0 0 6px;
             text-transform: uppercase;
             letter-spacing: .14em;
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 700;
             color: #dbe3ff
         }
@@ -102,7 +102,7 @@
         }
 
         .la-field label {
-            font-size: 10px;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: .08em;
             font-weight: 700;
@@ -118,7 +118,7 @@
             background: var(--la-paper);
             color: var(--la-ink);
             padding: 0 12px;
-            font:11px 'Nunito',sans-serif;
+            font: 11px 'Nunito', sans-serif;
             outline: 0
         }
 
@@ -138,7 +138,8 @@
             height: 40px;
             padding: 0 17px;
             border-radius: 9px;
-            font: 700 12px 'Nunito',sans-serif;;
+            font: 700 12px 'Nunito', sans-serif;
+            ;
             cursor: pointer;
             text-decoration: none;
             display: inline-flex;
@@ -182,7 +183,7 @@
             background: #fff;
             border: 1px solid var(--la-line);
             border-radius: 11px;
-            font-size: 11px;
+            font-size: 13px;
             color: var(--la-soft)
         }
 
@@ -205,30 +206,30 @@
             padding-bottom: 9px;
             border-bottom: 1px solid var(--la-line);
             margin-bottom: 10px;
-            font-size: 14px;
+            font-size: 20px;
             font-weight: 700
         }
 
         .la-subject-heading .count {
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 500;
             color: var(--la-faint)
         }
 
         .la-topic-card {
             overflow: hidden;
-            margin-bottom: 14px;
+            margin-bottom: 7px;
             background: #fff;
             border: 1px solid var(--la-line);
-            border-radius: 14px
+            border-radius: 10px
         }
 
         .la-topic-head {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 15px;
-            padding: 17px 20px;
+            gap: 8px;
+            padding: 7px 11px;
             border-bottom: 1px solid var(--la-line-soft)
         }
 
@@ -238,18 +239,12 @@
             font-weight: 700
         }
 
-        .la-topic-meta {
-            margin-top: 4px;
-            color: var(--la-faint);
-            font-size: 10.5px
-        }
-
         .la-mastery-pill {
             display: inline-block;
             flex-shrink: 0;
-            padding: 6px 11px;
+            padding: 3px 8px;
             border-radius: 999px;
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 700;
             white-space: nowrap
         }
@@ -280,8 +275,7 @@
         }
 
         .la-indicator {
-            padding: 15px 16px;
-            min-height: 145px;
+            padding: 9px 10px;
             border-right: 1px solid var(--la-line-soft)
         }
 
@@ -290,63 +284,63 @@
         }
 
         .la-indicator-label {
-            margin-bottom: 7px;
+            margin-bottom: 4px;
             color: var(--la-faint);
             text-transform: uppercase;
-            letter-spacing: .07em;
-            font-size: 9px;
+            letter-spacing: .06em;
+            font-size: 11px;
             font-weight: 700
         }
 
         .la-perf-score {
             display: flex;
             align-items: baseline;
-            gap: 4px;
-            margin-bottom: 3px
+            gap: 3px;
+            margin-bottom: 2px
         }
 
         .la-perf-score .num {
-            font-size: 28px;
+            font-size: 35px;
             font-weight: 700
         }
 
         .la-perf-score .max,
         .la-perf-delta,
         .la-perf-compare {
-            font-size: 10px;
-            color: var(--la-faint)
+            font-size: 12.5px;
+            /* color: var(--la-faint) */
         }
 
         .la-perf-compare {
-            margin-top: 4px
+            margin-top: 2px
         }
 
         .la-mastery-row {
             display: flex;
             align-items: baseline;
-            gap: 4px
+            gap: 3px
         }
 
         .la-mastery-num {
-            font-size: 27px;
+            font-size: 30px;
             font-weight: 700
         }
 
         .la-mastery-unit {
-            font-size: 10px;
+            font-size: 12px;
             color: var(--la-faint)
         }
 
         .la-segbar {
             display: flex;
-            gap: 4px;
-            margin-top: 8px
+            gap: 3px;
+            margin-top: 5px
         }
 
         .la-segbar i {
-            height: 5px;
+            height: 4px;
             flex: 1;
-            border-radius: 3px;
+            border-radius: 2px;
             background: var(--la-line)
         }
 
@@ -357,9 +351,9 @@
         .la-difficulty-bars {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
+            gap: 6px;
             align-items: end;
-            height: 90px
+            height: 56px
         }
 
         .la-difficulty-item {
@@ -371,105 +365,105 @@
 
         .la-difficulty-value {
             text-align: center;
-            margin-bottom: 3px;
-            font-size: 9px;
+            margin-bottom: 2px;
+            font-size: 10px;
             font-weight: 700
         }
 
         .la-difficulty-bar {
             width: 100%;
-            min-height: 6px;
-            border-radius: 5px 5px 2px 2px
+            min-height: 4px;
+            border-radius: 4px 4px 2px 2px
         }
 
         .la-difficulty-label,
         .la-difficulty-count {
             text-align: center;
-            font-size: 9px;
+            font-size: 10px;
             color: var(--la-faint)
         }
 
         .la-difficulty-label {
-            margin-top: 5px
+            margin-top: 3px
         }
 
         .la-difficulty-count {
-            margin-top: 2px;
-            font-size: 8px
+            margin-top: 1px;
+            font-size: 10px
         }
 
         .la-topic-recommendation {
-            min-height: 90px;
-            padding: 12px 14px;
+            min-height: 0;
+            padding: 8px 10px;
             background: var(--la-paper);
             border-left: 3px solid var(--la-blue);
-            border-radius: 7px
+            border-radius: 6px
         }
 
         .la-topic-recommendation-title {
-            margin-bottom: 5px;
+            margin-bottom: 3px;
             color: var(--la-blue);
             text-transform: uppercase;
-            letter-spacing: .07em;
-            font-size: 9px;
+            letter-spacing: .06em;
+            font-size: 12px;
             font-weight: 700
         }
 
         .la-topic-recommendation-text {
             margin: 0;
-            color: var(--la-soft);
-            font-size: 10.5px;
-            line-height: 1.5
+            /* color: var(--la-soft); */
+            font-size: 12px;
+            line-height: 1.4
         }
 
-        .la-student-section{
-            padding:15px 20px 18px;
+        .la-student-section {
+            padding: 9px 11px 10px;
         }
 
-        .la-student-section-title{
-            display:flex;
-            align-items:center;
-            gap:5px;
-            color:var(--la-blue);
-            font-size:11px;
-            font-weight:700;
-            cursor:pointer;
-            user-select:none;
-            margin-bottom:0;
+        .la-student-section-title {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--la-blue);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            user-select: none;
+            margin-bottom: 0;
         }
 
-        .la-student-section-title .arrow{
-            display:inline-block;
-            transition:transform .2s ease;
+        .la-student-section-title .arrow {
+            display: inline-block;
+            transition: transform .2s ease;
         }
 
-        .la-student-section-title.open{
-            margin-bottom:10px;
+        .la-student-section-title.open {
+            margin-bottom: 7px;
         }
 
-        .la-student-section-title.open .arrow{
-            transform:rotate(180deg);
+        .la-student-section-title.open .arrow {
+            transform: rotate(180deg);
         }
 
-        .la-student-table-wrap{
-            max-height:0;
-            overflow:hidden;
-            opacity:0;
-            margin-top:0;
-            transition:max-height .25s ease,opacity .2s ease,margin-top .2s ease;
+        .la-student-table-wrap {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            margin-top: 0;
+            transition: max-height .25s ease, opacity .2s ease, margin-top .2s ease;
         }
 
-        .la-student-table-wrap.open{
-            max-height:2000px;
-            opacity:1;
-            margin-top:10px;
-            overflow-x:auto;
+        .la-student-table-wrap.open {
+            max-height: 2000px;
+            opacity: 1;
+            margin-top: 10px;
+            overflow-x: auto;
         }
 
         .la-student-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 10.5px
+            font-size: 13px
         }
 
         .la-student-table th {
@@ -478,7 +472,7 @@
             color: var(--la-faint);
             text-transform: uppercase;
             letter-spacing: .06em;
-            font-size: 8px;
+            font-size: 11px;
             font-weight: 700;
             border-bottom: 1px solid var(--la-line);
             white-space: nowrap
@@ -531,14 +525,14 @@
         }
 
         .la-student-diff-value {
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 700
         }
 
         .la-student-diff-count {
             margin-left: 2px;
             color: var(--la-faint);
-            font-size: 8px;
+            font-size: 10px;
             font-weight: 400
         }
 
@@ -571,7 +565,9 @@
             border: 0;
             padding: 6px 9px;
             border-radius: 999px;
-            font: 700 9px inherit;
+            /* font: 700 9px inherit; */
+            font-size: 12px;
+            font-weight: bold;
             cursor: pointer;
             transition: transform .15s, opacity .15s
         }
@@ -647,7 +643,7 @@
         .la-modal-meta {
             margin-top: 4px;
             color: var(--la-faint);
-            font-size: 10.5px
+            font-size: 12px
         }
 
         .la-modal-close {
@@ -672,7 +668,7 @@
             color: var(--la-faint);
             text-transform: uppercase;
             letter-spacing: .09em;
-            font-size: 9px;
+            font-size: 11px;
             font-weight: 700
         }
 
@@ -704,7 +700,7 @@
             margin-bottom: 7px;
             border-radius: 999px;
             background: #fff;
-            font-size: 9px;
+            font-size: 10px;
             font-weight: 700
         }
 
@@ -727,96 +723,256 @@
         .la-modal-text {
             margin: 0;
             color: var(--la-soft);
-            font-size: 11px;
+            font-size: 14px;
+            font-weight: bold;
             line-height: 1.55
         }
 
-        .la-modal-stats-grid {
+        .la-modal-highlight-row {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 10px
+        }
+
+        .la-modal-highlight {
+            position: relative;
+            padding: 12px 14px;
+            border-radius: 13px;
+            border: 1px solid var(--la-line-soft);
+            overflow: hidden
+        }
+
+        .la-modal-highlight-label {
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            font-size: 12px;
+            font-weight: 700;
+            opacity: .8
+        }
+
+        .la-modal-highlight-value {
+            font-size: 23px;
+            font-weight: 800;
+            line-height: 1
+        }
+
+        .la-modal-highlight-sub {
+            display: block;
+            margin-top: 4px;
+            font-size: 13px;
+            font-weight: bold;
+            /* opacity: .85; */
+            color: grey; !important
+        }
+
+        .la-modal-highlight-track {
+            width: 100%;
+            height: 5px;
+            margin-top: 9px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, .65);
+            overflow: hidden
+        }
+
+        .la-modal-highlight-fill {
+            height: 100%;
+            border-radius: inherit;
+            background: currentColor
+        }
+
+        .la-modal-diff-label-row {
+            margin: 4px 0 8px;
+            color: var(--la-faint);
+            text-transform: uppercase;
+            letter-spacing: .09em;
+            font-size: 10px;
+            font-weight: 700
+        }
+
+        .la-modal-diff-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
             gap: 8px;
             margin-bottom: 18px
         }
 
-        .la-modal-stat {
-            padding: 10px;
+        .la-modal-diff-card {
+            padding: 10px 11px;
             background: var(--la-paper);
             border: 1px solid var(--la-line-soft);
-            border-radius: 10px
+            border-top: 3px solid var(--la-line);
+            border-radius: 11px
         }
 
-        .la-modal-stat-label {
+        .la-modal-diff-label {
             margin-bottom: 4px;
             color: var(--la-faint);
             text-transform: uppercase;
             letter-spacing: .06em;
-            font-size: 8px;
+            font-size: 11.5px;
             font-weight: 700
         }
 
-        .la-modal-stat-value {
+        .la-modal-diff-value {
             font-size: 15px;
             font-weight: 700
         }
 
-        .la-modal-stat-sub {
+        .la-modal-diff-sub {
             display: block;
             margin-top: 2px;
             color: var(--la-faint);
-            font-size: 8px;
+            font-size: 10px;
             line-height: 1.4
         }
 
-        .la-modal-activity-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px
+        .la-modal-diff-track {
+            width: 100%;
+            height: 4px;
+            margin-top: 7px;
+            border-radius: 4px;
+            background: var(--la-line);
+            overflow: hidden
         }
 
-        .la-modal-activity-item {
+        .la-modal-diff-fill {
+            height: 100%;
+            border-radius: inherit
+        }
+
+        .la-modal-subtopic-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 18px
+        }
+
+        .la-modal-subtopic-item {
             padding: 11px 12px;
             background: var(--la-paper);
             border: 1px solid var(--la-line-soft);
             border-radius: 11px
         }
 
-        .la-modal-activity-head {
+        .la-modal-subtopic-head {
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
             gap: 10px
         }
 
-        .la-modal-activity-info {
-            min-width: 0;
-            flex: 1
-        }
-
-        .la-modal-activity-name {
+        .la-modal-subtopic-name {
             color: var(--la-ink);
-            font-size: 11.5px;
+            font-size: 12px;
             font-weight: 700;
             line-height: 1.4
         }
 
-        .la-modal-activity-type {
-            margin-top: 2px;
-            color: var(--la-faint);
-            font-size: 9px
-        }
-
-        .la-modal-activity-score {
+        .la-modal-subtopic-score {
             flex-shrink: 0;
-            font-size: 14px;
+            color: var(--la-rust);
+            font-size: 13px;
             font-weight: 700
         }
 
-        .la-modal-activity-track {
+        .la-modal-subtopic-track {
             width: 100%;
             height: 5px;
             margin-top: 8px;
             background: var(--la-line);
             border-radius: 5px;
+            overflow: hidden
+        }
+
+        .la-modal-subtopic-fill {
+            height: 100%;
+            border-radius: inherit;
+            background: var(--la-rust)
+        }
+
+        .la-modal-subtopic-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+            color: var(--la-faint);
+            font-size: 9px
+        }
+
+        .la-modal-subtopic-note {
+            margin: 0 0 18px;
+            color: var(--la-faint);
+            font-size: 10px;
+            line-height: 1.45
+        }
+
+        .la-modal-activity-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px
+        }
+
+        .la-modal-activity-table th {
+            padding: 5px 7px;
+            text-align: left;
+            color: var(--la-faint);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            font-size: 10px;
+            font-weight: 700;
+            border-bottom: 1px solid var(--la-line);
+            white-space: nowrap
+        }
+
+        .la-modal-activity-table th:last-child {
+            text-align: right
+        }
+
+        .la-modal-activity-table td {
+            padding: 5px 7px;
+            border-bottom: 1px solid var(--la-line-soft);
+            vertical-align: middle
+        }
+
+        .la-modal-activity-table tr:last-child td {
+            border-bottom: 0
+        }
+
+        .la-modal-activity-info {
+            min-width: 0
+        }
+
+        .la-modal-activity-name {
+            color: var(--la-ink);
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.25
+        }
+
+        .la-modal-activity-type {
+            margin-top: 0;
+            color: var(--la-faint);
+            font-size: 11px
+        }
+
+        .la-modal-activity-perf {
+            min-width: 86px
+        }
+
+        .la-modal-activity-score {
+            text-align: right;
+            font-size: 13px;
+            font-weight: 700
+        }
+
+        .la-modal-activity-track {
+            width: 100%;
+            height: 3px;
+            margin-top: 3px;
+            background: var(--la-line);
+            border-radius: 3px;
             overflow: hidden
         }
 
@@ -827,11 +983,12 @@
 
         .la-modal-activity-meta {
             display: flex;
-            gap: 10px;
+            justify-content: flex-end;
+            gap: 4px;
             flex-wrap: wrap;
-            margin-top: 6px;
+            margin-top: 2px;
             color: var(--la-faint);
-            font-size: 9px
+            font-size: 10px
         }
 
         .la-modal-activity-correct {
@@ -858,7 +1015,7 @@
             background: #fff;
             border-color: var(--la-line);
             border-radius: 14px;
-            font-size: 12px
+            font-size: 13px
         }
 
         @media(max-width:900px) {
@@ -875,7 +1032,7 @@
                 border-right: 1px solid var(--la-line-soft)
             }
 
-            .la-modal-stats-grid {
+            .la-modal-diff-grid {
                 grid-template-columns: repeat(3, 1fr)
             }
         }
@@ -906,8 +1063,8 @@
                 min-width: 850px
             }
 
-            .la-modal-stats-grid {
-                grid-template-columns: repeat(2, 1fr)
+            .la-modal-highlight-row {
+                grid-template-columns: 1fr
             }
         }
 
@@ -926,10 +1083,10 @@
         <div class="la-topbar">
             <div class="la-topbar-inner">
                 <div>
-                    <p class="la-eyebrow">Learning Analytics</p>
+                    <p class="la-eyebrow">Performa Siswa</p>
                     <h1>Penguasaan Topik</h1>
-                    <p class="la-sub">Performa, penguasaan materi, sebaran tingkat kesulitan, dan rekomendasi — dirangkum
-                        per topik dari aktivitas yang telah dikerjakan siswa.</p>
+                    <p class="la-sub">Performa dan penguasaan materi dirangkum per topik dari aktivitas yang telah
+                        dikerjakan siswa.</p>
                 </div>
             </div>
         </div>
@@ -968,13 +1125,6 @@
         </div>
 
         <main class="la-main">
-            <div class="la-legend-note">
-                <span><span class="la-legend-dot" style="background:var(--la-blue)"></span><b>Performa</b></span>
-                <span><span class="la-legend-dot" style="background:var(--la-gold)"></span><b>Penguasaan</b></span>
-                <span><span class="la-legend-dot" style="background:var(--la-green)"></span>Mudah <span
-                        class="la-legend-dot" style="background:var(--la-amber);margin-left:8px"></span>Sedang <span
-                        class="la-legend-dot" style="background:var(--la-rust);margin-left:8px"></span>Sulit</span>
-            </div>
 
             @php $groupedTopics = $topicMastery->groupBy(fn($item) => $item['subject_id'] ?? 'all'); @endphp
             @if($topicMastery->count())
@@ -1033,53 +1183,51 @@
                                 if (!$topicDifficultyRows->count() && ($easyTotal + $mediumTotal + $hardTotal) == 0) {
                                     $easyAccuracy = $mediumAccuracy = $hardAccuracy = 0;
                                 }
-                                if ($hardAccuracy < 50) {
+                                /*
+                                 * Ringkasan topik tidak lagi menggunakan difficulty
+                                 * sebagai dasar rekomendasi. Rekomendasi personal
+                                 * berada pada data $recommendations per siswa.
+                                 */
+                                if ($mastery < 50) {
                                     $topicRecoColor = 'rust';
-                                    $topicRecoTitle = 'PERLU PERHATIAN';
-                                    $topicRecoText = 'Performa pada soal tingkat sulit masih rendah. Fokuskan latihan pada pemahaman konsep dan soal tingkat sulit.';
-                                } elseif ($mediumAccuracy < 60) {
+                                    $topicRecoTitle = 'PERLU PENGUATAN';
+                                    $topicRecoText = 'Rata-rata penguasaan topik masih rendah. Siswa perlu memperkuat pemahaman materi sebelum melanjutkan ke pembelajaran berikutnya.';
+                                } elseif ($mastery < 70) {
                                     $topicRecoColor = 'amber';
-                                    $topicRecoTitle = 'PERKUAT PEMAHAMAN';
-                                    $topicRecoText = 'Performa pada soal tingkat sedang masih perlu diperkuat sebelum meningkatkan latihan pada soal yang lebih sulit.';
-                                } elseif ($mastery >= 85) {
-                                    $topicRecoColor = 'green';
-                                    $topicRecoTitle = 'SIAP PENGAYAAN';
-                                    $topicRecoText = 'Penguasaan topik sangat baik. Siswa dapat diberikan latihan pengayaan atau soal tingkat sulit.';
-                                } else {
+                                    $topicRecoTitle = 'PERLU LATIHAN';
+                                    $topicRecoText = 'Penguasaan topik mulai terbentuk, tetapi masih perlu latihan agar pemahaman siswa menjadi lebih konsisten.';
+                                } elseif ($mastery < 85) {
                                     $topicRecoColor = 'teal';
-                                    $topicRecoTitle = 'PERTAHANKAN';
-                                    $topicRecoText = 'Penguasaan topik sudah baik. Pertahankan pemahaman melalui latihan yang konsisten.';
+                                    $topicRecoTitle = 'LANJUTKAN';
+                                    $topicRecoText = 'Penguasaan topik sudah baik. Pertahankan pemahaman dan lanjutkan pembelajaran sambil memperkuat bagian yang masih kurang.';
+                                } else {
+                                    $topicRecoColor = 'green';
+                                    $topicRecoTitle = 'PENGAYAAN';
+                                    $topicRecoText = 'Penguasaan topik sangat baik. Siswa dapat melanjutkan ke materi berikutnya dan memperoleh latihan pengayaan.';
                                 }
                                 $topicStudents = $studentTopicMastery->filter(fn($s) => (int) data_get($s, 'topic_id') === $topicId)->values();
                             @endphp
 
                             <div class="la-topic-card">
                                 <div class="la-topic-head">
-                                    <div>
-                                        <h2>{{ $topic['topic_name'] }}</h2>
-                                        <div class="la-topic-meta">{{ $subjectName }} · {{ $topic['total_answers'] ?? 0 }} jawaban</div>
-                                    </div><span class="la-mastery-pill la-pill-{{ $tierKey }}">Penguasaan:
-                                        {{ number_format($mastery, 0) }}% · {{ $tierLabel }}</span>
+                                    <h2>{{ $topic['topic_name'] }}</h2>
                                 </div>
                                 <div class="la-indicator-grid">
                                     <div class="la-indicator">
-                                        <div class="la-indicator-label">Performa</div>
-                                        <div class="la-perf-score"><span class="num">{{ number_format($accuracy, 0) }}</span><span
+                                        <div class="la-indicator-label">Rata-rata Performa</div>
+                                        <div class="la-perf-score"><span class="num">{{ number_format($accuracy, 2) }}</span><span
                                                 class="max">/100</span></div>
-                                        <div class="la-perf-delta">Akurasi jawaban topik</div>
-                                        <div class="la-perf-compare">Benar: <b>{{ $topic['correct_answers'] ?? 0 }}</b> /
-                                            {{ $topic['total_answers'] ?? 0 }}
-                                        </div>
                                     </div>
                                     <div class="la-indicator">
-                                        <div class="la-indicator-label">Penguasaan Materi</div>
+                                        <div class="la-indicator-label">Rata-rata Penguasaan Materi</div>
                                         <div class="la-mastery-row"><span class="la-mastery-num"
-                                                style="color:{{ $tierKey === 'mahir' ? 'var(--la-blue)' : ($tierKey === 'menguasai' ? 'var(--la-green)' : ($tierKey === 'cukup' ? 'var(--la-amber)' : 'var(--la-rust)')) }}">{{ number_format($mastery, 0) }}%</span><span
+                                                style="color:{{ $tierKey === 'mahir' ? 'var(--la-blue)' : ($tierKey === 'menguasai' ? 'var(--la-green)' : ($tierKey === 'cukup' ? 'var(--la-amber)' : 'var(--la-rust)')) }}">{{ number_format($mastery, 2) }}%</span><span
                                                 class="la-mastery-unit">/100</span></div>
                                         <div class="la-segbar"
                                             style="color:{{ $tierKey === 'mahir' ? 'var(--la-blue)' : ($tierKey === 'menguasai' ? 'var(--la-green)' : ($tierKey === 'cukup' ? 'var(--la-amber)' : 'var(--la-rust)')) }}">
                                             @for($i = 1; $i <= 4; $i++)<i class="{{ $mastery >= $i * 25 ? 'filled' : '' }}"></i>@endfor
                                         </div>
+                                        <br>
                                         <div class="la-perf-delta">Kategori: <b>{{ $tierLabel }}</b></div>
                                     </div>
                                     <div class="la-indicator">
@@ -1091,10 +1239,9 @@
                                                         {{ number_format($diff['value'], 0) }}%
                                                     </div>
                                                     <div class="la-difficulty-bar"
-                                                        style="height:{{ max(8, $diff['value'] * .55) }}px;background:{{ $diff['color'] }}">
+                                                        style="height:{{ max(3, $diff['value'] * .16) }}px;background:{{ $diff['color'] }}">
                                                     </div>
                                                     <div class="la-difficulty-label">{{ $diff['label'] }}</div>
-                                                    <div class="la-difficulty-count">{{ $diff['total'] }} jawaban</div>
                                                 </div>
                                             @endforeach
                                         </div>
@@ -1119,9 +1266,9 @@
                                                     <tr>
                                                         <th>Nama Siswa</th>
                                                         <th>Performa</th>
-                                                        <th>Sebaran Kesulitan</th>
                                                         <th>Penguasaan</th>
                                                         <th>Rekomendasi</th>
+                                                        <th></th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -1142,54 +1289,41 @@
                                                                 $studentTier = 'belum';
                                                                 $studentTierLabel = 'Belum Menguasai';
                                                             }
-                                                            $sdRows = collect($studentTopicDifficulty ?? [])->filter(fn($r) => (int) data_get($r, 'student_id') === $studentId && (int) data_get($r, 'topic_id') === $topicId);
-                                                            $sd = [];
-                                                            foreach (['mudah', 'sedang', 'sulit'] as $d) {
-                                                                $sd[$d] = $sdRows->first(fn($r) => strtolower(trim((string) data_get($r, 'difficulty', ''))) === $d);
-                                                            }
-                                                            $studentEasyAccuracy = (float) data_get($sd['mudah'], 'accuracy', 0);
-                                                            $studentMediumAccuracy = (float) data_get($sd['sedang'], 'accuracy', 0);
-                                                            $studentHardAccuracy = (float) data_get($sd['sulit'], 'accuracy', 0);
-                                                            $studentEasyAnswers = (int) data_get($sd['mudah'], 'total_answers', 0);
-                                                            $studentMediumAnswers = (int) data_get($sd['sedang'], 'total_answers', 0);
-                                                            $studentHardAnswers = (int) data_get($sd['sulit'], 'total_answers', 0);
                                                             $studentRecommendation = $recommendations->first(fn($r) => (int) data_get($r, 'student_id') === $studentId && (int) data_get($r, 'topic_id') === $topicId);
-                                                            $recommendationCategory = data_get($studentRecommendation, 'category');
+                                                            $recommendationType = strtolower((string) data_get($studentRecommendation, 'recommendation_type', ''));
                                                             $recommendationText = data_get($studentRecommendation, 'recommendation', 'Belum terdapat rekomendasi pembelajaran.');
-                                                            $recommendationLabel = match ($recommendationCategory) { 'penguatan' => 'Penguatan', 'mulai_ditingkatkan' => 'Mulai Ditingkatkan', 'perlu_ditingkatkan' => 'Perlu Ditingkatkan', 'pengayaan' => 'Pengayaan', 'pengayaan_lanjutan' => 'Pengayaan Lanjutan', default => 'Rekomendasi'};
-                                                            $recommendationColor = match ($recommendationCategory) { 'penguatan' => 'rust', 'mulai_ditingkatkan', 'perlu_ditingkatkan' => 'amber', 'pengayaan' => 'teal', 'pengayaan_lanjutan' => 'green', default => 'teal'};
+                                                            $recommendationLabel = match ($recommendationType) {
+                                                                'penguatan' => 'Penguatan',
+                                                                'latihan' => 'Latihan',
+                                                                'lanjutan' => 'Lanjutan',
+                                                                'pengayaan' => 'Pengayaan',
+                                                                default => 'Rekomendasi'
+                                                            };
+                                                            $recommendationColor = match ($recommendationType) {
+                                                                'penguatan' => 'rust',
+                                                                'latihan' => 'amber',
+                                                                'lanjutan' => 'teal',
+                                                                'pengayaan' => 'green',
+                                                                default => 'teal'
+                                                            };
                                                             $modalId = 'student-detail-modal-' . $topicId . '-' . $studentId;
                                                         @endphp
                                                         <tr class="la-student-row" data-modal="{{ $modalId }}" tabindex="0" role="button"
                                                             aria-haspopup="dialog">
                                                             <td class="la-stu-name">{{ data_get($student, 'student_name', '-') }}</td>
                                                             <td><span
-                                                                    class="la-stu-score">{{ number_format((float) data_get($student, 'accuracy', 0), 0) }}</span>/100
-                                                            </td>
-                                                            <td>
-                                                                <div class="la-student-difficulty-grid">
-                                                                    @foreach([['label' => 'Mudah', 'value' => $studentEasyAccuracy, 'answers' => $studentEasyAnswers, 'class' => 'easy'], ['label' => 'Sedang', 'value' => $studentMediumAccuracy, 'answers' => $studentMediumAnswers, 'class' => 'medium'], ['label' => 'Sulit', 'value' => $studentHardAccuracy, 'answers' => $studentHardAnswers, 'class' => 'hard']] as $d)
-                                                                        <div class="la-student-diff-item">
-                                                                            <div class="la-student-diff-label">{{ $d['label'] }}</div>
-                                                                            <div class="la-student-diff-value"
-                                                                                style="color:{{ $d['class'] === 'easy' ? 'var(--la-green)' : ($d['class'] === 'medium' ? 'var(--la-amber)' : 'var(--la-rust)') }}">
-                                                                                {{ number_format($d['value'], 0) }}% <span
-                                                                                    class="la-student-diff-count">{{ $d['answers'] }}
-                                                                                    jawaban</span>
-                                                                            </div>
-                                                                            <div class="la-student-diff-track">
-                                                                                <div class="la-student-diff-fill {{ $d['class'] }}"
-                                                                                    style="width:{{ min(100, max(0, $d['value'])) }}%"></div>
-                                                                            </div>
-                                                                    </div>@endforeach
-                                                                </div>
+                                                                    class="la-stu-score fw-bold">{{ number_format((float) data_get($student, 'accuracy', 0), 2) }}</span>/100
                                                             </td>
                                                             <td><span
-                                                                    class="la-mastery-pill la-pill-{{ $studentTier }}">{{ number_format($studentMastery, 0) }}%
+                                                                    class="la-mastery-pill fw-bold la-pill-{{ $studentTier }}">{{ number_format($studentMastery, 2) }}%
                                                                     · {{ $studentTierLabel }}</span></td>
-                                                            <td><button type="button"
-                                                                    class="la-reco-button la-reco-{{ $recommendationColor }}"
-                                                                    data-modal="{{ $modalId }}">{{ $recommendationLabel }}</button></td>
+                                                            <td><span class="la-reco-button fw-bold la-reco-{{ $recommendationColor }}"
+                                                                    data-modal="{{ $modalId }}">{{ $recommendationLabel }}</span>
+                                                            </td>
+                                                            <td>
+                                                                <div class="text-end"><small class="text-primary fw-semibold">Lihat detail
+                                                                        <i class="bi bi-chevron-right"></i></small></div>
+                                                            </td>
                                                         </tr>
                                                     @empty
                                                         <tr>
@@ -1210,22 +1344,287 @@
                                     $studentId = (int) data_get($student, 'student_id');
                                     $studentMastery = (float) data_get($student, 'mastery', 0);
                                     $studentTierLabel = $studentMastery >= 85 ? 'Mahir' : ($studentMastery >= 70 ? 'Menguasai' : ($studentMastery >= 50 ? 'Cukup' : 'Belum Menguasai'));
-                                    $studentRecommendation = $recommendations->first(fn($r) => (int) data_get($r, 'student_id') === $studentId && (int) data_get($r, 'topic_id') === $topicId);
-                                    $recommendationCategory = data_get($studentRecommendation, 'category');
-                                    $recommendationText = data_get($studentRecommendation, 'recommendation', 'Belum terdapat rekomendasi pembelajaran.');
-                                    $recommendationLabel = match ($recommendationCategory) { 'penguatan' => 'Penguatan', 'mulai_ditingkatkan' => 'Mulai Ditingkatkan', 'perlu_ditingkatkan' => 'Perlu Ditingkatkan', 'pengayaan' => 'Pengayaan', 'pengayaan_lanjutan' => 'Pengayaan Lanjutan', default => 'Rekomendasi'};
-                                    $recommendationColor = match ($recommendationCategory) { 'penguatan' => 'rust', 'mulai_ditingkatkan', 'perlu_ditingkatkan' => 'amber', 'pengayaan' => 'teal', 'pengayaan_lanjutan' => 'green', default => 'teal'};
+                                    $studentTierColor = $studentMastery >= 85 ? 'blue' : ($studentMastery >= 70 ? 'green' : ($studentMastery >= 50 ? 'amber' : 'rust'));
+                                    $studentAccuracy = (float) data_get($student, 'accuracy', 0);
+                                    $studentAccuracyColor = $studentAccuracy >= 85 ? 'blue' : ($studentAccuracy >= 70 ? 'green' : ($studentAccuracy >= 50 ? 'amber' : 'rust'));
+                                    $studentRecommendation = $recommendations->first(
+                                        fn($r) =>
+                                        (int) data_get($r, 'student_id') === $studentId &&
+                                        (int) data_get($r, 'topic_id') === $topicId
+                                    );
+
+                                    $recommendationType = strtolower(
+                                        (string) data_get(
+                                            $studentRecommendation,
+                                            'recommendation_type',
+                                            data_get($studentRecommendation, 'category', '')
+                                        )
+                                    );
+
+                                    $recommendationLabel = match ($recommendationType) {
+                                        'penguatan' => 'Penguatan',
+                                        'latihan' => 'Latihan',
+                                        'lanjutan' => 'Lanjutan',
+                                        'pengayaan' => 'Pengayaan',
+                                        default => 'Rekomendasi'
+                                    };
+
+                                    $recommendationColor = match ($recommendationType) {
+                                        'penguatan' => 'rust',
+                                        'latihan' => 'amber',
+                                        'lanjutan' => 'teal',
+                                        'pengayaan' => 'green',
+                                        default => 'teal'
+                                    };
+
+
+                                    /*
+                                     * Mastery menjadi dasar utama rekomendasi.
+                                     * Performance menjadi informasi pendukung.
+                                     */
+                                    $studentRecommendationMastery = (float) data_get(
+                                        $studentRecommendation,
+                                        'mastery',
+                                        $studentMastery
+                                    );
+
+                                    $studentRecommendationAccuracy = (float) data_get(
+                                        $studentRecommendation,
+                                        'accuracy',
+                                        $studentAccuracy
+                                    );
+
+
+                                    /*
+                                     * Ambil sub-topik yang masih perlu diperhatikan.
+                                     */
+                                    $studentRecommendationSubTopics = collect(
+                                        data_get(
+                                            $studentRecommendation,
+                                            'weak_sub_topics',
+                                            []
+                                        )
+                                    )
+                                        ->sortBy(
+                                            fn($item) =>
+                                            (float) data_get(
+                                                $item,
+                                                'accuracy',
+                                                0
+                                            )
+                                        )
+                                        ->take(3)
+                                        ->values();
+
+                                    $studentRecommendationSubTopicNames =
+                                        $studentRecommendationSubTopics
+                                            ->pluck('sub_topic_name')
+                                            ->filter()
+                                            ->values();
+
+
+                                    /*
+                                     * =========================================================
+                                     * NARASI REKOMENDASI UNTUK GURU
+                                     * =========================================================
+                                     */
+
+                                    switch ($recommendationType) {
+
+                                        case 'penguatan':
+
+                                            $recommendationText =
+                                                'Penguasaan siswa pada topik ini masih berada '
+                                                . 'pada kategori '
+                                                . $studentTierLabel
+                                                . ', dengan performa sebesar '
+                                                . number_format(
+                                                    $studentRecommendationAccuracy,
+                                                    2
+                                                )
+                                                . '%. ';
+
+                                            if (
+                                                $studentRecommendationSubTopicNames->isNotEmpty()
+                                            ) {
+
+                                                $recommendationText .=
+                                                    'Berikan penguatan pada '
+                                                    . $studentRecommendationSubTopicNames->implode(', ')
+                                                    . ' dan arahkan siswa untuk mengerjakan '
+                                                    . 'latihan terkait sebelum melanjutkan ke '
+                                                    . 'materi berikutnya.';
+
+                                            } else {
+
+                                                $recommendationText .=
+                                                    'Berikan penguatan terhadap materi dan '
+                                                    . 'arahkan siswa untuk mengerjakan latihan '
+                                                    . 'tambahan sebelum melanjutkan ke materi '
+                                                    . 'berikutnya.';
+                                            }
+
+                                            break;
+
+
+                                        case 'latihan':
+
+                                            $recommendationText =
+                                                'Penguasaan siswa pada topik ini berada pada '
+                                                . 'kategori '
+                                                . $studentTierLabel
+                                                . ', dengan performa sebesar '
+                                                . number_format(
+                                                    $studentRecommendationAccuracy,
+                                                    2
+                                                )
+                                                . '%. ';
+
+                                            if (
+                                                $studentRecommendationSubTopicNames->isNotEmpty()
+                                            ) {
+
+                                                $recommendationText .=
+                                                    'Berikan latihan tambahan dengan fokus pada '
+                                                    . $studentRecommendationSubTopicNames->implode(', ')
+                                                    . ' agar penguasaan siswa menjadi lebih '
+                                                    . 'konsisten.';
+
+                                            } else {
+
+                                                $recommendationText .=
+                                                    'Arahkan siswa untuk mengerjakan latihan '
+                                                    . 'tambahan agar penguasaan materi menjadi '
+                                                    . 'lebih konsisten.';
+                                            }
+
+                                            break;
+
+
+                                        case 'lanjutan':
+
+                                            $recommendationText =
+                                                'Penguasaan siswa pada topik ini berada pada '
+                                                . 'kategori '
+                                                . $studentTierLabel
+                                                . ', dengan performa sebesar '
+                                                . number_format(
+                                                    $studentRecommendationAccuracy,
+                                                    2
+                                                )
+                                                . '%. ';
+
+                                            if (
+                                                $studentRecommendationSubTopicNames->isNotEmpty()
+                                            ) {
+
+                                                $recommendationText .=
+                                                    'Pemahaman siswa sudah baik, tetapi '
+                                                    . $studentRecommendationSubTopicNames->implode(', ')
+                                                    . ' masih perlu diperkuat. Berikan '
+                                                    . 'penguatan pada bagian tersebut sebelum '
+                                                    . 'siswa melanjutkan ke materi berikutnya.';
+
+                                            } else {
+
+                                                $recommendationText .=
+                                                    'Siswa dapat melanjutkan ke materi berikutnya. '
+                                                    . 'Pertahankan pemahaman yang sudah baik '
+                                                    . 'melalui latihan yang sesuai.';
+                                            }
+
+                                            break;
+
+
+                                        case 'pengayaan':
+
+                                            $recommendationText =
+                                                'Penguasaan siswa pada topik ini berada pada '
+                                                . 'kategori '
+                                                . $studentTierLabel
+                                                . ', dengan performa sebesar '
+                                                . number_format(
+                                                    $studentRecommendationAccuracy,
+                                                    2
+                                                )
+                                                . '%. ';
+
+                                            if (
+                                                $studentRecommendationSubTopicNames->isNotEmpty()
+                                            ) {
+
+                                                $recommendationText .=
+                                                    'Siswa telah menunjukkan penguasaan yang '
+                                                    . 'sangat baik, tetapi '
+                                                    . $studentRecommendationSubTopicNames->implode(', ')
+                                                    . ' masih dapat diperkuat. Berikan '
+                                                    . 'penguatan pada bagian tersebut, kemudian '
+                                                    . 'arahkan siswa ke materi atau latihan yang '
+                                                    . 'lebih menantang.';
+
+                                            } else {
+
+                                                $recommendationText .=
+                                                    'Siswa telah menunjukkan penguasaan yang '
+                                                    . 'sangat baik. Arahkan siswa untuk melanjutkan '
+                                                    . 'ke materi berikutnya atau mengerjakan '
+                                                    . 'latihan yang lebih menantang.';
+                                            }
+
+                                            break;
+
+
+                                        default:
+
+                                            $recommendationText =
+                                                'Belum terdapat rekomendasi pembelajaran '
+                                                . 'untuk siswa pada topik ini.';
+                                    }
+                                    $recommendationLabel = match ($recommendationType) {
+                                        'penguatan' => 'Penguatan',
+                                        'latihan' => 'Latihan',
+                                        'lanjutan' => 'Lanjutan',
+                                        'pengayaan' => 'Pengayaan',
+                                        default => 'Rekomendasi'
+                                    };
+                                    $recommendationColor = match ($recommendationType) {
+                                        'penguatan' => 'rust',
+                                        'latihan' => 'amber',
+                                        'lanjutan' => 'teal',
+                                        'pengayaan' => 'green',
+                                        default => 'teal'
+                                    };
                                     $modalId = 'student-detail-modal-' . $topicId . '-' . $studentId;
-                                    $sdRows = collect($studentTopicDifficulty ?? [])->filter(fn($r) => (int) data_get($r, 'student_id') === $studentId && (int) data_get($r, 'topic_id') === $topicId);
+                                    $sdRows = collect($studentTopicDifficulty ?? [])
+                                        ->filter(
+                                            fn($r) =>
+                                            (int) data_get($r, 'student_id') === $studentId &&
+                                            (int) data_get($r, 'topic_id') === $topicId
+                                        );
+
                                     $studentEasy = $sdRows->first(fn($r) => strtolower(trim((string) data_get($r, 'difficulty', ''))) === 'mudah');
                                     $studentMedium = $sdRows->first(fn($r) => strtolower(trim((string) data_get($r, 'difficulty', ''))) === 'sedang');
                                     $studentHard = $sdRows->first(fn($r) => strtolower(trim((string) data_get($r, 'difficulty', ''))) === 'sulit');
+
                                     $studentEasyAccuracy = (float) data_get($studentEasy, 'accuracy', 0);
                                     $studentMediumAccuracy = (float) data_get($studentMedium, 'accuracy', 0);
                                     $studentHardAccuracy = (float) data_get($studentHard, 'accuracy', 0);
+
                                     $studentEasyAnswers = (int) data_get($studentEasy, 'total_answers', 0);
                                     $studentMediumAnswers = (int) data_get($studentMedium, 'total_answers', 0);
                                     $studentHardAnswers = (int) data_get($studentHard, 'total_answers', 0);
+
+                                    $studentSubTopics = collect($studentSubTopicPerformance ?? [])
+                                        ->filter(
+                                            fn($s) =>
+                                            (int) data_get($s, 'student_id') === $studentId &&
+                                            (int) data_get($s, 'topic_id') === $topicId
+                                        )
+                                        ->filter(fn($s) => (float) data_get($s, 'accuracy', 0) < 70)
+                                        ->sortBy(fn($s) => (float) data_get($s, 'accuracy', 0))
+                                        ->take(3)
+                                        ->values();
+
                                     $studentActivities = collect($studentActivityPerformance ?? [])->filter(fn($a) => (int) data_get($a, 'student_id') === $studentId && (int) data_get($a, 'topic_id') === $topicId)->values();
                                 @endphp
                                 <div class="la-modal" id="{{ $modalId }}" aria-hidden="true">
@@ -1242,75 +1641,161 @@
                                         </div>
                                         <div class="la-modal-body">
                                             <div class="la-modal-section-label">Rekomendasi Pembelajaran</div>
-                                            <div class="la-modal-recommendation {{ $recommendationColor }}"><span
+                                            <div class="la-modal-recommendation"><span
                                                     class="la-modal-category {{ $recommendationColor }}">{{ $recommendationLabel }}</span>
                                                 <p class="la-modal-text">{{ $recommendationText }}</p>
                                             </div>
                                             <div class="la-modal-section-label">Ringkasan Capaian</div>
-                                            <div class="la-modal-stats-grid">
-                                                <div class="la-modal-stat">
-                                                    <div class="la-modal-stat-label">Performa</div>
-                                                    <div class="la-modal-stat-value">
-                                                        {{ number_format((float) data_get($student, 'accuracy', 0), 0) }}%
-                                                    </div><span class="la-modal-stat-sub">{{ data_get($student, 'correct_answers', 0) }}
-                                                        benar dari
-                                                        {{ data_get($student, 'total_answers', 0) }} jawaban</span>
+
+                                            <div class="la-modal-highlight-row">
+                                                <div class="la-modal-highlight"
+                                                    style="background:var(--la-{{ $studentAccuracyColor }}-soft);color:var(--la-{{ $studentAccuracyColor }})">
+                                                    <div class="la-modal-highlight-label">Performa</div>
+                                                    <div class="la-modal-highlight-value">{{ number_format($studentAccuracy, 2) }}%</div>
+                                                    <br>
+                                                    <div class="la-modal-highlight-track">
+                                                        <div class="la-modal-highlight-fill"
+                                                            style="width:{{ min(100, max(0, $studentAccuracy)) }}%"></div>
+                                                    </div>
                                                 </div>
-                                                <div class="la-modal-stat">
-                                                    <div class="la-modal-stat-label">Penguasaan</div>
-                                                    <div class="la-modal-stat-value">{{ number_format($studentMastery, 0) }}%</div><span
-                                                        class="la-modal-stat-sub">{{ $studentTierLabel }}</span>
-                                                </div>
-                                                <div class="la-modal-stat">
-                                                    <div class="la-modal-stat-label">Mudah</div>
-                                                    <div class="la-modal-stat-value">{{ number_format($studentEasyAccuracy, 0) }}%</div>
-                                                    <span class="la-modal-stat-sub">{{ $studentEasyAnswers }} jawaban</span>
-                                                </div>
-                                                <div class="la-modal-stat">
-                                                    <div class="la-modal-stat-label">Sedang</div>
-                                                    <div class="la-modal-stat-value">{{ number_format($studentMediumAccuracy, 0) }}%</div>
-                                                    <span class="la-modal-stat-sub">{{ $studentMediumAnswers }} jawaban</span>
-                                                </div>
-                                                <div class="la-modal-stat">
-                                                    <div class="la-modal-stat-label">Sulit</div>
-                                                    <div class="la-modal-stat-value">{{ number_format($studentHardAccuracy, 0) }}%</div>
-                                                    <span class="la-modal-stat-sub">{{ $studentHardAnswers }} jawaban</span>
+                                                <div class="la-modal-highlight"
+                                                    style="background:var(--la-{{ $studentTierColor }}-soft);color:var(--la-{{ $studentTierColor }})">
+                                                    <div class="la-modal-highlight-label">Penguasaan</div>
+                                                    <div class="la-modal-highlight-value">{{ number_format($studentMastery, 2) }}%</div>
+                                                    <span class="la-modal-highlight-sub">{{ $studentTierLabel }}</span>
+                                                    <div class="la-modal-highlight-track">
+                                                        <div class="la-modal-highlight-fill"
+                                                            style="width:{{ min(100, max(0, $studentMastery)) }}%"></div>
+                                                    </div>
                                                 </div>
                                             </div>
+
+                                            <div class="la-modal-section-label">Sebaran Tingkat Kesulitan</div>
+                                            <div class="la-modal-diff-grid">
+                                                <div class="la-modal-diff-card" style="border-top-color:var(--la-green)">
+                                                    <div class="la-modal-diff-label">Mudah</div>
+                                                    <div class="la-modal-diff-value" style="color:var(--la-green)">
+                                                        {{ number_format($studentEasyAccuracy, 2) }}%
+                                                    </div>
+                                                    <div class="la-modal-diff-track">
+                                                        <div class="la-modal-diff-fill"
+                                                            style="width:{{ min(100, max(0, $studentEasyAccuracy)) }}%;background:var(--la-green)">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="la-modal-diff-card" style="border-top-color:var(--la-amber)">
+                                                    <div class="la-modal-diff-label">Sedang</div>
+                                                    <div class="la-modal-diff-value" style="color:var(--la-amber)">
+                                                        {{ number_format($studentMediumAccuracy, 2) }}%
+                                                    </div>
+                                                    <div class="la-modal-diff-track">
+                                                        <div class="la-modal-diff-fill"
+                                                            style="width:{{ min(100, max(0, $studentMediumAccuracy)) }}%;background:var(--la-amber)">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="la-modal-diff-card" style="border-top-color:var(--la-rust)">
+                                                    <div class="la-modal-diff-label">Sulit</div>
+                                                    <div class="la-modal-diff-value" style="color:var(--la-rust)">
+                                                        {{ number_format($studentHardAccuracy, 2) }}%
+                                                    </div>
+                                                    <div class="la-modal-diff-track">
+                                                        <div class="la-modal-diff-fill"
+                                                            style="width:{{ min(100, max(0, $studentHardAccuracy)) }}%;background:var(--la-rust)">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {{-- <div class="la-modal-section-label">Sub-topik yang Perlu Perhatian</div>
+                                            @if($studentSubTopics->isNotEmpty())
+                                            <p class="la-modal-subtopic-note">
+                                                Bagian berikut memiliki performa di bawah 70% dan menjadi fokus pembelajaran siswa pada
+                                                topik ini.
+                                            </p>
+                                            <div class="la-modal-subtopic-list">
+                                                @foreach($studentSubTopics as $subTopic)
+                                                @php
+                                                $subTopicAccuracy = (float) data_get($subTopic, 'accuracy', 0);
+                                                $subTopicCorrect = (int) data_get($subTopic, 'correct_answers', 0);
+                                                $subTopicIncorrect = (int) data_get($subTopic, 'incorrect_answers', 0);
+                                                $subTopicTotal = (int) data_get($subTopic, 'total_answers', 0);
+                                                @endphp
+                                                <div class="la-modal-subtopic-item">
+                                                    <div class="la-modal-subtopic-head">
+                                                        <div class="la-modal-subtopic-name">
+                                                            {{ data_get($subTopic, 'sub_topic_name', 'Sub-topik') }}
+                                                        </div>
+                                                        <div class="la-modal-subtopic-score">
+                                                            {{ number_format($subTopicAccuracy, 0) }}%
+                                                        </div>
+                                                    </div>
+                                                    <div class="la-modal-subtopic-track">
+                                                        <div class="la-modal-subtopic-fill"
+                                                            style="width:{{ min(100, max(0, $subTopicAccuracy)) }}%">
+                                                        </div>
+                                                    </div>
+                                                    <div class="la-modal-subtopic-meta">
+                                                        <span>{{ $subTopicCorrect }} benar</span>
+                                                        <span>·</span>
+                                                        <span>{{ $subTopicIncorrect }} salah</span>
+                                                        <span>·</span>
+                                                        <span>{{ $subTopicTotal }} jawaban</span>
+                                                    </div>
+                                                </div>
+                                                @endforeach
+                                            </div>
+                                            @else
+                                            <div class="la-modal-empty" style="margin-bottom:18px">
+                                                Tidak ada sub-topik yang perlu penguatan berdasarkan jawaban siswa pada topik ini.
+                                            </div>
+                                            @endif --}}
+
                                             <div class="la-modal-section-label">Performa Per Aktivitas</div>
                                             @if($studentActivities->isNotEmpty())
-                                                <div class="la-modal-activity-list">
-                                                    @foreach($studentActivities as $activity)@php $activityAccuracy = (float) data_get($activity, 'accuracy', 0);
-                                                            $activityCorrect = (int) data_get($activity, 'correct_answers', 0);
-                                                            $activityIncorrect = (int) data_get($activity, 'incorrect_answers', 0);
-                                                            $activityTotal = (int) data_get($activity, 'total_answers', 0);
-                                                            $activityStatus = strtolower((string) data_get($activity, 'activity_status', ''));
-                                                            $activityType = match ($activityStatus) { 'basic' => 'Aktivitas Dasar', 'additional' => 'Aktivitas Tambahan', 'remedial' => 'Remedial', default => 'Aktivitas'};
-                                                        $activityColor = $activityAccuracy >= 85 ? 'var(--la-blue)' : ($activityAccuracy >= 70 ? 'var(--la-green)' : ($activityAccuracy >= 50 ? 'var(--la-amber)' : 'var(--la-rust)'));@endphp
-                                                        <div class="la-modal-activity-item">
-                                                            <div class="la-modal-activity-head">
-                                                                <div class="la-modal-activity-info">
+                                                <table class="la-modal-activity-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Aktivitas</th>
+                                                            <th>Performa</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($studentActivities as $activity)@php $activityAccuracy = (float) data_get($activity, 'accuracy', 0);
+                                                                $activityCorrect = (int) data_get($activity, 'correct_answers', 0);
+                                                                $activityIncorrect = (int) data_get($activity, 'incorrect_answers', 0);
+                                                                $activityTotal = (int) data_get($activity, 'total_answers', 0);
+                                                                $activityStatus = strtolower((string) data_get($activity, 'activity_status', ''));
+                                                                $activityType = match ($activityStatus) { 'basic' => 'Aktivitas Dasar', 'additional' => 'Aktivitas Tambahan', 'remedial' => 'Remedial', default => 'Aktivitas'};
+                                                            $activityColor = $activityAccuracy >= 85 ? 'var(--la-blue)' : ($activityAccuracy >= 70 ? 'var(--la-green)' : ($activityAccuracy >= 50 ? 'var(--la-amber)' : 'var(--la-rust)'));@endphp
+                                                            <tr>
+                                                                <td class="la-modal-activity-info">
                                                                     <div class="la-modal-activity-name">
                                                                         {{ data_get($activity, 'activity_name', 'Aktivitas') }}
                                                                     </div>
                                                                     <div class="la-modal-activity-type">{{ $activityType }}</div>
-                                                                </div>
-                                                                <div class="la-modal-activity-score" style="color:{{ $activityColor }}">
-                                                                    {{ number_format($activityAccuracy, 0) }}%
-                                                                </div>
-                                                            </div>
-                                                            <div class="la-modal-activity-track">
-                                                                <div class="la-modal-activity-fill"
-                                                                    style="width:{{ min(100, max(0, $activityAccuracy)) }}%;background:{{ $activityColor }}">
-                                                                </div>
-                                                            </div>
-                                                            <div class="la-modal-activity-meta"><span
-                                                                    class="la-modal-activity-correct"><strong>{{ $activityCorrect }}</strong>
-                                                                    benar</span><span>/</span><span
-                                                                    class="la-modal-activity-incorrect"><strong>{{ $activityIncorrect }}</strong>
-                                                                    salah</span><span>·</span><span>{{ $activityTotal }} jawaban</span></div>
-                                                    </div>@endforeach
-                                            </div>@else<div class="la-modal-empty">Belum terdapat data performa aktivitas untuk siswa pada
+                                                                </td>
+                                                                <td class="la-modal-activity-perf">
+                                                                    <div class="la-modal-activity-score" style="color:{{ $activityColor }}">
+                                                                        {{ number_format($activityAccuracy, 0) }}%
+                                                                    </div>
+                                                                    <div class="la-modal-activity-track">
+                                                                        <div class="la-modal-activity-fill"
+                                                                            style="width:{{ min(100, max(0, $activityAccuracy)) }}%;background:{{ $activityColor }}">
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="la-modal-activity-meta"><span
+                                                                            class="la-modal-activity-correct"><strong>{{ $activityCorrect }}</strong>
+                                                                            benar</span><span>/</span><span
+                                                                            class="la-modal-activity-incorrect"><strong>{{ $activityIncorrect }}</strong>
+                                                                            salah</span><span>·</span><span>{{ $activityTotal }} jawaban</span>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            @else<div class="la-modal-empty">Belum terdapat data performa aktivitas untuk siswa pada
                                             topik ini.</div>@endif
                                         </div>
                                     </div>

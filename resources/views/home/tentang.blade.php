@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Tentang — EvoLevel</title>
+    <title>Tentang — RuangKuis</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <script src="https://kit.fontawesome.com/d92a0707c2.js" crossorigin="anonymous"></script>
     <style>
@@ -123,8 +123,8 @@
 <body>
     <div class="container">
         <header>
-            <h1>Tentang EvoLevel</h1>
-            <p class="lead">EvoLevel adalah aplikasi pembelajaran adaptif yang membantu pengguna meningkatkan keterampilan melalui latihan bertingkat, pelacakan progres, dan rekomendasi yang dipersonalisasi.</p>
+            <h1>Tentang RuangKuis</h1>
+            <p class="lead">RuangKuis adalah aplikasi pembelajaran adaptif yang membantu pengguna meningkatkan keterampilan melalui latihan bertingkat, pelacakan progres, dan rekomendasi yang dipersonalisasi.</p>
         </header>
 
         <section class="about" aria-labelledby="team-heading">

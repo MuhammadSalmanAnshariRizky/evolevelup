@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Evolevel – Sistem Evaluasi Adaptif</title>
+  <title>RuangKuis – Sistem Evaluasi Adaptif</title>
 
   <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -166,7 +166,7 @@
   <nav class="navbar navbar-expand-lg">
     <div class="container">
       <a class="navbar-brand" href="#">
-        <i class="bi bi-layers-fill me-1"></i> Evolevel
+        <i class="bi bi-layers-fill me-1"></i> RuangKuis
       </a>
 
       <div class="ms-auto">
@@ -192,7 +192,7 @@
       </h1>
 
       <p>
-        Evolevel membantu guru dan pengajar membuat, mengelola,
+        RuangKuis membantu guru dan pengajar membuat, mengelola,
         serta menganalisis evaluasi pembelajaran secara adaptif
         dengan cepat, rapi, dan terstruktur.
       </p>
@@ -221,7 +221,7 @@
   </section>
 
   <footer>
-    &copy; 2025 Evolevel — Sistem Evaluasi Adaptif
+    &copy; 2025 RuangKuis — Sistem Evaluasi Adaptif
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

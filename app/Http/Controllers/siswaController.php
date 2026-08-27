@@ -434,13 +434,45 @@ class siswaController extends Controller
 
 
         // ==========================================
+        // MASTERY PER SISWA PER TOPIK
+        // ==========================================
+        //
+        // Data ini digunakan sebagai dasar rekomendasi
+        // dan dapat digunakan kembali oleh Blade.
+
+        $studentTopicMastery =
+            $analyticsService->getStudentTopicMastery(
+                $analyticsAnswers
+            );
+
+
+        // ==========================================
+        // PERFORMA PER SUB-TOPIK
+        // ==========================================
+        //
+        // Sumber data baru untuk rekomendasi.
+        // Sub-topik akan mengikuti tag pada soal
+        // setelah adapter di Service terhubung.
+
+        $studentSubTopicPerformance =
+            $analyticsService->getStudentSubTopicPerformance(
+                $analyticsAnswers
+            );
+
+
+        // ==========================================
         // RECOMMENDATION
         // ==========================================
+        //
+        // Rekomendasi tidak lagi menggunakan difficulty.
+        // Difficulty tetap tersedia sebagai indikator LA,
+        // tetapi bukan dasar rekomendasi.
 
-        $recommendations = $analyticsService->getRecommendations(
-            $analyticsService->getStudentTopicMastery($analyticsAnswers),
-            $studentDifficulty
-        );
+        $recommendations =
+            $analyticsService->getRecommendations(
+                $studentTopicMastery,
+                $studentSubTopicPerformance
+            );
 
         // -----------------------------
         // Tambahan: Daftar Nilai (ambil dari activity_result + relasi)
@@ -487,8 +519,10 @@ class siswaController extends Controller
             // Learning Analytics
             'performanceSummary' => $performanceSummary,
             'studentMastery' => $studentMastery,
+            'studentTopicMastery' => $studentTopicMastery,
             'studentDifficulty' => $studentDifficulty,
             'studentActivityPerformance' => $studentActivityPerformance,
+            'studentSubTopicPerformance' => $studentSubTopicPerformance,
             'recommendations' => $recommendations,
 
             // Filter LA
