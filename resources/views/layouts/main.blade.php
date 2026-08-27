@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Evolevel - @yield('title', 'Dashboard')</title>
+    <title>Ruangkuis - @yield('title', 'Dashboard')</title>
 
     <!-- Font & Icons -->
     <link href="{{ asset('vendor-assets/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
