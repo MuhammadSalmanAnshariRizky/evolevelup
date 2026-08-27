@@ -186,7 +186,7 @@
                 <div class="sidebar-brand-icon rotate-n-15">
                     <i class="fas fa-laugh-wink"></i>
                 </div>
-                <div class="sidebar-brand-text mx-3">Evolevel</div>
+                <div class="sidebar-brand-text mx-3">RuangKuis</div>
             </a>
 
             <hr class="sidebar-divider my-0">
@@ -330,7 +330,7 @@
 
             <footer class="sticky-footer bg-white py-3 mt-auto">
                 <div class="container text-center">
-                    &copy; Evolevel {{ date('Y') }}
+                    &copy; RuangKuis {{ date('Y') }}
                 </div>
             </footer>
         </div>

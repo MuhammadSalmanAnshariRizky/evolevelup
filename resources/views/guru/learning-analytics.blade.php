@@ -13,11 +13,11 @@
             --la-line-soft: #eaecf4;
             --la-blue: #4e73df;
             --la-blue-soft: #e8eefc;
-            --la-gold: #f6c23e;
+            --la-gold: #ec7d14;
             --la-gold-soft: #fff5d8;
-            --la-green: #1cc88a;
+            --la-green: #07a96d;
             --la-green-soft: #e3f8f0;
-            --la-amber: #f6c23e;
+            --la-amber: #e98315;
             --la-amber-soft: #fff5d8;
             --la-rust: #e74a3b;
             --la-rust-soft: #fbe8e6
@@ -39,7 +39,7 @@
         .la-topbar-inner,
         .la-filterbar,
         .la-main {
-            max-width: 1180px;
+            max-width: 1300px;
             margin: auto
         }
 
@@ -55,7 +55,7 @@
             margin: 0 0 6px;
             text-transform: uppercase;
             letter-spacing: .14em;
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 700;
             color: #dbe3ff
         }
@@ -102,7 +102,7 @@
         }
 
         .la-field label {
-            font-size: 10px;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: .08em;
             font-weight: 700;
@@ -183,7 +183,7 @@
             background: #fff;
             border: 1px solid var(--la-line);
             border-radius: 11px;
-            font-size: 11px;
+            font-size: 13px;
             color: var(--la-soft)
         }
 
@@ -206,12 +206,12 @@
             padding-bottom: 9px;
             border-bottom: 1px solid var(--la-line);
             margin-bottom: 10px;
-            font-size: 14px;
+            font-size: 20px;
             font-weight: 700
         }
 
         .la-subject-heading .count {
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 500;
             color: var(--la-faint)
         }
@@ -235,14 +235,8 @@
 
         .la-topic-head h2 {
             margin: 0;
-            font-size: 12.5px;
+            font-size: 17px;
             font-weight: 700
-        }
-
-        .la-topic-meta {
-            margin-top: 2px;
-            color: var(--la-faint);
-            font-size: 8.5px
         }
 
         .la-mastery-pill {
@@ -250,7 +244,7 @@
             flex-shrink: 0;
             padding: 3px 8px;
             border-radius: 999px;
-            font-size: 8.5px;
+            font-size: 12px;
             font-weight: 700;
             white-space: nowrap
         }
@@ -294,7 +288,7 @@
             color: var(--la-faint);
             text-transform: uppercase;
             letter-spacing: .06em;
-            font-size: 8px;
+            font-size: 11px;
             font-weight: 700
         }
 
@@ -306,15 +300,15 @@
         }
 
         .la-perf-score .num {
-            font-size: 19px;
+            font-size: 35px;
             font-weight: 700
         }
 
         .la-perf-score .max,
         .la-perf-delta,
         .la-perf-compare {
-            font-size: 8.5px;
-            color: var(--la-faint)
+            font-size: 12.5px;
+            /* color: var(--la-faint) */
         }
 
         .la-perf-compare {
@@ -328,12 +322,12 @@
         }
 
         .la-mastery-num {
-            font-size: 19px;
+            font-size: 30px;
             font-weight: 700
         }
 
         .la-mastery-unit {
-            font-size: 8.5px;
+            font-size: 12px;
             color: var(--la-faint)
         }
 
@@ -372,7 +366,7 @@
         .la-difficulty-value {
             text-align: center;
             margin-bottom: 2px;
-            font-size: 8px;
+            font-size: 10px;
             font-weight: 700
         }
 
@@ -385,7 +379,7 @@
         .la-difficulty-label,
         .la-difficulty-count {
             text-align: center;
-            font-size: 8px;
+            font-size: 10px;
             color: var(--la-faint)
         }
 
@@ -395,7 +389,7 @@
 
         .la-difficulty-count {
             margin-top: 1px;
-            font-size: 7.5px
+            font-size: 10px
         }
 
         .la-topic-recommendation {
@@ -411,14 +405,14 @@
             color: var(--la-blue);
             text-transform: uppercase;
             letter-spacing: .06em;
-            font-size: 8px;
+            font-size: 12px;
             font-weight: 700
         }
 
         .la-topic-recommendation-text {
             margin: 0;
-            color: var(--la-soft);
-            font-size: 9.5px;
+            /* color: var(--la-soft); */
+            font-size: 12px;
             line-height: 1.4
         }
 
@@ -431,7 +425,7 @@
             align-items: center;
             gap: 5px;
             color: var(--la-blue);
-            font-size: 10px;
+            font-size: 13px;
             font-weight: 700;
             cursor: pointer;
             user-select: none;
@@ -469,7 +463,7 @@
         .la-student-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 10.5px
+            font-size: 13px
         }
 
         .la-student-table th {
@@ -478,7 +472,7 @@
             color: var(--la-faint);
             text-transform: uppercase;
             letter-spacing: .06em;
-            font-size: 8px;
+            font-size: 11px;
             font-weight: 700;
             border-bottom: 1px solid var(--la-line);
             white-space: nowrap
@@ -531,14 +525,14 @@
         }
 
         .la-student-diff-value {
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 700
         }
 
         .la-student-diff-count {
             margin-left: 2px;
             color: var(--la-faint);
-            font-size: 8px;
+            font-size: 10px;
             font-weight: 400
         }
 
@@ -571,7 +565,8 @@
             border: 0;
             padding: 6px 9px;
             border-radius: 999px;
-            font: 700 9px inherit;
+            /* font: 700 9px inherit; */
+            font-size: 12px;
             font-weight: bold;
             cursor: pointer;
             transition: transform .15s, opacity .15s
@@ -648,7 +643,7 @@
         .la-modal-meta {
             margin-top: 4px;
             color: var(--la-faint);
-            font-size: 10.5px
+            font-size: 12px
         }
 
         .la-modal-close {
@@ -673,7 +668,7 @@
             color: var(--la-faint);
             text-transform: uppercase;
             letter-spacing: .09em;
-            font-size: 9px;
+            font-size: 11px;
             font-weight: 700
         }
 
@@ -705,7 +700,7 @@
             margin-bottom: 7px;
             border-radius: 999px;
             background: #fff;
-            font-size: 9px;
+            font-size: 10px;
             font-weight: 700
         }
 
@@ -728,7 +723,7 @@
         .la-modal-text {
             margin: 0;
             color: var(--la-soft);
-            font-size: 12px;
+            font-size: 14px;
             font-weight: bold;
             line-height: 1.55
         }
@@ -752,7 +747,7 @@
             margin-bottom: 5px;
             text-transform: uppercase;
             letter-spacing: .07em;
-            font-size: 9.5px;
+            font-size: 12px;
             font-weight: 700;
             opacity: .8
         }
@@ -766,9 +761,10 @@
         .la-modal-highlight-sub {
             display: block;
             margin-top: 4px;
-            font-size: 9.5px;
-            opacity: .85;
-            color: var(--la-soft)
+            font-size: 13px;
+            font-weight: bold;
+            /* opacity: .85; */
+            color: grey; !important
         }
 
         .la-modal-highlight-track {
@@ -791,7 +787,7 @@
             color: var(--la-faint);
             text-transform: uppercase;
             letter-spacing: .09em;
-            font-size: 9px;
+            font-size: 10px;
             font-weight: 700
         }
 
@@ -815,7 +811,7 @@
             color: var(--la-faint);
             text-transform: uppercase;
             letter-spacing: .06em;
-            font-size: 8px;
+            font-size: 11.5px;
             font-weight: 700
         }
 
@@ -828,7 +824,7 @@
             display: block;
             margin-top: 2px;
             color: var(--la-faint);
-            font-size: 8px;
+            font-size: 10px;
             line-height: 1.4
         }
 
@@ -869,7 +865,7 @@
 
         .la-modal-subtopic-name {
             color: var(--la-ink);
-            font-size: 11.5px;
+            font-size: 12px;
             font-weight: 700;
             line-height: 1.4
         }
@@ -877,7 +873,7 @@
         .la-modal-subtopic-score {
             flex-shrink: 0;
             color: var(--la-rust);
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 700
         }
 
@@ -908,7 +904,7 @@
         .la-modal-subtopic-note {
             margin: 0 0 18px;
             color: var(--la-faint);
-            font-size: 9.5px;
+            font-size: 10px;
             line-height: 1.45
         }
 
@@ -924,7 +920,7 @@
             color: var(--la-faint);
             text-transform: uppercase;
             letter-spacing: .06em;
-            font-size: 7px;
+            font-size: 10px;
             font-weight: 700;
             border-bottom: 1px solid var(--la-line);
             white-space: nowrap
@@ -950,7 +946,7 @@
 
         .la-modal-activity-name {
             color: var(--la-ink);
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 700;
             line-height: 1.25
         }
@@ -958,7 +954,7 @@
         .la-modal-activity-type {
             margin-top: 0;
             color: var(--la-faint);
-            font-size: 8px
+            font-size: 11px
         }
 
         .la-modal-activity-perf {
@@ -967,7 +963,7 @@
 
         .la-modal-activity-score {
             text-align: right;
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 700
         }
 
@@ -992,7 +988,7 @@
             flex-wrap: wrap;
             margin-top: 2px;
             color: var(--la-faint);
-            font-size: 7.5px
+            font-size: 10px
         }
 
         .la-modal-activity-correct {
@@ -1019,7 +1015,7 @@
             background: #fff;
             border-color: var(--la-line);
             border-radius: 14px;
-            font-size: 12px
+            font-size: 13px
         }
 
         @media(max-width:900px) {
