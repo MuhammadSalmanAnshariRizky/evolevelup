@@ -117,7 +117,7 @@
         }
 
         .sidebar .nav-item {
-            height: 56px;
+            height: 46px;
             display: flex;
             align-items: center;
         }

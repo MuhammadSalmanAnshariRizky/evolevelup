@@ -64,7 +64,6 @@
 
         .bg-soft-primary {
             background-color: rgba(78, 115, 223, 0.1);
-            color: #4e73df;
         }
 
         .profile-badge-section {
@@ -78,7 +77,7 @@
         }
 
         th {
-            background-color: #4e73df !important;
+            background: linear-gradient(135deg, #4e73df 0%, #3b5fce 100%) !important;
             color: white;
             text-align: center;
             vertical-align: middle !important;
@@ -86,6 +85,14 @@
 
         td {
             vertical-align: middle !important;
+        }
+
+        .table-hover>tbody>tr:hover {
+            background-color: rgba(78, 115, 223, 0.045);
+        }
+
+        .table-striped>tbody>tr:nth-of-type(odd)>* {
+            background-color: rgba(78, 115, 223, 0.02);
         }
 
         .nilai-box {
@@ -122,18 +129,32 @@
             border-left-color: #1cc88a !important;
         }
 
+        .border-start-info {
+            border-left-color: #36b9cc !important;
+        }
+
+        .border-start-warning {
+            border-left-color: #f6c23e !important;
+        }
+
         .border-start-danger {
             border-left-color: #e74a3b !important;
         }
 
         .bg-soft-danger {
             background-color: rgba(231, 74, 59, 0.1);
-            color: #e74a3b;
         }
 
         .bg-soft-success {
             background-color: rgba(28, 200, 138, 0.1);
-            color: #1cc88a;
+        }
+
+        .bg-soft-info {
+            background-color: rgba(54, 185, 204, 0.1);
+        }
+
+        .bg-soft-warning {
+            background-color: rgba(246, 194, 62, 0.15);
         }
 
         /* ========
@@ -336,7 +357,7 @@
             flex-shrink: 0;
         }
 
-        /* Navigasi pagination tabel Performa (LA) ditengahkan */
+        /* Navigasi pagination tabel Performa (LA) */
         #topicAnalyticsTable_wrapper .dataTables_paginate {
             float: none;
             display: flex;
@@ -577,8 +598,7 @@
         .analytics-box {
             border: 1px solid #e9ecef !important;
             border-radius: 0.7rem !important;
-            background: #fff;
-            padding: 1rem;
+            padding: .3rem;
         }
 
         /* Difficulty */
@@ -785,7 +805,7 @@
             <div class="analytics-header-icon"><i class="bi bi-graph-up-arrow"></i></div>
             <div>
                 <h5>Performa Saya</h5>
-                <small class="text-muted">Performa penguasaan pembelajaran berdasarkan topik, jawaban soal, tingkat kesulitan, dan aktivitas.</small>
+                <small class="text-muted">Performa dan penguasaan materi dirangkum per topik dari aktivitas yang telah dikerjakan.</small>
             </div>
         </div>
 
@@ -832,36 +852,25 @@
 
         <!-- RINGKASAN -->
         <div class="row g-3 mb-4">
-            <div class="col-12 col-sm-6 col-xl-3">
+            <div class="col-12 col-sm-6 col-xl-4">
                 <div class="analytics-summary-box">
                     <div class="analytics-summary-icon bg-soft-primary"><i class="bi bi-speedometer2"></i></div>
                     <div>
                         <small class="text-muted d-block">Rata-rata Performa</small>
-                        <strong class="text-primary fs-5">{{ number_format($averageAccuracy, 1) }}%</strong>
-                        <small class="text-muted d-block">{{ $totalActivities }} aktivitas</small>
+                        <strong class="text-primary fs-5">{{ number_format($averageAccuracy, 2) }}%</strong>
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-sm-6 col-xl-3">
+            <div class="col-12 col-sm-6 col-xl-4">
                 <div class="analytics-summary-box">
                     <div class="analytics-summary-icon bg-soft-success"><i class="bi bi-graph-up-arrow"></i></div>
                     <div>
                         <small class="text-muted d-block">Rata-rata Penguasaan</small>
-                        <strong class="text-success fs-5">{{ number_format($averageMastery, 1) }}%</strong>
+                        <strong class="text-success fs-5">{{ number_format($averageMastery, 2) }}%</strong>
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-sm-6 col-xl-3">
-                <div class="analytics-summary-box">
-                    <div class="analytics-summary-icon bg-soft-success"><i class="bi bi-check2-circle"></i></div>
-                    <div>
-                        <small class="text-muted d-block">Topik Dikuasai</small>
-                        <strong class="text-success fs-5">{{ $masteredTopics }}</strong>
-                        <small class="text-muted">topik</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-sm-6 col-xl-3">
+            <div class="col-12 col-sm-6 col-xl-4">
                 <div class="analytics-summary-box">
                     <div class="analytics-summary-icon bg-soft-danger"><i class="bi bi-lightbulb"></i></div>
                     <div>
@@ -880,7 +889,6 @@
                     <i class="fas fa-filter text-primary me-2"></i>
                     <div>
                         <h6 class="fw-bold mb-0">Filter</h6>
-                        <small class="text-muted">Pilih konteks pembelajaran yang ingin ditampilkan.</small>
                     </div>
                 </div>
                 <form method="GET" action="{{ route('dashboard.siswa') }}">
@@ -940,21 +948,19 @@
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                 <div>
                     <h6 class="fw-bold mb-1">Rekap Penguasaan Topik</h6>
-                    <small class="text-muted">Klik satu baris untuk melihat detail performa.</small>
                 </div>
-                <span class="badge bg-light text-primary border">{{ $studentMasteryCollection->count() }} topik</span>
             </div>
 
             <div class="table-responsive d-none d-md-block">
-                <table id="topicAnalyticsTable" class="table table-bordered table-hover align-middle mb-0">
+                <table id="topicAnalyticsTable" class="table table-hover align-middle mb-0">
                     <thead>
                         <tr>
                             <th style="width:48px;">No</th>
                             <th class="text-start">Topik</th>
-                            <th style="min-width:210px;">Penguasaan</th>
-                            <th>Kategori</th>
+                            <th>Performa</th>
+                            <th style="max-width:100px;">Penguasaan</th>
                             <th>Rekomendasi</th>
-                            <th style="width:100px;">Aksi</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -962,46 +968,57 @@
                             @php
                                 $topicId = data_get($mastery, 'topic_id');
                                 $masteryValue = min(100, max(0, (float) data_get($mastery, 'mastery', 0)));
+                                $rowAccuracy = (float) data_get($mastery, 'accuracy', 0);
 
+                                $recommendation = $recommendationByTopic->get((string) $topicId);
+
+
+                                $recommendationType = strtolower((string) data_get($recommendation, 'recommendation_type', ''));
                                 if ($masteryValue >= 85) {
                                     $categoryLabel = 'Mahir';
                                     $categoryColor = 'success';
-                                    $recommendationLabel = 'Sangat Baik';
-                                    $recommendationColor = 'success';
+
                                 } elseif ($masteryValue >= 70) {
                                     $categoryLabel = 'Menguasai';
                                     $categoryColor = 'primary';
-                                    $recommendationLabel = 'Baik';
-                                    $recommendationColor = 'info';
+
                                 } elseif ($masteryValue >= 50) {
                                     $categoryLabel = 'Cukup';
                                     $categoryColor = 'info';
-                                    $recommendationLabel = 'Perlu Ditingkatkan';
-                                    $recommendationColor = 'warning';
+
                                 } else {
                                     $categoryLabel = 'Belum Menguasai';
                                     $categoryColor = 'danger';
-                                    $recommendationLabel = 'Penguatan';
-                                    $recommendationColor = 'danger';
                                 }
+
+                                $recommendationLabel = match ($recommendationType) {
+                                    'penguatan' => 'Perkuat Lagi',
+                                    'latihan' => 'Latihan Lagi',
+                                    'lanjutan' => 'Lanjut Yuk',
+                                    'pengayaan' => 'Coba Tantangan',
+                                    default => 'Saran Buat Kamu',
+                                };
+
+                                $recommendationColor = match ($recommendationType) {
+                                    'penguatan' => 'danger',
+                                    'latihan' => 'warning',
+                                    'lanjutan' => 'info',
+                                    'pengayaan' => 'success',
+                                    default => $categoryColor,
+                                };
                             @endphp
-                            <tr role="button" data-bs-toggle="modal" data-bs-target="#topicDetailModal-{{ $topicId }}" style="cursor:pointer;">
-                                <td>{{ $index + 1 }}</td>
+                            <tr role="button" data-bs-toggle="modal" data-bs-target="#topicDetailModal-{{ $topicId }}" style="cursor:pointer;" class="text-center">
+                                <td style="border-left:4px solid var(--bs-{{ $categoryColor }});">{{ $index + 1 }}</td>
                                 <td class="text-start fw-semibold">{{ data_get($mastery, 'topic_name', 'Topik') }}</td>
+                                <td class="fw-bold">{{ number_format($rowAccuracy, 2) }}<span class="text-muted fw-normal">/100</span></td>
                                 <td>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="progress flex-fill" style="height:8px;">
-                                            <div class="progress-bar bg-primary" style="width:{{ $masteryValue }}%;"></div>
-                                        </div>
-                                        <small class="text-muted" style="white-space:nowrap;">{{ number_format($masteryValue, 1) }}%</small>
-                                    </div>
+                                    <span class="badge bg-{{ $categoryColor }} rounded-pill fw-bold">
+                                        {{ number_format($masteryValue, 2) }}% · {{ $categoryLabel }}
+                                    </span>
                                 </td>
-                                <td class="text-center"><span class="badge bg-{{ $categoryColor }}{{ in_array($categoryColor, ['warning', 'info']) ? ' text-dark' : '' }}">{{ $categoryLabel }}</span></td>
-                                <td class="text-center"><span class="badge bg-{{ $recommendationColor }}{{ in_array($recommendationColor, ['warning', 'info']) ? ' text-dark' : '' }}">{{ $recommendationLabel }}</span></td>
-                                <td class="text-center">
-                                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#topicDetailModal-{{ $topicId }}" aria-label="Detail {{ data_get($mastery, 'topic_name', 'Topik') }}">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
+                                <td><span class="badge bg-{{ $recommendationColor }} rounded-pill fw-bold">{{ $recommendationLabel }}</span></td>
+                                <td class="text-end">
+                                    <small class="text-primary fw-semibold">Lihat detail <i class="bi bi-chevron-right"></i></small>
                                 </td>
                             </tr>
                         @endforeach
@@ -1015,41 +1032,63 @@
                     @php
                         $topicId = data_get($mastery, 'topic_id');
                         $masteryValue = min(100, max(0, (float) data_get($mastery, 'mastery', 0)));
-
+                        $recommendation = $recommendationByTopic->get((string) $topicId);
+                        $recommendationType = strtolower((string) data_get($recommendation, 'recommendation_type', ''));
                         if ($masteryValue >= 85) {
                             $categoryLabel = 'Mahir';
                             $categoryColor = 'success';
-                            $recommendationLabel = 'Sangat Baik';
-                            $recommendationColor = 'success';
+
                         } elseif ($masteryValue >= 70) {
                             $categoryLabel = 'Menguasai';
                             $categoryColor = 'primary';
-                            $recommendationLabel = 'Baik';
-                            $recommendationColor = 'info';
+
                         } elseif ($masteryValue >= 50) {
                             $categoryLabel = 'Cukup';
                             $categoryColor = 'info';
-                            $recommendationLabel = 'Perlu Ditingkatkan';
-                            $recommendationColor = 'warning';
+
                         } else {
                             $categoryLabel = 'Belum Menguasai';
                             $categoryColor = 'danger';
-                            $recommendationLabel = 'Penguatan';
-                            $recommendationColor = 'danger';
+
                         }
+
+                        $recommendationLabel = match ($recommendationType) {
+                            'penguatan' => 'Perkuat Lagi',
+                            'latihan' => 'Latihan Lagi',
+                            'lanjutan' => 'Lanjut Yuk',
+                            'pengayaan' => 'Coba Tantangan',
+                            default => 'Saran Buat Kamu',
+                        };
+
+                        $recommendationColor = match ($recommendationType) {
+                            'penguatan' => 'danger',
+                            'latihan' => 'warning',
+                            'lanjutan' => 'info',
+                            'pengayaan' => 'success',
+                            default => $categoryColor,
+                        };
                     @endphp
                     <div class="card topic-card mb-3" role="button" data-bs-toggle="modal" data-bs-target="#topicDetailModal-{{ $topicId }}">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                                 <div class="d-flex align-items-center gap-2">
-                                    <div class="topic-icon"><i class="bi bi-book"></i></div>
+                                    @php
+                                        $categoryIconMap = [
+                                            'success' => ['bg' => 'rgba(28,200,138,.12)', 'fg' => '#1cc88a'],
+                                            'primary' => ['bg' => 'rgba(78,115,223,.12)', 'fg' => '#4e73df'],
+                                            'info' => ['bg' => 'rgba(54,185,204,.12)', 'fg' => '#36b9cc'],
+                                            'warning' => ['bg' => 'rgba(246,194,62,.18)', 'fg' => '#b8860b'],
+                                            'danger' => ['bg' => 'rgba(231,74,59,.12)', 'fg' => '#e74a3b'],
+                                        ][$categoryColor] ?? ['bg' => 'rgba(78,115,223,.1)', 'fg' => '#4e73df'];
+                                    @endphp
+                                    <div class="topic-icon" style="background:{{ $categoryIconMap['bg'] }};color:{{ $categoryIconMap['fg'] }};"><i class="bi bi-book"></i></div>
                                     <div class="fw-bold">{{ data_get($mastery, 'topic_name', 'Topik') }}</div>
                                 </div>
                                 <span class="badge bg-{{ $categoryColor }}{{ in_array($categoryColor, ['warning', 'info']) ? ' text-dark' : '' }}">{{ $categoryLabel }}</span>
                             </div>
-                            <div class="progress mb-1" style="height:8px;"><div class="progress-bar bg-primary" style="width:{{ $masteryValue }}%;"></div></div>
+                            <div class="progress mb-1" style="height:8px;"><div class="progress-bar bg-{{ $categoryColor }}" style="width:{{ $masteryValue }}%;"></div></div>
                             <div class="d-flex justify-content-between align-items-center">
-                                <small class="text-muted">{{ number_format($masteryValue, 1) }}%</small>
+                                <small class="text-muted">{{ number_format($masteryValue, 2) }}%</small>
                                 <span class="badge bg-{{ $recommendationColor }}{{ in_array($recommendationColor, ['warning', 'info']) ? ' text-dark' : '' }}">{{ $recommendationLabel }}</span>
                             </div>
                             <div class="text-end mt-1"><small class="text-primary fw-semibold">Lihat detail <i class="bi bi-chevron-right"></i></small></div>
@@ -1095,7 +1134,7 @@
                     {{-- Jika ada data, tampilkan tabel --}}
                     {{-- DESKTOP: DataTable --}}
                     <div class="d-none d-md-block">
-                        <table id="nilaiTable" class="table table-bordered table-striped align-middle">
+                        <table id="nilaiTable" class="table table-striped align-middle">
                             <thead>
                                 <tr>
                                     <th>No</th>
@@ -1109,6 +1148,14 @@
                             </thead>
                             <tbody>
                                 @foreach($nilaiList as $index => $n)
+                                    @php
+                                        $nilaiIsNumeric = is_numeric($n->nilai_akhir);
+                                        $nilaiColor = 'secondary';
+                                        if ($nilaiIsNumeric) {
+                                            $nv = (float) $n->nilai_akhir;
+                                            $nilaiColor = $nv >= 85 ? 'success' : ($nv >= 70 ? 'primary' : ($nv >= 50 ? 'warning' : 'danger'));
+                                        }
+                                    @endphp
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
                                         <td>{{ \Carbon\Carbon::parse($n->result_created_at)->format('d M Y H:i') }}</td>
@@ -1116,8 +1163,10 @@
                                         <td>{{ $n->mapel ?? '-' }}</td>
                                         <td>{{ $n->topik ?? $n->aktivitas ?? '-' }}</td>
                                         <td>{{ $n->aktivitas ?? '-' }}</td>
-                                        <td>
-                                            {{ is_null($n->nilai_akhir) || $n->nilai_akhir === '-' ? 'Belum Mengerjakan' : $n->nilai_akhir }}
+                                        <td class="text-center">
+                                            <span class="badge bg-{{ $nilaiColor }}{{ $nilaiColor === 'warning' ? ' text-dark' : '' }}">
+                                                {{ $nilaiIsNumeric ? $n->nilai_akhir : 'Belum Mengerjakan' }}
+                                            </span>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -1128,7 +1177,15 @@
                     <div class="d-block d-md-none">
 
                         @forelse($nilaiList as $n)
-                            <div class="card shadow-sm mb-3 border-0">
+                            @php
+                                $nilaiIsNumericM = is_numeric($n->nilai_akhir);
+                                $nilaiColorM = 'secondary';
+                                if ($nilaiIsNumericM) {
+                                    $nvM = (float) $n->nilai_akhir;
+                                    $nilaiColorM = $nvM >= 85 ? 'success' : ($nvM >= 70 ? 'primary' : ($nvM >= 50 ? 'warning' : 'danger'));
+                                }
+                            @endphp
+                            <div class="card shadow-sm mb-3 border-0" style="border-left:4px solid var(--bs-{{ $nilaiColorM }}) !important;">
                                 <div class="card-body">
 
                                     <div class="fw-bold mb-1">
@@ -1146,8 +1203,8 @@
                                     </div>
 
                                     <div>
-                                        <span class="badge {{ is_numeric($n->nilai_akhir) ? 'bg-success' : 'bg-secondary' }}">
-                                            {{ is_numeric($n->nilai_akhir) ? 'Nilai: ' . $n->nilai_akhir : 'Belum Mengerjakan' }}
+                                        <span class="badge bg-{{ $nilaiColorM }}{{ $nilaiColorM === 'warning' ? ' text-dark' : '' }}">
+                                            {{ $nilaiIsNumericM ? 'Nilai: ' . $n->nilai_akhir : 'Belum Mengerjakan' }}
                                         </span>
                                     </div>
 
@@ -1168,64 +1225,386 @@
     </div>
 
     <!-- MODAL DETAIL LEARNING ANALYTICS PER TOPIK -->
-@foreach($studentMasteryCollection as $mastery)
+    @foreach($studentMasteryCollection as $mastery)
+
     @php
+
         $topicId = data_get($mastery, 'topic_id');
-        $masteryValue = min(100, max(0, (float) data_get($mastery, 'mastery', 0)));
-        $recommendation = $recommendationByTopic->get((string) $topicId);
+
+        $masteryValue = min(
+            100,
+            max(
+                0,
+                (float) data_get($mastery, 'mastery', 0)
+            )
+        );
+
+        $recommendation = $recommendationByTopic->get(
+            (string) $topicId
+        );
+
+        $recommendation = $recommendationByTopic->get(
+            (string) $topicId
+        );
+
+        $recommendationType = strtolower(
+            (string) data_get(
+                $recommendation,
+                'recommendation_type',
+                ''
+            )
+        );
+
+
+        /*
+         * =========================================================
+         * KATEGORI MASTERY
+         * =========================================================
+         */
 
         if ($masteryValue >= 85) {
+
             $categoryLabel = 'Mahir';
+
             $categoryColor = 'success';
-            $recommendationLabel = 'Sangat Baik';
-            $recommendationColor = 'success';
+
         } elseif ($masteryValue >= 70) {
+
             $categoryLabel = 'Menguasai';
+
             $categoryColor = 'primary';
-            $recommendationLabel = 'Baik';
-            $recommendationColor = 'info';
+
         } elseif ($masteryValue >= 50) {
+
             $categoryLabel = 'Cukup';
+
             $categoryColor = 'info';
-            $recommendationLabel = 'Perlu Ditingkatkan';
-            $recommendationColor = 'warning';
+
         } else {
+
             $categoryLabel = 'Belum Menguasai';
+
             $categoryColor = 'danger';
-            $recommendationLabel = 'Penguatan';
-            $recommendationColor = 'danger';
+
         }
 
+
+        /*
+         * =========================================================
+         * LABEL RECOMMENDATION
+         * =========================================================
+         */
+
+        $recommendationLabel = match ($recommendationType) {
+            'penguatan' => 'Perkuat Lagi',
+            'latihan' => 'Latihan Lagi',
+            'lanjutan' => 'Lanjut Yuk',
+            'pengayaan' => 'Coba Tantangan',
+            default => 'Saran Buat Kamu',
+        };
+
+
+        /*
+         * =========================================================
+         * WARNA RECOMMENDATION
+         * =========================================================
+         */
+
+        $recommendationColor = match ($recommendationType) {
+            'penguatan' => 'danger',
+            'latihan' => 'warning',
+            'lanjutan' => 'info',
+            'pengayaan' => 'success',
+            default => $categoryColor,
+        };
+
+
+        /*
+         * =========================================================
+         * DATA DIFFICULTY DAN AKTIVITAS
+         * =========================================================
+         */
+
         $topicDifficulty = $studentDifficultyCollection
-            ->filter(fn($item) => (int) data_get($item, 'topic_id') === (int) $topicId)
+            ->filter(
+                fn($item) =>
+                    (int) data_get($item, 'topic_id')
+                    === (int) $topicId
+            )
             ->values();
 
         $topicActivities = $studentActivityPerformanceCollection
-            ->filter(fn($item) => (int) data_get($item, 'topic_id') === (int) $topicId)
+            ->filter(
+                fn($item) =>
+                    (int) data_get($item, 'topic_id')
+                    === (int) $topicId
+            )
             ->values();
 
-        $topicAccuracy = (float) data_get($mastery, 'accuracy', 0);
-        $topicTotalAnswers = (int) data_get($mastery, 'total_answers', 0);
-        $topicCorrectAnswers = (int) data_get($mastery, 'correct_answers', 0);
 
-        $recommendationText = data_get($recommendation, 'recommendation');
-        if (!$recommendationText) {
-            $recommendationText = match ($recommendationLabel) {
-                'Penguatan' => 'Pelajari kembali materi dan perbanyak latihan untuk memperkuat pemahaman topik.',
-                'Perlu Ditingkatkan' => 'Perkuat pemahaman melalui latihan yang lebih konsisten sebelum melanjutkan ke materi berikutnya.',
-                'Baik' => 'Pertahankan penguasaan topik dan lanjutkan latihan dengan tingkat kesulitan yang lebih tinggi.',
-                'Sangat Baik' => 'Pertahankan penguasaan melalui latihan lanjutan dan soal tingkat sulit.',
-            };
+        /*
+         * =========================================================
+         * PERFORMANCE / ACCURACY
+         * =========================================================
+         */
+
+        $topicAccuracy = (float) data_get(
+            $mastery,
+            'accuracy',
+            0
+        );
+
+        $topicTotalAnswers = (int) data_get(
+            $mastery,
+            'total_answers',
+            0
+        );
+
+        $topicCorrectAnswers = (int) data_get(
+            $mastery,
+            'correct_answers',
+            0
+        );
+
+        $accuracyColor =
+            $topicAccuracy >= 85
+                ? 'success'
+                : (
+                    $topicAccuracy >= 70
+                        ? 'primary'
+                        : (
+                            $topicAccuracy >= 50
+                                ? 'info'
+                                : 'danger'
+                        )
+                );
+
+
+        /*
+         * =========================================================
+         * RECOMMENDATION DATA
+         * =========================================================
+         */
+
+        $recommendationType = strtolower(
+            (string) data_get(
+                $recommendation,
+                'recommendation_type',
+                ''
+            )
+        );
+
+
+        /*
+         * Ambil maksimal 3 sub-topik dengan
+         * accuracy terendah.
+         */
+
+        $weakSubTopics = collect(
+            data_get(
+                $recommendation,
+                'weak_sub_topics',
+                []
+            )
+        )
+        ->sortBy(
+            fn($item) =>
+                (float) data_get(
+                    $item,
+                    'accuracy',
+                    0
+                )
+        )
+        ->take(3)
+        ->values();
+
+
+        /*
+         * =========================================================
+         * NAMA SUB-TOPIK
+         * =========================================================
+         */
+
+        $weakSubTopicNames = $weakSubTopics
+            ->pluck('sub_topic_name')
+            ->filter()
+            ->values();
+
+
+        /*
+         * =========================================================
+         * RECOMMENDATION TEXT UNTUK SISWA
+         *
+         * Mastery = dasar utama
+         * Accuracy = informasi pendukung
+         * Sub-topik = bagian spesifik yang perlu diperhatikan
+         * =========================================================
+         */
+
+        switch ($recommendationType) {
+
+            case 'penguatan':
+
+                $recommendationText =
+                    'Penguasaan topik ini masih berada pada '
+                    . 'kategori '
+                    . $categoryLabel
+                    . ', dengan performa sebesar '
+                    . number_format(
+                        $topicAccuracy,
+                        2
+                    )
+                    . '%. ';
+
+                if (
+                    $weakSubTopicNames->isNotEmpty()
+                ) {
+
+                    $recommendationText .=
+                        'Perhatikan kembali '
+                        . $weakSubTopicNames->implode(', ')
+                        . ' dan kerjakan latihan terkait '
+                        . 'untuk memperkuat pemahaman sebelum '
+                        . 'melanjutkan ke materi berikutnya.';
+
+                } else {
+
+                    $recommendationText .=
+                        'Pelajari kembali materi dan kerjakan '
+                        . 'latihan tambahan untuk memperkuat '
+                        . 'pemahaman sebelum melanjutkan ke '
+                        . 'materi berikutnya.';
+                }
+
+                break;
+
+
+            case 'latihan':
+
+                $recommendationText =
+                    'Penguasaan topik ini berada pada '
+                    . 'kategori '
+                    . $categoryLabel
+                    . ', dengan performa sebesar '
+                    . number_format(
+                        $topicAccuracy,
+                        2
+                    )
+                    . '%. ';
+
+                if (
+                    $weakSubTopicNames->isNotEmpty()
+                ) {
+
+                    $recommendationText .=
+                        'Fokuskan latihan pada '
+                        . $weakSubTopicNames->implode(', ')
+                        . ' agar pemahaman terhadap topik '
+                        . 'menjadi lebih konsisten.';
+
+                } else {
+
+                    $recommendationText .=
+                        'Lakukan latihan tambahan untuk '
+                        . 'meningkatkan dan memperkuat '
+                        . 'penguasaan materi.';
+                }
+
+                break;
+
+
+            case 'lanjutan':
+
+                $recommendationText =
+                    'Penguasaan topik ini berada pada '
+                    . 'kategori '
+                    . $categoryLabel
+                    . ', dengan performa sebesar '
+                    . number_format(
+                        $topicAccuracy,
+                        2
+                    )
+                    . '%. ';
+
+                if (
+                    $weakSubTopicNames->isNotEmpty()
+                ) {
+
+                    $recommendationText .=
+                        'Pemahaman terhadap topik sudah baik, '
+                        . 'tetapi '
+                        . $weakSubTopicNames->implode(', ')
+                        . ' masih perlu diperkuat. '
+                        . 'Lakukan latihan pada bagian tersebut '
+                        . 'sebelum melanjutkan ke materi '
+                        . 'berikutnya.';
+
+                } else {
+
+                    $recommendationText .=
+                        'Pemahaman terhadap topik sudah baik. '
+                        . 'Pertahankan hasil tersebut dan '
+                        . 'lanjutkan ke materi berikutnya.';
+                }
+
+                break;
+
+
+            case 'pengayaan':
+
+                $recommendationText =
+                    'Penguasaan topik ini berada pada '
+                    . 'kategori '
+                    . $categoryLabel
+                    . ', dengan performa sebesar '
+                    . number_format(
+                        $topicAccuracy,
+                        2
+                    )
+                    . '%. ';
+
+                if (
+                    $weakSubTopicNames->isNotEmpty()
+                ) {
+
+                    $recommendationText .=
+                        'Pemahaman terhadap topik sudah '
+                        . 'sangat baik, tetapi '
+                        . $weakSubTopicNames->implode(', ')
+                        . ' masih dapat diperkuat. '
+                        . 'Perkuat bagian tersebut, kemudian '
+                        . 'lanjutkan ke materi berikutnya.';
+
+                } else {
+
+                    $recommendationText .=
+                        'Pemahaman terhadap topik sudah '
+                        . 'sangat baik. Lanjutkan ke materi '
+                        . 'berikutnya dan coba latihan yang '
+                        . 'lebih menantang untuk memperdalam '
+                        . 'kemampuan.';
+                }
+
+                break;
+
+
+            default:
+
+                $recommendationText =
+                    'Belum terdapat rekomendasi pembelajaran '
+                    . 'untuk topik ini.';
+
         }
+
     @endphp
 
     <div class="modal fade" id="topicDetailModal-{{ $topicId }}" tabindex="-1" aria-labelledby="topicDetailModalLabel-{{ $topicId }}" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
+            <div class="modal-content" style="border-top:4px solid var(--bs-{{ $categoryColor }});">
                 <div class="modal-header">
                     <div>
                         <h5 class="modal-title mb-1" id="topicDetailModalLabel-{{ $topicId }}">
-                            <i class="bi bi-book text-primary me-2"></i>{{ data_get($mastery, 'topic_name', 'Topik') }}
+                            <i class="bi bi-book text-{{ $categoryColor }} me-2"></i>{{ data_get($mastery, 'topic_name', 'Topik') }}
                         </h5>
                         <small class="text-muted">{{ data_get($mastery, 'subject_name', '') }}</small>
                     </div>
@@ -1233,25 +1612,31 @@
                 </div>
 
                 <div class="modal-body">
-                    <!-- RINGKASAN -->
-                    <div class="row g-3 mb-4">
-                        <div class="col-12 col-md-6">
-                            <div class="analytics-box h-100">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="small text-muted">Penguasaan Topik</span>
-                                    <strong class="text-primary">{{ number_format($masteryValue, 1) }}%</strong>
-                                </div>
-                                <div class="progress" style="height:9px;">
-                                    <div class="progress-bar bg-primary" style="width:{{ $masteryValue }}%;"></div>
-                                </div>
-                                <div class="small text-muted mt-2">Kategori: <strong>{{ $categoryLabel }}</strong></div>
+                     <!-- REKOMENDASI -->
+                    <div class="recommendation-box bg-soft-{{ $recommendationColor }}" style="border-left:4px solid var(--bs-{{ $recommendationColor }});">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-lightbulb-fill text-{{ $recommendationColor }} fs-4 me-3"></i>
+                            <div>
+                                <div class="small text-muted mb-2">Rekomendasi Pembelajaran</div>
+                                <span class="badge bg-{{ $recommendationColor }}{{ in_array($recommendationColor, ['warning', 'info']) ? ' text-bold' : '' }} mb-2">{{ $recommendationLabel }}</span>
+                                <div class="small fw-bold">{{ $recommendationText }}</div>
                             </div>
                         </div>
-                        <div class="col-12 col-md-6">
-                            <div class="analytics-box h-100">
-                                <div class="small text-muted mb-1">Performa / Akurasi</div>
-                                <strong class="text-primary fs-4">{{ number_format($topicAccuracy, 1) }}%</strong>
-                                <div class="small text-muted">{{ $topicCorrectAnswers }} benar dari {{ $topicTotalAnswers }} jawaban</div>
+                    </div> <br>
+
+                    <!-- RINGKASAN -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-md-6 text-center">
+                            <div class="analytics-box h-100 bg-soft-{{ $categoryColor }}" style="border-top:3px solid var(--bs-{{ $categoryColor }}) !important;">
+                                <div class="small text-muted">Penguasaan Topik</div>
+                                <strong class="text-{{ $categoryColor }} fs-4">{{ number_format($masteryValue, 2) }}%</strong>
+                                <div class="small text-muted mt-2"><strong class="text-{{ $categoryColor }}">{{ $categoryLabel }}</strong></div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6 text-center">
+                            <div class="analytics-box h-100 bg-soft-{{ $accuracyColor }}" style="border-top:3px solid var(--bs-{{ $accuracyColor }}) !important;">
+                                <div class="small text-muted text-center mb-1">Performa</div>
+                                <strong class="text-{{ $accuracyColor }} fs-4">{{ number_format($topicAccuracy, 2) }}%</strong>
                             </div>
                         </div>
                     </div>
@@ -1261,7 +1646,7 @@
                         <div class="d-flex align-items-center mb-3">
                             <i class="bi bi-bar-chart text-primary me-2"></i>
                             <div>
-                                <h6 class="fw-bold mb-0">Sebaran Tingkat Kesulitan</h6>
+                                <h6 class="fw-bold mb-0">Sebaran Kesulitan</h6>
                                 <small class="text-muted">Akurasi jawaban pada setiap tingkat kesulitan.</small>
                             </div>
                         </div>
@@ -1274,20 +1659,66 @@
                                     $difficultyColor = $difficultyKey === 'mudah' ? 'success' : ($difficultyKey === 'sedang' ? 'warning' : 'danger');
                                 @endphp
                                 <div class="col-12 col-md-4">
-                                    <div class="difficulty-box h-100">
+                                    <div class="difficulty-box h-100" style="border-left:4px solid var(--bs-{{ $difficultyColor }}) !important;">
                                         <div class="d-flex justify-content-between align-items-center mb-2">
                                             <span class="fw-semibold">{{ $difficultyLabel }}</span>
-                                            <strong class="text-{{ $difficultyColor }}">{{ number_format($accuracy, 1) }}%</strong>
+                                            <strong class="text-{{ $difficultyColor }}">{{ number_format($accuracy, 2) }}%</strong>
                                         </div>
                                         <div class="progress mb-1" style="height:8px;">
                                             <div class="progress-bar bg-{{ $difficultyColor }}" style="width:{{ min(100, max(0, $accuracy)) }}%;"></div>
                                         </div>
-                                        <small class="text-muted">{{ $total }} jawaban</small>
                                     </div>
                                 </div>
                             @endforeach
                         </div>
                     </div>
+
+                    <!-- SUB-TOPIK YANG PERLU PERHATIAN -->
+                    {{-- <div class="mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-diagram-3 text-primary me-2"></i>
+                            <div>
+                                <h6 class="fw-bold mb-0">Sub-topik yang Perlu Perhatian</h6>
+                            </div>
+                        </div>
+
+                        @if($weakSubTopics->isEmpty())
+                            <div class="analytics-box text-center text-muted py-3">
+                                Tidak ada sub-topik yang perlu penguatan berdasarkan data jawaban saat ini.
+                            </div>
+                        @else
+                            <div class="row g-2">
+                                @foreach($weakSubTopics as $subTopic)
+                                    @php
+                                        $subAccuracy = (float) data_get($subTopic, 'accuracy', 0);
+                                        $subCorrect = (int) data_get($subTopic, 'correct_answers', 0);
+                                        $subTotal = (int) data_get($subTopic, 'total_answers', 0);
+                                    @endphp
+                                    <div class="col-12">
+                                        <div class="analytics-box py-2">
+                                            <div class="d-flex justify-content-between align-items-center gap-3">
+                                                <div class="min-w-0">
+                                                    <div class="fw-semibold text-dark">
+                                                        {{ data_get($subTopic, 'sub_topic_name', 'Sub-topik') }}
+                                                    </div>
+                                                    <small class="text-muted">
+                                                        {{ $subCorrect }} benar dari {{ $subTotal }} jawaban
+                                                    </small>
+                                                </div>
+                                                <strong class="text-danger flex-shrink-0">
+                                                    {{ number_format($subAccuracy, 2) }}%
+                                                </strong>
+                                            </div>
+                                            <div class="progress mt-2" style="height:6px;">
+                                                <div class="progress-bar bg-danger"
+                                                    style="width:{{ min(100, max(0, $subAccuracy)) }}%;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div> --}}
 
                     <!-- PERFORMA PER AKTIVITAS -->
                     <div class="mb-4">
@@ -1295,7 +1726,6 @@
                             <i class="bi bi-activity text-primary me-2"></i>
                             <div>
                                 <h6 class="fw-bold mb-0">Performa Per Aktivitas</h6>
-                                <small class="text-muted">Hasil performa pada setiap aktivitas pembelajaran.</small>
                             </div>
                         </div>
 
@@ -1305,13 +1735,11 @@
                             </div>
                         @else
                             <div class="table-responsive">
-                                <table class="table table-sm table-bordered align-middle mb-0">
+                                <table class="table table-sm align-middle mb-0">
                                     <thead>
                                         <tr>
                                             <th>Aktivitas</th>
-                                            <th class="text-center">Benar</th>
-                                            <th class="text-center">Jawaban</th>
-                                            <th class="text-center">Akurasi</th>
+                                            <th style="min-width:220px;">Performa</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -1321,12 +1749,37 @@
                                                 $correctAnswers = (int) data_get($activity, 'correct_answers', 0);
                                                 $totalAnswers = (int) data_get($activity, 'total_answers', 0);
                                                 $incorrectAnswers = (int) data_get($activity, 'incorrect_answers', max(0, $totalAnswers - $correctAnswers));
+                                                $activityColor = $accuracy >= 85 ? 'success' : ($accuracy >= 70 ? 'primary' : ($accuracy >= 50 ? 'warning' : 'danger'));
+                                                $activityStatus = strtolower((string) data_get($activity, 'activity_status', ''));
+                                                $activityType = match ($activityStatus) {
+                                                    'basic' => 'Aktivitas Dasar',
+                                                    'additional' => 'Aktivitas Tambahan',
+                                                    'remedial' => 'Remedial',
+                                                    default => null,
+                                                };
                                             @endphp
                                             <tr>
-                                                <td>{{ data_get($activity, 'activity_name', 'Aktivitas') }}</td>
-                                                <td class="text-center text-success">{{ $correctAnswers }}</td>
-                                                <td class="text-center">{{ $totalAnswers }}</td>
-                                                <td class="text-center fw-semibold">{{ number_format($accuracy, 1) }}%</td>
+                                                <td>
+                                                    <div class="fw-bold">{{ data_get($activity, 'activity_name', 'Aktivitas') }}</div>
+                                                    @if($activityType)
+                                                        <div class="small text-muted">{{ $activityType }}</div>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="progress flex-grow-1 me-2" style="height:6px;">
+                                                            <div class="progress-bar bg-{{ $activityColor }}" style="width:{{ min(100, max(0, $accuracy)) }}%;"></div>
+                                                        </div>
+                                                        <span class="fw-bold text-{{ $activityColor }}" style="min-width:40px;text-align:right;">{{ number_format($accuracy, 0) }}%</span>
+                                                    </div>
+                                                    <div class="text-end mt-1" style="font-size:.7rem;">
+                                                        <span class="text-success fw-semibold">{{ $correctAnswers }}</span>
+                                                        <span class="text-muted">benar</span>
+                                                        <span class="text-muted">/</span>
+                                                        <span class="text-danger fw-semibold">{{ $incorrectAnswers }}</span>
+                                                        <span class="text-muted">salah · {{ $totalAnswers }} jawaban</span>
+                                                    </div>
+                                                </td>
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -1335,17 +1788,6 @@
                         @endif
                     </div>
 
-                    <!-- REKOMENDASI -->
-                    <div class="recommendation-box">
-                        <div class="d-flex align-items-start">
-                            <i class="bi bi-lightbulb-fill text-warning fs-4 me-3"></i>
-                            <div>
-                                <div class="small text-muted mb-2">Rekomendasi Belajar</div>
-                                <span class="badge bg-{{ $recommendationColor }}{{ in_array($recommendationColor, ['warning', 'info']) ? ' text-dark' : '' }} mb-2">{{ $recommendationLabel }}</span>
-                                <div class="small">{{ $recommendationText }}</div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="modal-footer">
