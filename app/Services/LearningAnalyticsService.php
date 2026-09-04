@@ -1396,8 +1396,9 @@ class LearningAnalyticsService
             ->values();
     }
 
-    // STUDENT SUB-TOPIC PERFORMANCE — Performa siswa pada setiap sub-topik.
-    public function getStudentSubTopicPerformance(
+    // TAGS
+
+    public function getQuestionTags(
         Collection $answers
     ): Collection {
 
@@ -1406,148 +1407,213 @@ class LearningAnalyticsService
                 fn($answer) =>
                 $answer->question !== null &&
                     $answer->user !== null &&
-                    $this->resolveSubTopic($answer->question) !== null
+                    !empty($this->resolveTags($answer->question))
             )
-            ->groupBy(
-                function ($answer) {
 
-                    $subTopic =
-                        $this->resolveSubTopic(
-                            $answer->question
-                        );
+            /*
+         * Satu soal dapat memiliki satu atau beberapa tags.
+         *
+         * Setiap jawaban akan dipetakan ke seluruh tags
+         * yang dimiliki oleh soal tersebut.
+         */
+            ->flatMap(function ($answer) {
 
-                    return
-                        $answer->user->id
-                        . '-'
-                        . $subTopic['id'];
-                }
-            )
-            ->map(
-                function (
-                    Collection $subTopicAnswers
-                ) {
+                $tags = $this->resolveTags(
+                    $answer->question
+                );
 
-                    $firstAnswer =
-                        $subTopicAnswers->first();
+                return collect($tags)
+                    ->map(function ($tag) use ($answer) {
 
-                    $student =
-                        $firstAnswer->user;
+                        return [
+                            'answer' => $answer,
+                            'tag' => $tag,
+                        ];
+                    });
+            })
 
-                    $question =
-                        $firstAnswer->question;
+            /*
+         * Kelompokkan berdasarkan:
+         *
+         * siswa + topik + tag
+         */
+            ->groupBy(function ($item) {
 
-                    $topic =
-                        $question->topic;
+                $answer = $item['answer'];
+                $tag = $item['tag'];
 
-                    $subTopic =
-                        $this->resolveSubTopic(
-                            $question
-                        );
+                return
+                    $answer->user->id
+                    . '-'
+                    . $answer->question->id_topic
+                    . '-'
+                    . $tag['id'];
+            })
 
-                    $totalAnswers =
-                        $subTopicAnswers->count();
+            ->map(function (
+                Collection $tagAnswerItems
+            ) {
 
-                    $correctAnswers =
-                        $subTopicAnswers
-                        ->filter(
-                            fn($answer) =>
-                            (bool) $answer->is_correct
-                        )
-                        ->count();
+                $firstItem =
+                    $tagAnswerItems->first();
 
-                    $incorrectAnswers =
-                        $totalAnswers -
-                        $correctAnswers;
+                $firstAnswer =
+                    $firstItem['answer'];
 
-                    $accuracy =
-                        $totalAnswers > 0
-                        ? (
-                            $correctAnswers
-                            /
-                            $totalAnswers
-                        ) * 100
-                        : 0;
+                $student =
+                    $firstAnswer->user;
 
-                    return [
+                $question =
+                    $firstAnswer->question;
 
-                        'student_id' =>
-                        $student->id,
+                $topic =
+                    $question->topic;
 
-                        'student_name' =>
-                        $student->name,
+                $tag =
+                    $firstItem['tag'];
 
-                        'topic_id' =>
-                        $topic->id,
+                $totalAnswers =
+                    $tagAnswerItems->count();
 
-                        'topic_name' =>
-                        $topic->title,
+                $correctAnswers =
+                    $tagAnswerItems
+                    ->filter(
+                        fn($item) =>
+                        (bool) $item['answer']->is_correct
+                    )
+                    ->count();
 
-                        'sub_topic_id' =>
-                        $subTopic['id'],
+                $incorrectAnswers =
+                    $totalAnswers -
+                    $correctAnswers;
 
-                        'sub_topic_name' =>
-                        $subTopic['name'],
+                $accuracy =
+                    $totalAnswers > 0
+                    ? (
+                        $correctAnswers
+                        /
+                        $totalAnswers
+                    ) * 100
+                    : 0;
 
-                        'total_answers' =>
-                        $totalAnswers,
+                return [
 
-                        'correct_answers' =>
-                        $correctAnswers,
+                    'student_id' =>
+                    $student->id,
 
-                        'incorrect_answers' =>
-                        $incorrectAnswers,
+                    'student_name' =>
+                    $student->name,
 
-                        'accuracy' =>
-                        round(
-                            $accuracy,
-                            2
-                        ),
-                    ];
-                }
-            )
+                    'topic_id' =>
+                    $topic->id,
+
+                    'topic_name' =>
+                    $topic->title,
+
+                    'tag_id' =>
+                    $tag['id'],
+
+                    'tag_name' =>
+                    $tag['name'],
+
+                    'total_answers' =>
+                    $totalAnswers,
+
+                    'correct_answers' =>
+                    $correctAnswers,
+
+                    'incorrect_answers' =>
+                    $incorrectAnswers,
+
+                    'accuracy' =>
+                    round(
+                        $accuracy,
+                        2
+                    ),
+
+                ];
+            })
+
             ->sortBy([
+
                 [
                     'student_name',
                     'asc',
                 ],
+
                 [
                     'topic_name',
                     'asc',
                 ],
+
                 [
                     'accuracy',
                     'asc',
                 ],
+
             ])
+
             ->values();
     }
 
-    // RESOLVE SUB-TOPIC
-    //
-    // Method ini menjadi adapter antara struktur soal
-    // dengan Learning Analytics.
-    //
-    // Struktur final akan disesuaikan setelah relasi/tag
-    // sub-topik dari soal selesai dibuat.
-    private function resolveSubTopic(
-        $question
-    ): ?array {
+    // RESOLVE TAGS
 
-        /*
-     * TODO:
-     *
-     * Sesuaikan bagian ini dengan struktur final
-     * sub-topik pada model Question.
-     *
-     * Kontrak yang dibutuhkan LA hanya:
-     *
-     * [
-     *     'id' => ...,
-     *     'name' => ...
-     * ]
+    private function resolveTags($question): array
+    {
+
+        $tags = trim(
+            (string) data_get(
+                $question,
+                'tags',
+                ''
+            )
+        );
+
+        if ($tags === '') {
+            return [];
+        }
+
+        return collect(
+            explode(',', $tags)
+        )
+
+            ->map(
+                fn($tag) =>
+                trim($tag)
+            )
+
+            ->filter()
+
+            /*
+     * Menghapus tag yang sama
+     * pada satu soal.
      */
+            ->unique()
 
-        return null;
+            ->map(function ($tag) {
+
+                return [
+
+                    /*
+             * ID digunakan untuk
+             * proses pengelompokan.
+             */
+                    'id' =>
+                    strtolower($tag),
+
+                    /*
+             * Name digunakan untuk
+             * ditampilkan pada dashboard.
+             */
+                    'name' =>
+                    $tag,
+
+                ];
+            })
+
+            ->values()
+
+            ->all();
     }
 
 
@@ -1565,208 +1631,189 @@ class LearningAnalyticsService
     // sesuai dengan kebutuhan masing-masing pengguna.
     public function getRecommendations(
         Collection $studentMastery,
-        Collection $subTopicPerformance
+        Collection $tagsPerformance
     ): Collection {
 
         return $studentMastery
-            ->map(
-                function (
-                    array $masteryData
-                ) use (
-                    $subTopicPerformance
+
+            ->map(function (
+                array $masteryData
+            ) use (
+                $tagsPerformance
+            ) {
+
+                $studentId =
+                    $masteryData['student_id'];
+
+                $topicId =
+                    $masteryData['topic_id'];
+
+                $topicName =
+                    $masteryData['topic_name'];
+
+                $mastery =
+                    (float)
+                    $masteryData['mastery'];
+
+                $accuracy =
+                    (float)
+                    $masteryData['accuracy'];
+
+                /*
+             * Ambil performa tags siswa
+             * pada topik yang sedang
+             * dianalisis.
+             */
+                $topicTags =
+                    $tagsPerformance
+
+                    ->filter(
+                        function ($item) use (
+                            $studentId,
+                            $topicId
+                        ) {
+
+                            return
+
+                                (int)
+                                $item['student_id']
+
+                                ===
+
+                                (int)
+                                $studentId
+
+                                &&
+
+                                (int)
+                                $item['topic_id']
+
+                                ===
+
+                                (int)
+                                $topicId;
+                        }
+                    )
+
+                    ->values();
+
+                /*
+             * Tags yang perlu diperhatikan.
+             *
+             * Accuracy < 70% digunakan
+             * sebagai batas untuk
+             * mengidentifikasi tags
+             * yang performanya masih
+             * perlu diperkuat.
+             *
+             * Maksimal 3 tags dengan
+             * accuracy terendah.
+             */
+                $weakTags =
+                    $topicTags
+
+                    ->filter(
+                        fn($item) =>
+
+                        (float)
+                        $item['accuracy']
+                            < 70
+                    )
+
+                    ->sortBy(
+                        'accuracy'
+                    )
+
+                    ->take(3)
+
+                    ->values();
+
+                /*
+             * Tentukan arah tindakan
+             * berdasarkan MASTERY.
+             *
+             * Performance/accuracy
+             * dan performa tags
+             * menjadi informasi
+             * pendukung.
+             */
+                if (
+                    $mastery < 50
                 ) {
 
-                    $studentId =
-                        $masteryData['student_id'];
+                    $recommendationType =
+                        'penguatan';
+                } elseif (
+                    $mastery < 70
+                ) {
 
-                    $topicId =
-                        $masteryData['topic_id'];
+                    $recommendationType =
+                        'latihan';
+                } elseif (
+                    $mastery < 85
+                ) {
 
-                    $topicName =
-                        $masteryData['topic_name'];
+                    $recommendationType =
+                        'lanjutan';
+                } else {
 
-                    $mastery =
-                        (float)
-                        $masteryData['mastery'];
-
-                    $accuracy =
-                        (float)
-                        $masteryData['accuracy'];
-
-                    /*
-                 * Ambil performa sub-topik siswa
-                 * pada topik yang sedang dianalisis.
-                 */
-                    $topicSubTopics =
-                        $subTopicPerformance
-                        ->filter(
-                            function ($item) use (
-                                $studentId,
-                                $topicId
-                            ) {
-
-                                return
-                                    (int)
-                                    $item['student_id']
-                                    ===
-                                    (int)
-                                    $studentId
-                                    &&
-                                    (int)
-                                    $item['topic_id']
-                                    ===
-                                    (int)
-                                    $topicId;
-                            }
-                        )
-                        ->values();
-
-                    /*
-                 * Sub-topik yang perlu diperhatikan.
-                 *
-                 * Accuracy < 70% digunakan sebagai batas
-                 * untuk mengidentifikasi sub-topik yang
-                 * performanya masih perlu diperkuat.
-                 *
-                 * Maksimal 3 sub-topik dengan accuracy
-                 * terendah yang dikembalikan.
-                 */
-                    $weakSubTopics =
-                        $topicSubTopics
-                        ->filter(
-                            fn($item) =>
-                            (float)
-                            $item['accuracy'] < 70
-                        )
-                        ->sortBy(
-                            'accuracy'
-                        )
-                        ->take(3)
-                        ->values();
-
-                    /*
-                 * Tentukan kondisi penguasaan dan
-                 * arah tindakan berdasarkan MASTERY.
-                 *
-                 * Performance/accuracy hanya menjadi
-                 * informasi pendukung.
-                 */
-
-                    if (
-                        $mastery < 50
-                    ) {
-
-                        $recommendationType =
-                            'penguatan';
-                    } elseif (
-                        $mastery < 70
-                    ) {
-
-                        $recommendationType =
-                            'latihan';
-                    } elseif (
-                        $mastery < 85
-                    ) {
-
-                        $recommendationType =
-                            'lanjutan';
-                    } else {
-
-                        $recommendationType =
-                            'pengayaan';
-                    }
-
-                    return [
-
-                        'student_id' =>
-                        $studentId,
-
-                        'topic_id' =>
-                        $topicId,
-
-                        'topic_name' =>
-                        $topicName,
-
-                        /*
-                     * Data performa aktual.
-                     */
-                        'accuracy' =>
-                        $accuracy,
-
-                        /*
-                     * Data penguasaan.
-                     */
-                        'mastery' =>
-                        $mastery,
-
-                        'theta' =>
-                        $masteryData['theta'],
-
-                        'mastery_category' =>
-                        $masteryData['mastery_category'],
-
-                        'mastery_category_label' =>
-                        $masteryData['mastery_category_label'],
-
-                        /*
-                     * Arah tindakan yang ditentukan
-                     * berdasarkan mastery.
-                     */
-                        'recommendation_type' =>
-                        $recommendationType,
-
-                        /*
-                     * Sub-topik yang memiliki
-                     * performa di bawah 70%.
-                     */
-                        'weak_sub_topics' =>
-                        $weakSubTopics
-                            ->values()
-                            ->all(),
-                    ];
+                    $recommendationType =
+                        'pengayaan';
                 }
-            )
+
+                return [
+
+                    'student_id' =>
+                    $studentId,
+
+                    'topic_id' =>
+                    $topicId,
+
+                    'topic_name' =>
+                    $topicName,
+
+                    /*
+                 * Data performa aktual.
+                 */
+                    'accuracy' =>
+                    $accuracy,
+
+                    /*
+                 * Data penguasaan.
+                 */
+                    'mastery' =>
+                    $mastery,
+
+                    'theta' =>
+                    $masteryData['theta'],
+
+                    'mastery_category' =>
+                    $masteryData['mastery_category'],
+
+                    'mastery_category_label' =>
+                    $masteryData['mastery_category_label'],
+
+                    /*
+                 * Arah tindakan
+                 * ditentukan berdasarkan
+                 * tingkat penguasaan.
+                 */
+                    'recommendation_type' =>
+                    $recommendationType,
+
+                    /*
+                 * Tags dengan performa
+                 * di bawah 70%.
+                 */
+                    'weak_tags' =>
+
+                    $weakTags
+                        ->values()
+                        ->all(),
+
+                ];
+            })
+
             ->values();
-    }
-
-    // FORMAT SUB-TOPIC NAMES
-    private function formatSubTopicNames(
-        Collection $names
-    ): string {
-
-        $names =
-            $names
-            ->filter()
-            ->values();
-
-        if (
-            $names->isEmpty()
-        ) {
-            return '';
-        }
-
-        if (
-            $names->count() === 1
-        ) {
-            return
-                $names->first();
-        }
-
-        if (
-            $names->count() === 2
-        ) {
-            return
-                $names[0]
-                . ' dan '
-                . $names[1];
-        }
-
-        $last =
-            $names->pop();
-
-        return
-            $names->implode(', ')
-            . ', dan '
-            . $last;
     }
 }

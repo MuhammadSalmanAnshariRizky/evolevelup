@@ -447,15 +447,15 @@ class siswaController extends Controller
 
 
         // ==========================================
-        // PERFORMA PER SUB-TOPIK
+        //  TAG
         // ==========================================
         //
-        // Sumber data baru untuk rekomendasi.
-        // Sub-topik akan mengikuti tag pada soal
-        // setelah adapter di Service terhubung.
+        // Data ini digunakan untuk memberikan informasi
+        // yang lebih spesifik mengenai bagian materi
+        // berdasarkan tag yang diberikan pada setiap soal.
 
-        $studentSubTopicPerformance =
-            $analyticsService->getStudentSubTopicPerformance(
+        $questionTags =
+            $analyticsService->getQuestionTags(
                 $analyticsAnswers
             );
 
@@ -471,7 +471,7 @@ class siswaController extends Controller
         $recommendations =
             $analyticsService->getRecommendations(
                 $studentTopicMastery,
-                $studentSubTopicPerformance
+                $questionTags
             );
 
         // -----------------------------
@@ -522,7 +522,7 @@ class siswaController extends Controller
             'studentTopicMastery' => $studentTopicMastery,
             'studentDifficulty' => $studentDifficulty,
             'studentActivityPerformance' => $studentActivityPerformance,
-            'studentSubTopicPerformance' => $studentSubTopicPerformance,
+            'questionTags' => $questionTags,
             'recommendations' => $recommendations,
 
             // Filter LA

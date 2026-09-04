@@ -89,6 +89,39 @@
             border-radius: 14px
         }
 
+        .reset-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+
+            display: none;
+            align-items: center;
+            gap: 10px;
+
+            padding: 14px 20px;
+            background: #198754;
+            color: #ffffff;
+
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+            z-index: 9999;
+
+            opacity: 0;
+            transform: translateX(100%);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .reset-toast.show {
+            display: flex;
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .reset-toast i {
+            font-size: 20px;
+        }
+
         .la-field {
             display: flex;
             flex-direction: column;
@@ -379,7 +412,7 @@
         .la-difficulty-label,
         .la-difficulty-count {
             text-align: center;
-            font-size: 10px;
+            font-size: 11px;
             color: var(--la-faint)
         }
 
@@ -390,6 +423,13 @@
         .la-difficulty-count {
             margin-top: 1px;
             font-size: 10px
+        }
+
+        .recommendation-box {
+            border: 1px solid #e9ecef;
+            border-radius: 0.7rem;
+            padding: 0.9rem 1rem;
+            background: #f8f9fc;
         }
 
         .la-topic-recommendation {
@@ -764,7 +804,8 @@
             font-size: 13px;
             font-weight: bold;
             /* opacity: .85; */
-            color: grey; !important
+            color: grey;
+            !important
         }
 
         .la-modal-highlight-track {
@@ -1109,22 +1150,656 @@
                                 {{ $topic->title }}
                         </option>@endforeach
                     </select></div>
-                <div class="la-field"><label>Aktivitas</label><select name="activity_id">
-                        <option value="">Semua Aktivitas</option>@foreach($analyticsActivities as $activity)
-                            <option value="{{ $activity->id }}" {{ (string) $filterActivityId === (string) $activity->id ? 'selected' : '' }}>{{ $activity->title }}
-                        </option>@endforeach
-                    </select></div>
                 <div class="la-field la-student"><label>Siswa</label><input type="text" name="student"
                         value="{{ $studentSearch }}" placeholder="Cari nama siswa..." list="analyticsStudents"><datalist
                         id="analyticsStudents">@foreach($analyticsStudents as $student)
                         <option value="{{ $student->name }}">@endforeach
                     </datalist></div>
-                <div class="la-filter-actions"><button class="la-btn la-btn-primary" type="submit">Terapkan</button><a
-                        class="la-btn la-btn-reset" href="{{ route('guru.learningAnalytics') }}">Reset</a></div>
+                <div class="la-filter-actions">
+                    <button class="la-btn la-btn-primary" type="submit">Terapkan</button>
+                    <a class="la-btn la-btn-reset" href="{{ route('guru.learningAnalytics')}}" id="resetButton">Reset</a>
+                </div>
             </form>
+        </div>
+        <div id="resetToast" class="reset-toast">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>Filter berhasil direset ke pengaturan awal.</span>
         </div>
 
         <main class="la-main">
+
+            @if(!empty($studentSearch))
+
+                {{-- =====================================================
+                    HASIL PENCARIAN SISWA
+                    ===================================================== --}}
+
+                @php
+                    $searchedStudent = $analyticsStudents->first(
+                        fn($student) =>
+                            strtolower(trim($student->name)) ===
+                            strtolower(trim($studentSearch))
+                    );
+
+                    $searchedStudentId = $searchedStudent?->id;
+
+                    $searchedStudentTopics = collect($studentTopicMastery ?? [])
+                        ->filter(
+                            fn($item) =>
+                                (int) data_get($item, 'student_id') ===
+                                (int) $searchedStudentId
+                        )
+                        ->values();
+                @endphp
+
+                @if($searchedStudent)
+
+                    <div class="la-topic-card">
+
+                        {{-- HEADER CARD SISWA --}}
+                        <div class="la-topic-head">
+                            <div>
+                                <h2>
+                                    {{ $searchedStudent->name }}
+                                </h2>
+
+                                <div class="text-muted" style="font-size:12px;">
+                                    Rekap performa pembelajaran siswa
+                                </div>
+                            </div>
+
+                            <span class="la-mastery-pill la-pill-menguasai">
+                                {{ $searchedStudentTopics->count() }} Topik
+                            </span>
+                        </div>
+
+
+                        {{-- TABEL REKAP TOPIK --}}
+                        <div style="padding: 12px;">
+
+                            @if($searchedStudentTopics->isNotEmpty())
+
+                                <div style="overflow-x:auto;">
+
+                                    <table class="la-student-table">
+
+                                        <thead>
+                                            <tr>
+                                                <th>Topik</th>
+                                                <th>Mata Pelajaran</th>
+                                                <th>Performa</th>
+                                                <th>Penguasaan</th>
+                                                <th>Rekomendasi</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+
+                                            @foreach($searchedStudentTopics as $studentTopic)
+
+                                                @php
+                                                    $searchTopicId = (int) data_get(
+                                                        $studentTopic,
+                                                        'topic_id'
+                                                    );
+
+                                                    $searchMastery = (float) data_get(
+                                                        $studentTopic,
+                                                        'mastery',
+                                                        0
+                                                    );
+
+                                                    $searchAccuracy = (float) data_get(
+                                                        $studentTopic,
+                                                        'accuracy',
+                                                        0
+                                                    );
+
+                                                    if ($searchMastery >= 85) {
+                                                        $searchTier = 'mahir';
+                                                        $searchTierLabel = 'Mahir';
+                                                    } elseif ($searchMastery >= 70) {
+                                                        $searchTier = 'menguasai';
+                                                        $searchTierLabel = 'Menguasai';
+                                                    } elseif ($searchMastery >= 50) {
+                                                        $searchTier = 'cukup';
+                                                        $searchTierLabel = 'Cukup';
+                                                    } else {
+                                                        $searchTier = 'belum';
+                                                        $searchTierLabel = 'Belum Menguasai';
+                                                    }
+
+                                                    $searchRecommendation =
+                                                        $recommendations->first(
+                                                            fn($r) =>
+                                                                (int) data_get($r, 'student_id') ===
+                                                                    (int) $searchedStudentId
+                                                                &&
+                                                                (int) data_get($r, 'topic_id') ===
+                                                                    $searchTopicId
+                                                        );
+
+                                                    $searchRecommendationType =
+                                                        strtolower(
+                                                            (string) data_get(
+                                                                $searchRecommendation,
+                                                                'recommendation_type',
+                                                                ''
+                                                            )
+                                                        );
+
+                                                    $searchRecommendationLabel =
+                                                        match ($searchRecommendationType) {
+                                                            'penguatan' => 'Penguatan',
+                                                            'latihan' => 'Latihan',
+                                                            'lanjutan' => 'Lanjutan',
+                                                            'pengayaan' => 'Pengayaan',
+                                                            default => 'Rekomendasi'
+                                                        };
+
+                                                    $searchRecommendationColor =
+                                                        match ($searchRecommendationType) {
+                                                            'penguatan' => 'rust',
+                                                            'latihan' => 'amber',
+                                                            'lanjutan' => 'teal',
+                                                            'pengayaan' => 'green',
+                                                            default => 'teal'
+                                                        };
+
+                                                    $searchModalId =
+                                                        'student-detail-search-'
+                                                        . $searchTopicId
+                                                        . '-'
+                                                        . $searchedStudentId;
+                                                @endphp
+
+
+                                                <tr class="la-student-row"
+                                                    data-modal="{{ $searchModalId }}"
+                                                    tabindex="0"
+                                                    role="button"
+                                                    aria-haspopup="dialog">
+
+                                                    {{-- TOPIK --}}
+                                                    <td class="la-stu-name">
+                                                        {{ data_get(
+                                                            $studentTopic,
+                                                            'topic_name',
+                                                            '-'
+                                                        ) }}
+                                                    </td>
+
+                                                    {{-- MATA PELAJARAN --}}
+                                                    <td>
+                                                        {{ data_get(
+                                                            $studentTopic,
+                                                            'subject_name',
+                                                            '-'
+                                                        ) }}
+                                                    </td>
+
+                                                    {{-- PERFORMA --}}
+                                                    <td>
+                                                        <span class="la-stu-score">
+                                                            {{ number_format(
+                                                                $searchAccuracy,
+                                                                2
+                                                            ) }}
+                                                        </span>/100
+                                                    </td>
+
+                                                    {{-- PENGUASAAN --}}
+                                                    <td>
+                                                        <span class="la-mastery-pill la-pill-{{ $searchTier }}">
+                                                            {{ number_format(
+                                                                $searchMastery,
+                                                                2
+                                                            ) }}%
+                                                            ·
+                                                            {{ $searchTierLabel }}
+                                                        </span>
+                                                    </td>
+
+                                                    {{-- REKOMENDASI --}}
+                                                    <td>
+                                                        <span
+                                                            class="la-reco-button la-reco-{{ $searchRecommendationColor }}"
+                                                            data-modal="{{ $searchModalId }}">
+                                                            {{ $searchRecommendationLabel }}
+                                                        </span>
+                                                    </td>
+
+                                                    {{-- DETAIL --}}
+                                                    <td>
+                                                        <div class="text-end">
+                                                            <small
+                                                                class="text-primary fw-semibold"
+                                                                style="font-size:12px;">
+                                                                Lihat detail
+                                                                <i class="bi bi-chevron-right"></i>
+                                                            </small>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @else
+                                <div class="la-empty-state">
+                                    Belum terdapat data performa untuk siswa
+                                    <b>{{ $searchedStudent->name }}</b>.
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @else
+
+                    <div class="la-empty-state">
+                        Siswa
+                        <b>{{ $studentSearch }}</b>
+                        tidak ditemukan.
+                    </div>
+                @endif
+
+                {{-- =====================================================
+                    MODAL DETAIL HASIL PENCARIAN SISWA
+                    ===================================================== --}}
+                @if($searchedStudent && $searchedStudentTopics->isNotEmpty())
+                    @foreach($searchedStudentTopics as $studentTopic)
+                        @php
+                            $searchTopicId = (int) data_get($studentTopic, 'topic_id');
+                            $searchMastery = (float) data_get($studentTopic, 'mastery', 0);
+                            $searchAccuracy = (float) data_get($studentTopic, 'accuracy', 0);
+
+                            if ($searchMastery >= 85) {
+                                $searchTierLabel = 'Mahir';
+                                $searchTierColor = 'blue';
+                            } elseif ($searchMastery >= 70) {
+                                $searchTierLabel = 'Menguasai';
+                                $searchTierColor = 'green';
+                            } elseif ($searchMastery >= 50) {
+                                $searchTierLabel = 'Cukup';
+                                $searchTierColor = 'amber';
+                            } else {
+                                $searchTierLabel = 'Belum Menguasai';
+                                $searchTierColor = 'rust';
+                            }
+
+                            if ($searchAccuracy >= 85) {
+                                $searchAccuracyColor = 'blue';
+                            } elseif ($searchAccuracy >= 70) {
+                                $searchAccuracyColor = 'green';
+                            } elseif ($searchAccuracy >= 50) {
+                                $searchAccuracyColor = 'amber';
+                            } else {
+                                $searchAccuracyColor = 'rust';
+                            }
+
+                            $searchRecommendation = $recommendations->first(
+                                fn($r) =>
+                                    (int) data_get($r, 'student_id') === (int) $searchedStudentId
+                                    && (int) data_get($r, 'topic_id') === $searchTopicId
+                            );
+
+                            $searchRecommendationType = strtolower(
+                                (string) data_get($searchRecommendation, 'recommendation_type', '')
+                            );
+
+                            $searchRecommendationLabel = match ($searchRecommendationType) {
+                                'penguatan' => 'Penguatan',
+                                'latihan' => 'Latihan',
+                                'lanjutan' => 'Lanjutan',
+                                'pengayaan' => 'Pengayaan',
+                                default => 'Rekomendasi'
+                            };
+
+                            $searchRecommendationColor = match ($searchRecommendationType) {
+                                'penguatan' => 'rust',
+                                'latihan' => 'amber',
+                                'lanjutan' => 'teal',
+                                'pengayaan' => 'green',
+                                default => 'teal'
+                            };
+
+                            /*
+                             * Susun teks rekomendasi berdasarkan
+                             * mastery siswa. Service hanya mengembalikan
+                             * recommendation_type dan weak_tags, bukan
+                             * field "recommendation".
+                             */
+                            $searchRecommendationTags = collect(
+                                data_get(
+                                    $searchRecommendation,
+                                    'weak_tags',
+                                    []
+                                )
+                            )
+                                ->sortBy(
+                                    fn($item) => (float) data_get(
+                                        $item,
+                                        'accuracy',
+                                        0
+                                    )
+                                )
+                                ->take(3)
+                                ->values();
+
+                            $searchRecommendationTagNames = $searchRecommendationTags
+                                ->pluck('tag_name')
+                                ->filter()
+                                ->map(function ($tag) {
+                                    $decodedTag = json_decode($tag, true);
+
+                                    if (
+                                        json_last_error() === JSON_ERROR_NONE &&
+                                        is_array($decodedTag)
+                                    ) {
+                                        return collect($decodedTag)
+                                            ->filter()
+                                            ->values()
+                                            ->all();
+                                    }
+
+                                    return [$tag];
+                                })
+                                ->flatten()
+                                ->map(fn($tag) => trim((string) $tag))
+                                ->filter()
+                                ->unique()
+                                ->values();
+
+                            if ($searchRecommendationTagNames->isEmpty()) {
+                                $searchFormattedTagNames = '';
+                            } elseif ($searchRecommendationTagNames->count() === 1) {
+                                $searchFormattedTagNames = $searchRecommendationTagNames->first();
+                            } elseif ($searchRecommendationTagNames->count() === 2) {
+                                $searchFormattedTagNames =
+                                    $searchRecommendationTagNames[0]
+                                    . ' dan '
+                                    . $searchRecommendationTagNames[1];
+                            } else {
+                                $searchLastTag = $searchRecommendationTagNames->last();
+
+                                $searchFormattedTagNames =
+                                    $searchRecommendationTagNames->slice(0, -1)->implode(', ')
+                                    . ', dan '
+                                    . $searchLastTag;
+                            }
+
+                            $searchRecommendationText = match ($searchRecommendationType) {
+                                'penguatan' =>
+                                    'Penguasaan siswa pada topik ini masih berada pada kategori '
+                                    . $searchTierLabel
+                                    . ', dengan performa sebesar '
+                                    . number_format($searchAccuracy, 2)
+                                    . '%. '
+                                    . (
+                                        $searchRecommendationTagNames->isNotEmpty()
+                                            ? 'Berikan penguatan pada bagian '
+                                            . $searchFormattedTagNames
+                                            . ' serta arahkan siswa untuk memperdalam kembali materi tersebut sebelum melanjutkan ke tahap pembelajaran berikutnya.'
+                                            : 'Berikan penguatan terhadap materi pada topik ini dan arahkan siswa untuk memperdalam kembali pemahamannya sebelum melanjutkan ke tahap pembelajaran berikutnya.'
+                                    ),
+
+                                'latihan' =>
+                                    'Penguasaan siswa pada topik ini berada pada kategori '
+                                    . $searchTierLabel
+                                    . ', dengan performa sebesar '
+                                    . number_format($searchAccuracy, 2)
+                                    . '%. '
+                                    . (
+                                        $searchRecommendationTagNames->isNotEmpty()
+                                            ? 'Berikan latihan tambahan dengan fokus pada bagian '
+                                            . $searchFormattedTagNames
+                                            . ' agar penguasaan siswa pada topik ini dapat ditingkatkan.'
+                                            : 'Berikan latihan tambahan agar penguasaan siswa pada topik ini dapat ditingkatkan dan menjadi lebih konsisten.'
+                                    ),
+
+                                'lanjutan' =>
+                                    'Penguasaan siswa pada topik ini berada pada kategori '
+                                    . $searchTierLabel
+                                    . ', dengan performa sebesar '
+                                    . number_format($searchAccuracy, 2)
+                                    . '%. Siswa dapat melanjutkan ke pembelajaran berikutnya sambil tetap melakukan latihan untuk mempertahankan penguasaan pada topik ini.',
+
+                                'pengayaan' =>
+                                    'Penguasaan siswa pada topik ini berada pada kategori '
+                                    . $searchTierLabel
+                                    . ', dengan performa sebesar '
+                                    . number_format($searchAccuracy, 2)
+                                    . '%. Berikan kegiatan pengayaan atau tantangan pembelajaran yang lebih mendalam untuk memperluas pemahaman siswa.',
+
+                                default =>
+                                    'Belum terdapat rekomendasi pembelajaran berdasarkan data yang tersedia.',
+                            };
+
+                            $searchModalId = 'student-detail-search-' . $searchTopicId . '-' . $searchedStudentId;
+
+                            $searchDifficultyRows = collect($studentTopicDifficulty ?? [])
+                                ->filter(
+                                    fn($r) =>
+                                        (int) data_get($r, 'student_id') === (int) $searchedStudentId
+                                        && (int) data_get($r, 'topic_id') === $searchTopicId
+                                );
+
+                            $searchEasy = $searchDifficultyRows->first(
+                                fn($r) => strtolower(trim((string) data_get($r, 'difficulty', ''))) === 'mudah'
+                            );
+                            $searchMedium = $searchDifficultyRows->first(
+                                fn($r) => strtolower(trim((string) data_get($r, 'difficulty', ''))) === 'sedang'
+                            );
+                            $searchHard = $searchDifficultyRows->first(
+                                fn($r) => strtolower(trim((string) data_get($r, 'difficulty', ''))) === 'sulit'
+                            );
+
+                            $searchEasyAccuracy = (float) data_get($searchEasy, 'accuracy', 0);
+                            $searchMediumAccuracy = (float) data_get($searchMedium, 'accuracy', 0);
+                            $searchHardAccuracy = (float) data_get($searchHard, 'accuracy', 0);
+
+                            $searchActivities = collect($studentActivityPerformance ?? [])
+                                ->filter(
+                                    fn($a) =>
+                                        (int) data_get($a, 'student_id') === (int) $searchedStudentId
+                                        && (int) data_get($a, 'topic_id') === $searchTopicId
+                                )
+                                ->values();
+                        @endphp
+
+                        <div class="la-modal" id="{{ $searchModalId }}" aria-hidden="true">
+                            <div class="la-modal-card" role="dialog" aria-modal="true"
+                                aria-labelledby="{{ $searchModalId }}-title"
+                                style="border-top-color:var(--la-{{ $searchRecommendationColor }})">
+
+                                <div class="la-modal-header">
+                                    <div>
+                                        <h3 id="{{ $searchModalId }}-title">Detail Performa Siswa</h3>
+                                        <div class="la-modal-meta">
+                                            <b>{{ $searchedStudent->name }}</b> ·
+                                            {{ data_get($studentTopic, 'topic_name', '-') }} ·
+                                            {{ data_get($studentTopic, 'subject_name', '-') }}
+                                        </div>
+                                    </div>
+                                    <button type="button" class="la-modal-close" data-close-modal
+                                        aria-label="Tutup">×</button>
+                                </div>
+
+                                <div class="la-modal-body">
+
+                                    <div class="recommendation-box"
+                                        style="border-left:4px solid var(--la-{{ $searchRecommendationColor }});">
+                                        <div class="d-flex align-items-start">
+                                            <i class="bi bi-lightbulb-fill fs-3 me-3"
+                                                style="color:var(--la-{{ $searchRecommendationColor }});"></i>
+                                            <div>
+                                                <div class="small text-muted mb-2">Rekomendasi Pembelajaran</div>
+                                                <span class="badge mb-2"
+                                                    style="background-color:var(--la-{{ $searchRecommendationColor }});color:#fff;">
+                                                    {{ $searchRecommendationLabel }}
+                                                </span>
+                                                <div class="small fw-bold">
+                                                    {{ $searchRecommendationText }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="la-modal-section-label">Ringkasan Capaian</div>
+
+                                    <div class="la-modal-highlight-row">
+                                        <div class="la-modal-highlight"
+                                            style="background:var(--la-{{ $searchAccuracyColor }}-soft);color:var(--la-{{ $searchAccuracyColor }});">
+                                            <div class="la-modal-highlight-label">Performa</div>
+                                            <div class="la-modal-highlight-value">
+                                                {{ number_format($searchAccuracy, 2) }}%
+                                            </div>
+                                            <div class="la-modal-highlight-track">
+                                                <div class="la-modal-highlight-fill"
+                                                    style="width:{{ min(100, max(0, $searchAccuracy)) }}%;">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="la-modal-highlight"
+                                            style="background:var(--la-{{ $searchTierColor }}-soft);color:var(--la-{{ $searchTierColor }});">
+                                            <div class="la-modal-highlight-label">Penguasaan</div>
+                                            <div class="la-modal-highlight-value">
+                                                {{ number_format($searchMastery, 2) }}%
+                                            </div>
+                                            <span class="la-modal-highlight-sub">
+                                                {{ $searchTierLabel }}
+                                            </span>
+                                            <div class="la-modal-highlight-track">
+                                                <div class="la-modal-highlight-fill"
+                                                    style="width:{{ min(100, max(0, $searchMastery)) }}%;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="la-modal-section-label">Sebaran Tingkat Kesulitan</div>
+
+                                    <div class="la-modal-diff-grid">
+                                        <div class="la-modal-diff-card" style="border-top-color:var(--la-green)">
+                                            <div class="la-modal-diff-label">Mudah</div>
+                                            <div class="la-modal-diff-value" style="color:var(--la-green)">
+                                                {{ number_format($searchEasyAccuracy, 2) }}%
+                                            </div>
+                                            <div class="la-modal-diff-track">
+                                                <div class="la-modal-diff-fill"
+                                                    style="width:{{ min(100, max(0, $searchEasyAccuracy)) }}%;background:var(--la-green)">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="la-modal-diff-card" style="border-top-color:var(--la-amber)">
+                                            <div class="la-modal-diff-label">Sedang</div>
+                                            <div class="la-modal-diff-value" style="color:var(--la-amber)">
+                                                {{ number_format($searchMediumAccuracy, 2) }}%
+                                            </div>
+                                            <div class="la-modal-diff-track">
+                                                <div class="la-modal-diff-fill"
+                                                    style="width:{{ min(100, max(0, $searchMediumAccuracy)) }}%;background:var(--la-amber)">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="la-modal-diff-card" style="border-top-color:var(--la-rust)">
+                                            <div class="la-modal-diff-label">Sulit</div>
+                                            <div class="la-modal-diff-value" style="color:var(--la-rust)">
+                                                {{ number_format($searchHardAccuracy, 2) }}%
+                                            </div>
+                                            <div class="la-modal-diff-track">
+                                                <div class="la-modal-diff-fill"
+                                                    style="width:{{ min(100, max(0, $searchHardAccuracy)) }}%;background:var(--la-rust)">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="la-modal-section-label">Performa Per Aktivitas</div>
+
+                                    @if($searchActivities->isNotEmpty())
+                                        <table class="la-modal-activity-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Aktivitas</th>
+                                                    <th>Performa</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($searchActivities as $activity)
+                                                    @php
+                                                        $activityAccuracy = (float) data_get($activity, 'accuracy', 0);
+                                                        $activityCorrect = (int) data_get($activity, 'correct_answers', 0);
+                                                        $activityIncorrect = (int) data_get($activity, 'incorrect_answers', 0);
+                                                        $activityTotal = (int) data_get($activity, 'total_answers', 0);
+                                                        $activityStatus = strtolower((string) data_get($activity, 'activity_status', ''));
+
+                                                        $activityType = match ($activityStatus) {
+                                                            'basic' => 'Aktivitas Dasar',
+                                                            'additional' => 'Aktivitas Tambahan',
+                                                            'remedial' => 'Remedial',
+                                                            default => 'Aktivitas'
+                                                        };
+
+                                                        $activityColor = $activityAccuracy >= 85
+                                                            ? 'var(--la-blue)'
+                                                            : ($activityAccuracy >= 70
+                                                                ? 'var(--la-green)'
+                                                                : ($activityAccuracy >= 50
+                                                                    ? 'var(--la-amber)'
+                                                                    : 'var(--la-rust)'));
+                                                    @endphp
+
+                                                    <tr>
+                                                        <td class="la-modal-activity-info">
+                                                            <div class="la-modal-activity-name">
+                                                                {{ data_get($activity, 'activity_name', 'Aktivitas') }}
+                                                            </div>
+                                                            <div class="la-modal-activity-type">
+                                                                {{ $activityType }}
+                                                            </div>
+                                                        </td>
+                                                        <td class="la-modal-activity-perf">
+                                                            <div class="la-modal-activity-score"
+                                                                style="color:{{ $activityColor }}">
+                                                                {{ number_format($activityAccuracy, 0) }}%
+                                                            </div>
+                                                            <div class="la-modal-activity-track">
+                                                                <div class="la-modal-activity-fill"
+                                                                    style="width:{{ min(100, max(0, $activityAccuracy)) }}%;background:{{ $activityColor }}">
+                                                                </div>
+                                                            </div>
+                                                            <div class="la-modal-activity-meta">
+                                                                <span class="la-modal-activity-correct">
+                                                                    <strong>{{ $activityCorrect }}</strong> benar
+                                                                </span>
+                                                                <span>/</span>
+                                                                <span class="la-modal-activity-incorrect">
+                                                                    <strong>{{ $activityIncorrect }}</strong> salah
+                                                                </span>
+                                                                <span>·</span>
+                                                                <span>{{ $activityTotal }} jawaban</span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    @else
+                                        <div class="la-modal-empty">
+                                            Belum terdapat data performa aktivitas untuk siswa pada topik ini.
+                                        </div>
+                                    @endif
+
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                @endif
+            @else
 
             @php $groupedTopics = $topicMastery->groupBy(fn($item) => $item['subject_id'] ?? 'all'); @endphp
             @if($topicMastery->count())
@@ -1321,7 +1996,8 @@
                                                                     data-modal="{{ $modalId }}">{{ $recommendationLabel }}</span>
                                                             </td>
                                                             <td>
-                                                                <div class="text-end"><small class="text-primary fw-semibold">Lihat detail
+                                                                <div class="text-end"><small class="text-primary fw-semibold"
+                                                                        style="font-size: 12px;">Lihat detail
                                                                         <i class="bi bi-chevron-right"></i></small></div>
                                                             </td>
                                                         </tr>
@@ -1343,71 +2019,88 @@
                                 @php
                                     $studentId = (int) data_get($student, 'student_id');
                                     $studentMastery = (float) data_get($student, 'mastery', 0);
-                                    $studentTierLabel = $studentMastery >= 85 ? 'Mahir' : ($studentMastery >= 70 ? 'Menguasai' : ($studentMastery >= 50 ? 'Cukup' : 'Belum Menguasai'));
-                                    $studentTierColor = $studentMastery >= 85 ? 'blue' : ($studentMastery >= 70 ? 'green' : ($studentMastery >= 50 ? 'amber' : 'rust'));
+                                    if ($studentMastery >= 85) {
+                                        $studentTier = 'mahir';
+                                        $studentTierLabel = 'Mahir';
+                                        $studentTierColor = 'blue';
+                                    } elseif ($studentMastery >= 70) {
+                                        $studentTier = 'menguasai';
+                                        $studentTierLabel = 'Menguasai';
+                                        $studentTierColor = 'green';
+                                    } elseif ($studentMastery >= 50) {
+                                        $studentTier = 'cukup';
+                                        $studentTierLabel = 'Cukup';
+                                        $studentTierColor = 'amber';
+                                    } else {
+                                        $studentTier = 'belum';
+                                        $studentTierLabel = 'Belum Menguasai';
+                                        $studentTierColor = 'rust';
+                                    }
+
                                     $studentAccuracy = (float) data_get($student, 'accuracy', 0);
-                                    $studentAccuracyColor = $studentAccuracy >= 85 ? 'blue' : ($studentAccuracy >= 70 ? 'green' : ($studentAccuracy >= 50 ? 'amber' : 'rust'));
+                                    if ($studentAccuracy >= 85) {
+                                        $studentAccuracyColor = 'blue';
+                                    } elseif ($studentAccuracy >= 70) {
+                                        $studentAccuracyColor = 'green';
+                                    } elseif ($studentAccuracy >= 50) {
+                                        $studentAccuracyColor = 'amber';
+                                    } else {
+                                        $studentAccuracyColor = 'rust';
+                                    }
+                                    /*
+                                    |--------------------------------------------------------------------------
+                                    | DATA REKOMENDASI SISWA
+                                    |--------------------------------------------------------------------------
+                                    */
                                     $studentRecommendation = $recommendations->first(
-                                        fn($r) =>
-                                        (int) data_get($r, 'student_id') === $studentId &&
-                                        (int) data_get($r, 'topic_id') === $topicId
+                                        fn($recommendation) =>
+                                        (int) data_get($recommendation, 'student_id') === $studentId
+                                        &&
+                                        (int) data_get($recommendation, 'topic_id') === (int) $topicId
                                     );
+
+                                    /*
+                                    |--------------------------------------------------------------------------
+                                    | TIPE REKOMENDASI
+                                    |--------------------------------------------------------------------------
+                                    */
 
                                     $recommendationType = strtolower(
                                         (string) data_get(
                                             $studentRecommendation,
                                             'recommendation_type',
-                                            data_get($studentRecommendation, 'category', '')
+                                            ''
                                         )
                                     );
 
-                                    $recommendationLabel = match ($recommendationType) {
-                                        'penguatan' => 'Penguatan',
-                                        'latihan' => 'Latihan',
-                                        'lanjutan' => 'Lanjutan',
-                                        'pengayaan' => 'Pengayaan',
-                                        default => 'Rekomendasi'
-                                    };
-
-                                    $recommendationColor = match ($recommendationType) {
-                                        'penguatan' => 'rust',
-                                        'latihan' => 'amber',
-                                        'lanjutan' => 'teal',
-                                        'pengayaan' => 'green',
-                                        default => 'teal'
-                                    };
-
-
                                     /*
-                                     * Mastery menjadi dasar utama rekomendasi.
-                                     * Performance menjadi informasi pendukung.
-                                     */
-                                    $studentRecommendationMastery = (float) data_get(
-                                        $studentRecommendation,
-                                        'mastery',
-                                        $studentMastery
-                                    );
+                                    |--------------------------------------------------------------------------
+                                    | ACCURACY SEBAGAI INFORMASI PENDUKUNG
+                                    |--------------------------------------------------------------------------
+                                    */
 
                                     $studentRecommendationAccuracy = (float) data_get(
                                         $studentRecommendation,
                                         'accuracy',
-                                        $studentAccuracy
+                                        data_get($student, 'accuracy', 0)
                                     );
 
-
                                     /*
-                                     * Ambil sub-topik yang masih perlu diperhatikan.
-                                     */
-                                    $studentRecommendationSubTopics = collect(
+                                    |--------------------------------------------------------------------------
+                                    | TAGS YANG PERLU DIPERHATIKAN
+                                    |--------------------------------------------------------------------------
+                                    |
+                                    */
+
+                                    $recommendationTags = collect(
                                         data_get(
                                             $studentRecommendation,
-                                            'weak_sub_topics',
+                                            'weak_tags',
                                             []
                                         )
                                     )
                                         ->sortBy(
-                                            fn($item) =>
-                                            (float) data_get(
+                                            fn($item) => (float) data_get(
                                                 $item,
                                                 'accuracy',
                                                 0
@@ -1416,185 +2109,132 @@
                                         ->take(3)
                                         ->values();
 
-                                    $studentRecommendationSubTopicNames =
-                                        $studentRecommendationSubTopics
-                                            ->pluck('sub_topic_name')
-                                            ->filter()
-                                            ->values();
+                                    $recommendationTagNames = $recommendationTags
+                                        ->pluck('tag_name')
+                                        ->filter()
+                                        ->map(function ($tag) {
 
+                                            $decodedTag = json_decode($tag, true);
+
+                                            if (
+                                                json_last_error() === JSON_ERROR_NONE &&
+                                                is_array($decodedTag)
+                                            ) {
+                                                return collect($decodedTag)
+                                                    ->filter()
+                                                    ->values()
+                                                    ->all();
+                                            }
+
+                                            return [$tag];
+
+                                        })
+                                        ->flatten()
+                                        ->map(fn($tag) => trim((string) $tag))
+                                        ->filter()
+                                        ->unique()
+                                        ->values();
 
                                     /*
-                                     * =========================================================
-                                     * NARASI REKOMENDASI UNTUK GURU
-                                     * =========================================================
-                                     */
+                                    |--------------------------------------------------------------------------
+                                    | FORMAT NAMA TAG
+                                    |--------------------------------------------------------------------------
+                                    */
 
-                                    switch ($recommendationType) {
+                                    if ($recommendationTagNames->isEmpty()) {
+                                        $formattedTagNames = '';
+                                    } elseif ($recommendationTagNames->count() === 1) {
+                                        $formattedTagNames = $recommendationTagNames->first();
+                                    } elseif ($recommendationTagNames->count() === 2) {
+                                        $formattedTagNames =
+                                            $recommendationTagNames[0]
+                                            . ' dan '
+                                            . $recommendationTagNames[1];
+                                    } else {
+                                        $lastTag = $recommendationTagNames->pop();
 
-                                        case 'penguatan':
-
-                                            $recommendationText =
-                                                'Penguasaan siswa pada topik ini masih berada '
-                                                . 'pada kategori '
-                                                . $studentTierLabel
-                                                . ', dengan performa sebesar '
-                                                . number_format(
-                                                    $studentRecommendationAccuracy,
-                                                    2
-                                                )
-                                                . '%. ';
-
-                                            if (
-                                                $studentRecommendationSubTopicNames->isNotEmpty()
-                                            ) {
-
-                                                $recommendationText .=
-                                                    'Berikan penguatan pada '
-                                                    . $studentRecommendationSubTopicNames->implode(', ')
-                                                    . ' dan arahkan siswa untuk mengerjakan '
-                                                    . 'latihan terkait sebelum melanjutkan ke '
-                                                    . 'materi berikutnya.';
-
-                                            } else {
-
-                                                $recommendationText .=
-                                                    'Berikan penguatan terhadap materi dan '
-                                                    . 'arahkan siswa untuk mengerjakan latihan '
-                                                    . 'tambahan sebelum melanjutkan ke materi '
-                                                    . 'berikutnya.';
-                                            }
-
-                                            break;
-
-
-                                        case 'latihan':
-
-                                            $recommendationText =
-                                                'Penguasaan siswa pada topik ini berada pada '
-                                                . 'kategori '
-                                                . $studentTierLabel
-                                                . ', dengan performa sebesar '
-                                                . number_format(
-                                                    $studentRecommendationAccuracy,
-                                                    2
-                                                )
-                                                . '%. ';
-
-                                            if (
-                                                $studentRecommendationSubTopicNames->isNotEmpty()
-                                            ) {
-
-                                                $recommendationText .=
-                                                    'Berikan latihan tambahan dengan fokus pada '
-                                                    . $studentRecommendationSubTopicNames->implode(', ')
-                                                    . ' agar penguasaan siswa menjadi lebih '
-                                                    . 'konsisten.';
-
-                                            } else {
-
-                                                $recommendationText .=
-                                                    'Arahkan siswa untuk mengerjakan latihan '
-                                                    . 'tambahan agar penguasaan materi menjadi '
-                                                    . 'lebih konsisten.';
-                                            }
-
-                                            break;
-
-
-                                        case 'lanjutan':
-
-                                            $recommendationText =
-                                                'Penguasaan siswa pada topik ini berada pada '
-                                                . 'kategori '
-                                                . $studentTierLabel
-                                                . ', dengan performa sebesar '
-                                                . number_format(
-                                                    $studentRecommendationAccuracy,
-                                                    2
-                                                )
-                                                . '%. ';
-
-                                            if (
-                                                $studentRecommendationSubTopicNames->isNotEmpty()
-                                            ) {
-
-                                                $recommendationText .=
-                                                    'Pemahaman siswa sudah baik, tetapi '
-                                                    . $studentRecommendationSubTopicNames->implode(', ')
-                                                    . ' masih perlu diperkuat. Berikan '
-                                                    . 'penguatan pada bagian tersebut sebelum '
-                                                    . 'siswa melanjutkan ke materi berikutnya.';
-
-                                            } else {
-
-                                                $recommendationText .=
-                                                    'Siswa dapat melanjutkan ke materi berikutnya. '
-                                                    . 'Pertahankan pemahaman yang sudah baik '
-                                                    . 'melalui latihan yang sesuai.';
-                                            }
-
-                                            break;
-
-
-                                        case 'pengayaan':
-
-                                            $recommendationText =
-                                                'Penguasaan siswa pada topik ini berada pada '
-                                                . 'kategori '
-                                                . $studentTierLabel
-                                                . ', dengan performa sebesar '
-                                                . number_format(
-                                                    $studentRecommendationAccuracy,
-                                                    2
-                                                )
-                                                . '%. ';
-
-                                            if (
-                                                $studentRecommendationSubTopicNames->isNotEmpty()
-                                            ) {
-
-                                                $recommendationText .=
-                                                    'Siswa telah menunjukkan penguasaan yang '
-                                                    . 'sangat baik, tetapi '
-                                                    . $studentRecommendationSubTopicNames->implode(', ')
-                                                    . ' masih dapat diperkuat. Berikan '
-                                                    . 'penguatan pada bagian tersebut, kemudian '
-                                                    . 'arahkan siswa ke materi atau latihan yang '
-                                                    . 'lebih menantang.';
-
-                                            } else {
-
-                                                $recommendationText .=
-                                                    'Siswa telah menunjukkan penguasaan yang '
-                                                    . 'sangat baik. Arahkan siswa untuk melanjutkan '
-                                                    . 'ke materi berikutnya atau mengerjakan '
-                                                    . 'latihan yang lebih menantang.';
-                                            }
-
-                                            break;
-
-
-                                        default:
-
-                                            $recommendationText =
-                                                'Belum terdapat rekomendasi pembelajaran '
-                                                . 'untuk siswa pada topik ini.';
+                                        $formattedTagNames =
+                                            $recommendationTagNames->implode(', ')
+                                            . ', dan '
+                                            . $lastTag;
                                     }
+
+                                    /*
+                                    |--------------------------------------------------------------------------
+                                    | LABEL REKOMENDASI
+                                    |--------------------------------------------------------------------------
+                                    */
+
                                     $recommendationLabel = match ($recommendationType) {
                                         'penguatan' => 'Penguatan',
                                         'latihan' => 'Latihan',
                                         'lanjutan' => 'Lanjutan',
                                         'pengayaan' => 'Pengayaan',
-                                        default => 'Rekomendasi'
+                                        default => 'Rekomendasi',
                                     };
+
+                                    /*
+                                    |--------------------------------------------------------------------------
+                                    | WARNA REKOMENDASI
+                                    |--------------------------------------------------------------------------
+                                    */
+
                                     $recommendationColor = match ($recommendationType) {
                                         'penguatan' => 'rust',
                                         'latihan' => 'amber',
                                         'lanjutan' => 'teal',
                                         'pengayaan' => 'green',
-                                        default => 'teal'
+                                        default => 'teal',
                                     };
-                                    $modalId = 'student-detail-modal-' . $topicId . '-' . $studentId;
+                                    $recommendationText = match ($recommendationType) {
+                                        'penguatan' =>
+                                            'Penguasaan siswa pada topik ini masih berada pada kategori '
+                                            . $studentTierLabel
+                                            . ', dengan performa sebesar '
+                                            . number_format($studentRecommendationAccuracy, 2)
+                                            . '%. '
+                                            . (
+                                                $recommendationTagNames->isNotEmpty()
+                                                    ? 'Berikan penguatan pada bagian '
+                                                    . $formattedTagNames
+                                                    . ' serta arahkan siswa untuk memperdalam kembali materi tersebut sebelum melanjutkan ke tahap pembelajaran berikutnya.'
+                                                    : 'Berikan penguatan terhadap materi pada topik ini dan arahkan siswa untuk memperdalam kembali pemahamannya sebelum melanjutkan ke tahap pembelajaran berikutnya.'
+                                            ),
+                                        'latihan' =>
+                                            'Penguasaan siswa pada topik ini berada pada kategori '
+                                            . $studentTierLabel
+                                            . ', dengan performa sebesar '
+                                            . number_format($studentRecommendationAccuracy, 2)
+                                            . '%. '
+                                            . (
+                                                $recommendationTagNames->isNotEmpty()
+                                                    ? 'Berikan latihan tambahan dengan fokus pada bagian '
+                                                    . $formattedTagNames
+                                                    . ' agar penguasaan siswa pada topik ini dapat ditingkatkan.'
+                                                    : 'Berikan latihan tambahan agar penguasaan siswa pada topik ini dapat ditingkatkan dan menjadi lebih konsisten.'
+                                            ),
+                                        'lanjutan' =>
+                                            'Penguasaan siswa pada topik ini berada pada kategori '
+                                            . $studentTierLabel
+                                            . ', dengan performa sebesar '
+                                            . number_format($studentRecommendationAccuracy, 2)
+                                            . '%. Siswa dapat melanjutkan ke pembelajaran berikutnya sambil tetap melakukan latihan untuk mempertahankan penguasaan pada topik ini.',
+
+                                        'pengayaan' =>
+                                            'Penguasaan siswa pada topik ini berada pada kategori '
+                                            . $studentTierLabel
+                                            . ', dengan performa sebesar '
+                                            . number_format($studentRecommendationAccuracy, 2)
+                                            . '%. Berikan kegiatan pengayaan atau tantangan pembelajaran yang lebih mendalam untuk memperluas pemahaman siswa.',
+
+                                        default =>
+                                            'Belum terdapat rekomendasi pembelajaran berdasarkan data yang tersedia.',
+                                    };
+
+                                    $modalId = 'student-detail-modal-'
+                                        . $topicId
+                                        . '-'
+                                        . $studentId;
                                     $sdRows = collect($studentTopicDifficulty ?? [])
                                         ->filter(
                                             fn($r) =>
@@ -1614,7 +2254,7 @@
                                     $studentMediumAnswers = (int) data_get($studentMedium, 'total_answers', 0);
                                     $studentHardAnswers = (int) data_get($studentHard, 'total_answers', 0);
 
-                                    $studentSubTopics = collect($studentSubTopicPerformance ?? [])
+                                    $questionTags = collect($questionTags ?? [])
                                         ->filter(
                                             fn($s) =>
                                             (int) data_get($s, 'student_id') === $studentId &&
@@ -1640,10 +2280,21 @@
                                                 aria-label="Tutup">×</button>
                                         </div>
                                         <div class="la-modal-body">
-                                            <div class="la-modal-section-label">Rekomendasi Pembelajaran</div>
-                                            <div class="la-modal-recommendation"><span
-                                                    class="la-modal-category {{ $recommendationColor }}">{{ $recommendationLabel }}</span>
-                                                <p class="la-modal-text">{{ $recommendationText }}</p>
+                                            <div class="recommendation-box bg-soft-{{ $recommendationColor }}" 
+                                            style="border-left: 4px solid var(--la-{{ $recommendationColor }});">
+                                                <div class="d-flex align-items-start">
+                                                    <i class="bi bi-lightbulb-fill fs-3 me-3"
+                                                        style="color: var(--la-{{ $recommendationColor }});">
+                                                    </i>
+                                                    <div>
+                                                        <div class="small text-muted mb-2">Rekomendasi Pembelajaran</div>
+                                                        <span class="badge mb-2"
+                                                            style=" background-color: var(--la-{{ $recommendationColor }}); color: #ffffff;">
+                                                            {{ $recommendationLabel }}
+                                                        </span>
+                                                        <div class="small fw-bold">{{ $recommendationText }}</div>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="la-modal-section-label">Ringkasan Capaian</div>
 
@@ -1807,6 +2458,7 @@
             @else
                 <div class="la-empty-state">Belum terdapat data Learning Analytics berdasarkan filter yang dipilih.</div>
             @endif
+            @endif
         </main>
     </div>
 
@@ -1876,6 +2528,49 @@
                     document.querySelectorAll('.la-modal.open').forEach(closeModal);
                 }
             });
+        });
+    </script>
+
+    {{-- tombol reset --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const resetButton = document.getElementById('resetButton');
+            const resetToast = document.getElementById('resetToast');
+
+            // Ketika tombol Reset diklik
+            if (resetButton) {
+                resetButton.addEventListener('click', function () {
+                    sessionStorage.setItem('showResetToast', 'true');
+                });
+            }
+
+            // Tampilkan toast hanya setelah tombol Reset diklik
+            if (
+                resetToast &&
+                sessionStorage.getItem('showResetToast') === 'true'
+            ) {
+                // Hapus session terlebih dahulu agar refresh tidak memunculkan lagi
+                sessionStorage.removeItem('showResetToast');
+
+                // Tampilkan toast
+                resetToast.classList.add('show');
+
+                // Hilangkan otomatis setelah 3 detik
+                setTimeout(function () {
+                    resetToast.style.opacity = '0';
+                    resetToast.style.transform = 'translateX(100%)';
+
+                    // Sembunyikan sepenuhnya setelah animasi selesai
+                    setTimeout(function () {
+                        resetToast.classList.remove('show');
+                        resetToast.style.opacity = '';
+                        resetToast.style.transform = '';
+                    }, 400);
+
+                }, 3000);
+            }
+
         });
     </script>
 @endsection

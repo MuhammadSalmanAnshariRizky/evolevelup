@@ -43,23 +43,23 @@ class LearningAnalyticsController extends Controller
 
         $filterClassId =
             $request->filled('class_id')
-                ? (int) $request->class_id
-                : null;
+            ? (int) $request->class_id
+            : null;
 
         $filterSubjectId =
             $request->filled('subject_id')
-                ? (int) $request->subject_id
-                : null;
+            ? (int) $request->subject_id
+            : null;
 
         $filterTopicId =
             $request->filled('topic_id')
-                ? (int) $request->topic_id
-                : null;
+            ? (int) $request->topic_id
+            : null;
 
         $filterActivityId =
             $request->filled('activity_id')
-                ? (int) $request->activity_id
-                : null;
+            ? (int) $request->activity_id
+            : null;
 
         $studentSearch = trim(
             (string) $request->get(
@@ -98,13 +98,13 @@ class LearningAnalyticsController extends Controller
 
         $analyticsSubjects =
             $subjectQuery
-                ->select(
-                    'id',
-                    'name',
-                    'id_class'
-                )
-                ->orderBy('name')
-                ->get();
+            ->select(
+                'id',
+                'name',
+                'id_class'
+            )
+            ->orderBy('name')
+            ->get();
 
         $subjectIds = $analyticsSubjects
             ->pluck('id')
@@ -155,13 +155,13 @@ class LearningAnalyticsController extends Controller
 
         $analyticsTopics =
             $topicQuery
-                ->select(
-                    'topics.id',
-                    'topics.title',
-                    'topics.id_subject'
-                )
-                ->orderBy('topics.title')
-                ->get();
+            ->select(
+                'topics.id',
+                'topics.title',
+                'topics.id_subject'
+            )
+            ->orderBy('topics.title')
+            ->get();
 
         $topicIds = $analyticsTopics
             ->pluck('id')
@@ -226,13 +226,13 @@ class LearningAnalyticsController extends Controller
 
         $analyticsActivities =
             $activityQuery
-                ->select(
-                    'activities.id',
-                    'activities.title',
-                    'activities.id_topic'
-                )
-                ->orderBy('activities.title')
-                ->get();
+            ->select(
+                'activities.id',
+                'activities.title',
+                'activities.id_topic'
+            )
+            ->orderBy('activities.title')
+            ->get();
 
         $activityIds = $analyticsActivities
             ->pluck('id')
@@ -288,13 +288,13 @@ class LearningAnalyticsController extends Controller
 
         $analyticsStudents =
             $studentQuery
-                ->select(
-                    'users.id',
-                    'users.name'
-                )
-                ->distinct()
-                ->orderBy('users.name')
-                ->get();
+            ->select(
+                'users.id',
+                'users.name'
+            )
+            ->distinct()
+            ->orderBy('users.name')
+            ->get();
 
         $studentIds = $analyticsStudents
             ->pluck('id')
@@ -376,86 +376,93 @@ class LearningAnalyticsController extends Controller
 
         $performanceSummary =
             $analyticsService
-                ->getPerformanceSummary(
-                    $results
-                );
+            ->getPerformanceSummary(
+                $results
+            );
 
         // REKAP PER SISWA.
 
         $studentSummary =
             $analyticsService
-                ->getStudentSummary(
-                    $results
-                );
+            ->getStudentSummary(
+                $results
+            );
 
         // MASTERY AGREGAT PER TOPIK.
 
         $topicMastery =
             $analyticsService
-                ->getTopicMastery(
-                    $answers
-                );
+            ->getTopicMastery(
+                $answers
+            );
 
         // DIFFICULTY AGREGAT.
 
         $topicDifficulty =
             $analyticsService
-                ->getDifficultyAnalysis(
-                    $answers
-                );
+            ->getDifficultyAnalysis(
+                $answers
+            );
 
         // DATA MASTERY PER SISWA.
 
         $studentTopicMastery =
             $analyticsService
-                ->getStudentTopicMastery(
-                    $answers
-                );
+            ->getStudentTopicMastery(
+                $answers
+            );
 
         // DATA DIFFICULTY PER SISWA.
 
         $studentTopicDifficulty =
             $analyticsService
-                ->getStudentTopicDifficulty(
-                    $answers
-                );
+            ->getStudentTopicDifficulty(
+                $answers
+            );
 
         // DATA PERFORMA PER AKTIVITAS SISWA.
 
         $studentActivityPerformance =
             $analyticsService
-                ->getStudentActivityPerformance(
-                    $answers
-                );
+            ->getStudentActivityPerformance(
+                $answers
+            );
 
-        // DATA PERFORMA PER SUB-TOPIK SISWA.
+        // DATA PERFORMA PER TAG SISWA.
         //
-        // Data ini menjadi dasar baru untuk rekomendasi.
-        // Sub-topik akan ditentukan dari tag pada soal.
-        // Struktur relasi/tag disesuaikan di Service.
+        // Data ini digunakan untuk memberikan informasi
+        // yang lebih spesifik mengenai bagian materi
+        // yang perlu diperhatikan berdasarkan respons siswa
+        // terhadap soal dengan tag tertentu.
 
-        $studentSubTopicPerformance =
+        $questionTags =
             $analyticsService
-                ->getStudentSubTopicPerformance(
-                    $answers
-                );
+            ->getQuestionTags(
+                $answers
+            );
+
 
         // REKOMENDASI PER SISWA.
         //
-        // Rekomendasi sekarang menggunakan:
-        // 1. Mastery topik.
-        // 2. Performa/accuracy topik.
-        // 3. Performa sub-topik.
+        // Rekomendasi menggunakan:
+        // 1. Mastery sebagai dasar utama untuk menentukan
+        //    arah rekomendasi pembelajaran.
+        // 2. Performance/accuracy topik sebagai informasi
+        //    pendukung kondisi performa siswa.
+        // 3. Performa tags untuk memberikan informasi yang
+        //    lebih spesifik mengenai bagian materi yang
+        //    perlu diperhatikan.
         //
-        // Difficulty tetap tersedia sebagai indikator LA,
-        // tetapi tidak lagi menjadi dasar rekomendasi.
+        // Difficulty tetap tersedia sebagai indikator
+        // Learning Analytics, tetapi tidak digunakan
+        // sebagai dasar rekomendasi.
 
         $recommendations =
             $analyticsService
-                ->getRecommendations(
-                    $studentTopicMastery,
-                    $studentSubTopicPerformance
-                );
+            ->getRecommendations(
+                $studentTopicMastery,
+                $questionTags
+            );
 
         // RENDER VIEW.
 
@@ -466,63 +473,63 @@ class LearningAnalyticsController extends Controller
                 // DATA FILTER.
 
                 'analyticsClasses' =>
-                    $analyticsClasses,
+                $analyticsClasses,
 
                 'analyticsSubjects' =>
-                    $analyticsSubjects,
+                $analyticsSubjects,
 
                 'analyticsTopics' =>
-                    $analyticsTopics,
+                $analyticsTopics,
 
                 'analyticsActivities' =>
-                    $analyticsActivities,
+                $analyticsActivities,
 
                 'analyticsStudents' =>
-                    $analyticsStudents,
+                $analyticsStudents,
 
                 'filterClassId' =>
-                    $filterClassId,
+                $filterClassId,
 
                 'filterSubjectId' =>
-                    $filterSubjectId,
+                $filterSubjectId,
 
                 'filterTopicId' =>
-                    $filterTopicId,
+                $filterTopicId,
 
                 'filterActivityId' =>
-                    $filterActivityId,
+                $filterActivityId,
 
                 'studentSearch' =>
-                    $studentSearch,
+                $studentSearch,
 
                 // DATA LEARNING ANALYTICS.
 
                 'performanceSummary' =>
-                    $performanceSummary,
+                $performanceSummary,
 
                 'studentSummary' =>
-                    $studentSummary,
+                $studentSummary,
 
                 'topicMastery' =>
-                    $topicMastery,
+                $topicMastery,
 
                 'topicDifficulty' =>
-                    $topicDifficulty,
+                $topicDifficulty,
 
                 'studentTopicMastery' =>
-                    $studentTopicMastery,
+                $studentTopicMastery,
 
                 'studentTopicDifficulty' =>
-                    $studentTopicDifficulty,
+                $studentTopicDifficulty,
 
                 'studentActivityPerformance' =>
-                    $studentActivityPerformance,
+                $studentActivityPerformance,
 
-                'studentSubTopicPerformance' =>
-                    $studentSubTopicPerformance,
+                'questionTags' =>
+                $questionTags,
 
                 'recommendations' =>
-                    $recommendations,
+                $recommendations,
             ]
         );
     }
