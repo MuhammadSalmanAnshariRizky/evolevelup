@@ -34,6 +34,14 @@ class loginController extends Controller
         if (!Hash::check($request->password, $user->password)) {
             return back()->with('error', 'Kata sandi yang Anda masukkan salah.')->onlyInput('email');
         }
+        // Redirect berdasarkan role
+        if ($user->role === 'teacher') {
+            return redirect()->route('dashboardGuru')->with('success', 'Selamat datang, Guru!');
+        }
+
+        if ($user->role === 'student') {
+            return redirect()->route('dashboard.siswa')->with('success', 'Selamat datang, Siswa!');
+        }
 
         return redirect('/')->with('success', 'Selamat datang di Evolevel!');
     }
