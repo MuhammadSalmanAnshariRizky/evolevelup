@@ -11,7 +11,7 @@ class loginController extends Controller
 {
     public function showLoginForm()
     {
-        return view('home.login'); // arahkan ke file Blade login kamu
+        return view('home.login');
     }
 
     /**
@@ -24,7 +24,6 @@ class loginController extends Controller
             'password' => ['required'],
         ]);
 
-
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
@@ -34,6 +33,11 @@ class loginController extends Controller
         if (!Hash::check($request->password, $user->password)) {
             return back()->with('error', 'Kata sandi yang Anda masukkan salah.')->onlyInput('email');
         }
+
+        // 🔑 PERBAIKAN: Login-kan user dan perbarui session ID
+        Auth::login($user);
+        $request->session()->regenerate();
+
         // Redirect berdasarkan role
         if ($user->role === 'teacher') {
             return redirect()->route('dashboardGuru')->with('success', 'Selamat datang, Guru!');
