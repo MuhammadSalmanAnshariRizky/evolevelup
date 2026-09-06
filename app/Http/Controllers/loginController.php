@@ -27,25 +27,12 @@ class loginController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-  
         if (!$user) {
-            return back()->with('login_error', 'email_not_found')->onlyInput('email');
+            return back()->with('error', 'Email tidak ditemukan.')->onlyInput('email');
         }
 
         if (!Hash::check($request->password, $user->password)) {
-            return back()->with('login_error', 'password_wrong')->onlyInput('email');
-        }
-
-        Auth::login($user, $request->filled('remember'));
-        $request->session()->regenerate();
-
-        // Redirect berdasarkan role
-        if ($user->role === 'teacher') {
-            return redirect()->route('dashboardGuru')->with('success', 'Selamat datang, Guru!');
-        }
-
-        if ($user->role === 'student') {
-            return redirect()->route('dashboard.siswa')->with('success', 'Selamat datang, Siswa!');
+            return back()->with('error', 'Kata sandi yang Anda masukkan salah.')->onlyInput('email');
         }
 
         return redirect('/')->with('success', 'Selamat datang di Evolevel!');

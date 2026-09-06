@@ -4,9 +4,6 @@
 
 @section('content')
     <div class="container py-4">
-        {{-- PENTING: pastikan di layouts.main ada:
-        <meta name="csrf-token" content="{{ csrf_token() }}">
-        --}}
         {{-- Flash messages --}}
         @if(session('success'))
             <div class="alert alert-success">{{ session('success') }}</div>
@@ -28,15 +25,12 @@
                 </button>
             </div>
 
-
             <div class="d-flex gap-2">
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambah">
-                    <!-- svg omitted for brevity -->
                     Tambah Kelas
                 </button>
 
                 <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalGabung">
-                    <!-- svg omitted for brevity -->
                     Gabung Kelas
                 </button>
             </div>
@@ -84,7 +78,6 @@
                                                     Hapus Kelas
                                                 </button>
                                             </form>
-
                                         </li>
                                     </ul>
                                 </div>
@@ -94,12 +87,16 @@
                                 {{-- Meta info vertical --}}
                                 <dl class="row mb-3">
                                     <dt class="col-4 text-muted small">Jenjang</dt>
-                                    <dd class="col-8 mb-1"><span
-                                            class="badge bg-light text-dark border px-3 py-2">{{ $data->kelas->level }}</span></dd>
+                                    <dd class="col-8 mb-1">
+                                        <span class="badge bg-light text-dark border px-3 py-2">{{ $data->kelas->level }}</span>
+                                    </dd>
 
                                     <dt class="col-4 text-muted small">Kelas</dt>
-                                    <dd class="col-8 mb-1"><span class="badge bg-light text-dark border px-3 py-2">Grade
-                                            {{ $data->kelas->grade }}</span></dd>
+                                    <dd class="col-8 mb-1">
+                                        <span class="badge bg-light text-dark border px-3 py-2">
+                                            {{ $data->kelas->level === 'PT' || !$data->kelas->grade ? '-' : 'Grade ' . $data->kelas->grade }}
+                                        </span>
+                                    </dd>
 
                                     <dt class="col-4 text-muted small">Token</dt>
                                     <dd class="col-8 mb-0 d-flex align-items-center gap-2">
@@ -112,7 +109,7 @@
                                         </button>
                                     </dd>
                                 </dl>
-                                <!-- klaim paket -->
+
                                 <div class="mt-2">
                                     <button class="btn btn-outline-primary btn-sm btn-open-claim-modal"
                                         data-class-id="{{ $data->kelas->id }}" data-class-name="{{ $data->kelas->name }}">
@@ -121,11 +118,11 @@
                                 </div>
 
                                 {{-- Lists with collapse --}}
-                                <div class="mb-3">
+                                <div class="mb-3 mt-3">
                                     <h6 class="fw-semibold text-secondary mb-1">Guru Pengajar</h6>
                                     @if($data->guru->isNotEmpty())
                                         <div class="collapse show" id="guruList{{ $loop->index }}">
-                                            <ol class="ps-3 mb-0 small max-list" aria-hidden="false">
+                                            <ol class="ps-3 mb-0 small max-list">
                                                 @foreach($data->guru as $g)
                                                     <li>{{ $g }}</li>
                                                 @endforeach
@@ -141,10 +138,9 @@
                                         <h6 class="fw-semibold text-secondary mb-0">Mata Pelajaran</h6>
                                         @if($data->subjects->count() > 3)
                                             <a class="small" data-bs-toggle="collapse" href="#subjectList{{ $loop->index }}"
-                                                role="button" aria-expanded="false">Lihat semua</a>
+                                                role="button">Lihat semua</a>
                                         @endif
                                     </div>
-
                                     @if($data->subjects->isNotEmpty())
                                         <div class="collapse {{ $data->subjects->count() <= 3 ? 'show' : '' }}"
                                             id="subjectList{{ $loop->index }}">
@@ -163,11 +159,10 @@
                                     <div class="d-flex justify-content-between align-items-center mb-1">
                                         <h6 class="fw-semibold text-secondary mb-0">Topik</h6>
                                         @if($data->topics->count() > 3)
-                                            <a class="small" data-bs-toggle="collapse" href="#topicList{{ $loop->index }}" role="button"
-                                                aria-expanded="false">Lihat semua</a>
+                                            <a class="small" data-bs-toggle="collapse" href="#topicList{{ $loop->index }}"
+                                                role="button">Lihat semua</a>
                                         @endif
                                     </div>
-
                                     @if($data->topics->isNotEmpty())
                                         <div class="collapse {{ $data->topics->count() <= 3 ? 'show' : '' }}"
                                             id="topicList{{ $loop->index }}">
@@ -187,10 +182,9 @@
                                         <h6 class="fw-semibold text-secondary mb-0">Aktivitas</h6>
                                         @if($data->activities->count() > 3)
                                             <a class="small" data-bs-toggle="collapse" href="#activityList{{ $loop->index }}"
-                                                role="button" aria-expanded="false">Lihat semua</a>
+                                                role="button">Lihat semua</a>
                                         @endif
                                     </div>
-
                                     @if($data->activities->isNotEmpty())
                                         <div class="collapse {{ $data->activities->count() <= 3 ? 'show' : '' }}"
                                             id="activityList{{ $loop->index }}">
@@ -208,7 +202,7 @@
                         </article>
                     </div>
 
-                    {{-- Edit Modal per item --}}
+                    {{-- Modal Edit per item --}}
                     <div class="modal fade" id="modalEdit{{ $loop->index }}" tabindex="-1">
                         <div class="modal-dialog">
                             <form action="{{ route('kelas.update', $data->kelas->id) }}" method="POST" class="modal-content">
@@ -228,30 +222,28 @@
 
                                     <div class="mb-3">
                                         <label class="form-label">Level (Jenjang)</label>
-                                        <select name="level" class="form-control form-select" required>
+                                        <select name="level" class="form-control form-select level-select-edit"
+                                            data-target-grade="#gradeEdit{{ $loop->index }}" required>
                                             <option value="">Pilih Jenjang</option>
-                                            @php $levels = ['SD', 'MI', 'SMP', 'MTs', 'SMA', 'SMK', 'MA', 'PT']; @endphp
-                                            @foreach($levels as $level)
-                                                <option value="{{ $level }}" {{ (old('level', $data->kelas->level) == $level) ? 'selected' : '' }}>{{ $level }}</option>
+                                            @foreach(array_keys($grades) as $lvl)
+                                                <option value="{{ $lvl }}" {{ old('level', $data->kelas->level) == $lvl ? 'selected' : '' }}>{{ $lvl }}</option>
                                             @endforeach
                                         </select>
                                     </div>
 
                                     <div class="mb-3">
                                         <label class="form-label">Grade (Kelas)</label>
-                                        <select name="grade" class="form-control form-select" required>
+                                        <select name="grade" id="gradeEdit{{ $loop->index }}" class="form-control form-select"
+                                            data-current-grade="{{ old('grade', $data->kelas->grade) }}">
                                             <option value="">Pilih Kelas</option>
-                                            @foreach($grades as $g)
-                                                <option value="{{ $g }}" {{ (old('grade', $data->kelas->grade) == $g) ? 'selected' : '' }}>{{ $g }}</option>
-                                            @endforeach
                                         </select>
                                     </div>
 
                                     <div class="mb-3">
                                         <label class="form-label">Semester</label>
                                         <select name="semester" class="form-control form-select" required>
-                                            <option value="odd" {{ (old('semester', $data->kelas->semester) == 'odd') ? 'selected' : '' }}>Ganjil</option>
-                                            <option value="even" {{ (old('semester', $data->kelas->semester) == 'even') ? 'selected' : '' }}>Genap</option>
+                                            <option value="odd" {{ old('semester', $data->kelas->semester) == 'odd' ? 'selected' : '' }}>Ganjil</option>
+                                            <option value="even" {{ old('semester', $data->kelas->semester) == 'even' ? 'selected' : '' }}>Genap</option>
                                         </select>
                                     </div>
 
@@ -263,77 +255,10 @@
                                 </div>
 
                                 <div class="modal-footer">
-                                    <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                                     <button class="btn btn-primary" type="submit">Simpan Perubahan</button>
                                 </div>
                             </form>
-                        </div>
-                    </div>
-                    <!-- modal info -->
-                    <div class="modal fade" id="modalInfoKelas" tabindex="-1">
-                        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-                            <div class="modal-content rounded-4">
-                                <div class="modal-header">
-                                    <h5 class="modal-title fw-bold">
-                                        <i class="bi bi-info-circle me-1"></i>
-                                        Panduan Pengelolaan Kelas
-                                    </h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
-
-                                <div class="modal-body">
-
-                                    <!-- Tambah Kelas -->
-                                    <section class="mb-4">
-                                        <h6 class="fw-semibold text-primary">
-                                            <i class="bi bi-plus-circle me-1"></i> Menambah Kelas
-                                        </h6>
-                                        <ol class="small text-muted">
-                                            <li>Klik tombol <strong>Tambah Kelas</strong></li>
-                                            <li>Isi nama kelas, jenjang, grade, dan semester</li>
-                                            <li>Klik <strong>Simpan</strong></li>
-                                            <li>Kelas akan muncul di daftar kelas Anda</li>
-                                        </ol>
-                                        <img src="{{ asset('img/info/tambah-kelas.png') }}" class="img-fluid rounded border"
-                                            alt="Tambah Kelas">
-                                    </section>
-
-                                    <!-- Gabung Kelas -->
-                                    <section class="mb-4">
-                                        <h6 class="fw-semibold text-success">
-                                            <i class="bi bi-link-45deg me-1"></i> Gabung Kelas
-                                        </h6>
-                                        <ol class="small text-muted">
-                                            <li>Klik tombol <strong>Gabung Kelas</strong></li>
-                                            <li>Masukkan <strong>Token Kelas</strong> dari guru</li>
-                                            <li>Klik <strong>Gabung</strong></li>
-                                            <li>Anda akan otomatis terdaftar di kelas tersebut</li>
-                                        </ol>
-                                        <img src="{{ asset('img/info/gabung-kelas.png') }}" class="img-fluid rounded border"
-                                            alt="Gabung Kelas">
-                                    </section>
-
-                                    <!-- Edit Kelas -->
-                                    <section>
-                                        <h6 class="fw-semibold text-warning">
-                                            <i class="bi bi-pencil-square me-1"></i> Mengedit Kelas
-                                        </h6>
-                                        <ol class="small text-muted">
-                                            <li>Klik ikon <strong>⋮</strong> pada kartu kelas</li>
-                                            <li>Pilih <strong>Edit Kelas</strong></li>
-                                            <li>Ubah data yang diperlukan</li>
-                                            <li>Klik <strong>Simpan Perubahan</strong></li>
-                                        </ol>
-                                        <img src="{{ asset('img/info/edit-kelas.png') }}" class="img-fluid rounded border"
-                                            alt="Edit Kelas">
-                                    </section>
-
-                                </div>
-
-                                <div class="modal-footer">
-                                    <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 @endforeach
@@ -354,33 +279,24 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Nama Kelas</label>
-                        <input type="text" name="name" class="form-control" placeholder="kelas 7A" required>
+                        <input type="text" name="name" class="form-control" placeholder="Contoh: Kelas 7A / TI-1A" required>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Level (Jenjang)</label>
-                        <select name="level" class="form-control form-select" required>
+                        <select name="level" id="addLevel" class="form-control form-select" required>
                             <option value="">Pilih Jenjang</option>
-                            <option>SD</option>
-                            <option>MI</option>
-                            <option>SMP</option>
-                            <option>MTs</option>
-                            <option>SMA</option>
-                            <option>SMK</option>
-                            <option>MA</option>
-                            <option>PT</option>
+                            @foreach(array_keys($grades) as $lvl)
+                                <option value="{{ $lvl }}">{{ $lvl }}</option>
+                            @endforeach
                         </select>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Grade (Kelas)</label>
-                        <select name="grade" class="form-control form-select" required>
-                            <option value="">Pilih Kelas</option>
-                            @foreach($grades as $g)
-                                <option value="{{ $g }}">{{ $g }}</option>
-                            @endforeach
+                        <select name="grade" id="addGrade" class="form-control form-select" disabled>
+                            <option value="">Pilih Level Terlebih Dahulu</option>
                         </select>
-
                     </div>
 
                     <div class="mb-3">
@@ -398,7 +314,7 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                     <button class="btn btn-primary" type="submit">Simpan</button>
                 </div>
             </form>
@@ -421,30 +337,14 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                     <button class="btn btn-success" type="submit">Gabung</button>
                 </div>
             </form>
         </div>
     </div>
-    <!-- Modal Klaim Paket (global) -->
-    <div class="modal fade" id="modalClaimPackage" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Klaim Paket — <span id="claimClassName"></span></h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="packagesList" class="list-group">
-                        <div class="text-center text-muted py-4">Memuat paket...</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    {{-- Styles khusus --}}
+    {{-- Styles --}}
     <style>
         .bg-gradient {
             background: linear-gradient(135deg, #0d6efd 0%, #3b82f6 100%);
@@ -483,223 +383,73 @@
         }
     </style>
 
-    {{-- Script: gabungkan semua logic CSRF + fetch + swal --}}
     @push('scripts')
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
         <script>
-            (function () {
-                'use strict';
+            document.addEventListener('DOMContentLoaded', function () {
+                // Data pemetaan grade dari Controller
+                const gradesData = @json($grades);
 
-                function getCsrfToken() {
-                    const meta = document.querySelector('meta[name="csrf-token"]');
-                    if (meta && meta.content) return meta.content;
-                    const cookieVal = getCookie('XSRF-TOKEN');
-                    if (cookieVal) {
-                        try { return decodeURIComponent(cookieVal); } catch (e) { return cookieVal; }
-                    }
-                    return null;
-                }
+                // Helper function untuk update opsi grade
+                function updateGradeSelect(levelVal, gradeSelect, selectedGrade = null) {
+                    gradeSelect.innerHTML = '';
 
-                function getCookie(name) {
-                    const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-                    return v ? v.pop() : null;
-                }
+                    if (levelVal === 'PT') {
+                        gradeSelect.disabled = true;
+                        gradeSelect.removeAttribute('required');
+                        gradeSelect.innerHTML = '<option value="">Tidak Perlu Grade (PT)</option>';
+                    } else if (levelVal && gradesData[levelVal]) {
+                        gradeSelect.disabled = false;
+                        gradeSelect.setAttribute('required', 'required');
+                        gradeSelect.innerHTML = '<option value="">Pilih Kelas</option>';
 
-                async function csrfFetch(url, opts = {}) {
-                    const csrf = getCsrfToken();
-                    const defaultHeaders = { 'X-Requested-With': 'XMLHttpRequest' };
-
-                    if (opts.body && typeof opts.body === 'object' && !(opts.body instanceof FormData)) {
-                        defaultHeaders['Content-Type'] = 'application/json';
-                        opts.body = JSON.stringify(opts.body);
-                    }
-
-                    if (csrf) defaultHeaders['X-CSRF-TOKEN'] = csrf;
-                    opts.headers = Object.assign({}, defaultHeaders, opts.headers || {});
-                    opts.credentials = opts.credentials || 'same-origin';
-
-                    const res = await fetch(url, opts);
-                    const contentType = res.headers.get('content-type') || '';
-                    if (contentType.includes('application/json')) {
-                        const json = await res.json();
-                        if (!res.ok) {
-                            const err = new Error('HTTP Error: ' + res.status);
-                            err.response = res;
-                            err.data = json;
-                            throw err;
-                        }
-                        return json;
+                        gradesData[levelVal].forEach(function (g) {
+                            const option = document.createElement('option');
+                            option.value = g;
+                            option.textContent = 'Kelas ' + g;
+                            if (selectedGrade && String(selectedGrade) === String(g)) {
+                                option.selected = true;
+                            }
+                            gradeSelect.appendChild(option);
+                        });
                     } else {
-                        if (!res.ok) throw new Error('HTTP Error: ' + res.status);
-                        return res;
+                        gradeSelect.disabled = true;
+                        gradeSelect.removeAttribute('required');
+                        gradeSelect.innerHTML = '<option value="">Pilih Level Terlebih Dahulu</option>';
                     }
                 }
 
-                document.addEventListener('DOMContentLoaded', function () {
-                    // Buat paket (export)
-                    document.querySelectorAll('.btn-create-package').forEach(btn => {
-                        btn.addEventListener('click', async function (e) {
-                            e.preventDefault();
-                            const activityId = this.dataset.activityId;
-                            const title = this.dataset.title || '';
-
-                            const result = await Swal.fire({
-                                title: 'Buat paket aktivitas?',
-                                text: 'Paket akan berisi aktivitas & soal terkait.',
-                                icon: 'question',
-                                showCancelButton: true,
-                                confirmButtonText: 'Buat Paket',
-                                showLoaderOnConfirm: true,
-                                preConfirm: async () => {
-                                    try {
-                                        return await csrfFetch(`/activity/${activityId}/package/create`, {
-                                            method: 'POST',
-                                            body: { title }
-                                        });
-                                    } catch (err) {
-                                        throw err.data ?? err.message ?? err;
-                                    }
-                                }
-                            });
-
-                            if (result.isConfirmed) {
-                                const data = result.value;
-                                if (data && data.success) {
-                                    Swal.fire('Sukses', 'Paket dibuat. Anda dapat mengunduh atau klaim paket.', 'success');
-                                } else {
-                                    Swal.fire('Gagal', (data && data.message) ? data.message : 'Gagal membuat paket', 'error');
-                                }
-                            }
-                        });
+                // Handler untuk Modal Tambah
+                const addLevel = document.getElementById('addLevel');
+                const addGrade = document.getElementById('addGrade');
+                if (addLevel && addGrade) {
+                    addLevel.addEventListener('change', function () {
+                        updateGradeSelect(this.value, addGrade);
                     });
+                }
 
-                    // open claim modal for a class
-                    document.querySelectorAll('.btn-open-claim-modal').forEach(btn => {
-                        btn.addEventListener('click', async function (e) {
-                            const classId = this.dataset.classId;
-                            const className = this.dataset.className;
-                            document.getElementById('claimClassName').textContent = className;
-                            var modal = new bootstrap.Modal(document.getElementById('modalClaimPackage'));
-                            modal.show();
+                // Handler untuk Modal Edit (Looping tiap item)
+                document.querySelectorAll('.level-select-edit').forEach(function (levelSelect) {
+                    const targetSelector = levelSelect.getAttribute('data-target-grade');
+                    const gradeSelect = document.querySelector(targetSelector);
 
-                            const listEl = document.getElementById('packagesList');
-                            listEl.innerHTML = `<div class="text-center py-4 text-muted">Memuat paket...</div>`;
+                    if (gradeSelect) {
+                        const currentGrade = gradeSelect.getAttribute('data-current-grade');
+                        // Inisialisasi awal nilai saat modal dirender
+                        updateGradeSelect(levelSelect.value, gradeSelect, currentGrade);
 
-                            try {
-                                const json = await csrfFetch(`/activity-packages`, { method: 'GET' });
-                                const data = json.data || json;
-                                if (!data || data.length === 0) {
-                                    listEl.innerHTML = `<div class="text-center py-4 text-muted">Tidak ada paket.</div>`;
-                                    return;
-                                }
-
-                                const frag = document.createDocumentFragment();
-                                data.forEach(p => {
-                                    const item = document.createElement('div');
-                                    item.className = 'list-group-item d-flex justify-content-between align-items-start';
-                                    item.innerHTML = `
-                                                                            <div>
-                                                                                <div class="fw-semibold">${escapeHtml(p.title)}</div>
-                                                                                <div class="small text-muted">Sumber activity: ${escapeHtml(p.activity_title ?? '-')} — Kelas: ${escapeHtml(p.class_name ?? '-')}</div>
-                                                                            </div>
-                                                                            <div class="text-end">
-                                                                                                                                    <button class="btn btn-sm btn-primary btn-claim-package" data-pkg-id="${p.id}" data-class-id="${classId}">Klaim</button>
-                                                                                </div>
-                                                                            </div>`;
-                                    frag.appendChild(item);
-                                });
-                                listEl.innerHTML = '';
-                                listEl.appendChild(frag);
-                            } catch (err) {
-                                console.error(err);
-                                listEl.innerHTML = `<div class="text-center py-4 text-danger">Gagal memuat paket.</div>`;
-                            }
+                        // Event listener jika level diubah pada modal edit
+                        levelSelect.addEventListener('change', function () {
+                            updateGradeSelect(this.value, gradeSelect);
                         });
-                    });
-
-                    // delegate claim button
-                    document.getElementById('packagesList').addEventListener('click', function (e) {
-                        const btn = e.target.closest('.btn-claim-package');
-                        if (!btn) return;
-                        const pkgId = btn.dataset.pkgId;
-                        const targetClassId = btn.dataset.classId;
-
-                        Swal.fire({
-                            title: 'Klaim paket ke kelas ini?',
-                            html: `<div class="form-check text-start">
-                                                                        <input class="form-check-input" type="checkbox" id="duplicateCheck">
-                                                                        <label class="form-check-label" for="duplicateCheck">Duplicate soal jika belum ada (create new questions)</label>
-                                                                   </div>`,
-                            showCancelButton: true,
-                            confirmButtonText: 'Klaim',
-                            preConfirm: async () => {
-                                const duplicate = document.getElementById('duplicateCheck').checked;
-                                try {
-                                    return await csrfFetch(`/activity-package/${pkgId}/claim`, {
-                                        method: 'POST',
-                                        body: { target_class_id: targetClassId, duplicate: duplicate }
-                                    });
-                                } catch (err) {
-                                    throw err.data ?? err.message ?? err;
-                                }
-                            }
-                        }).then(result => {
-                            if (result.isConfirmed) {
-                                const resp = result.value;
-                                if (resp && resp.success) {
-                                    Swal.fire('Berhasil', 'Paket berhasil diklaim; aktivitas baru dibuat.', 'success')
-                                        .then(() => { location.reload(); });
-                                } else {
-                                    Swal.fire('Gagal', (resp && resp.message) ? resp.message : 'Gagal klaim paket', 'error');
-                                }
-                            }
-                        });
-                    });
-
-                    // Tooltips bootstrap
-                    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-                    tooltipTriggerList.map(function (el) {
-                        return new bootstrap.Tooltip(el)
-                    });
-
-                    // copy token
-                    window.copyToken = function (elementId) {
-                        const el = document.getElementById(elementId);
-                        if (!el) return;
-                        navigator.clipboard.writeText(el.textContent.trim()).then(function () {
-                            const btn = event?.target;
-                            if (btn) {
-                                btn.setAttribute('data-bs-original-title', 'Tersalin!');
-                                var t = bootstrap.Tooltip.getInstance(btn);
-                                if (t) { t.show(); setTimeout(() => t.hide(), 900); }
-                            } else {
-                                alert('Token disalin: ' + el.textContent.trim());
-                            }
-                        }).catch(function () {
-                            alert('Gagal menyalin token. Silakan salin manual.');
-                        });
-                    };
-
-                    function escapeHtml(unsafe) {
-                        if (unsafe === null || unsafe === undefined) return '';
-                        return String(unsafe)
-                            .replace(/&/g, '&amp;')
-                            .replace(/</g, '&lt;')
-                            .replace(/>/g, '&gt;')
-                            .replace(/"/g, '&quot;')
-                            .replace(/'/g, '&#039;');
                     }
                 });
-            })();
-        </script>
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
 
+                // Hapus kelas confirmation
                 document.querySelectorAll('.btn-hapus-kelas').forEach(function (btn) {
                     btn.addEventListener('click', function () {
                         const form = this.closest('form');
-
                         Swal.fire({
                             title: 'Hapus kelas?',
                             text: 'Kelas dan seluruh data terkait akan dihapus.',
@@ -716,9 +466,23 @@
                         });
                     });
                 });
-
             });
-        </script>
 
+            // Copy Token
+            window.copyToken = function (elementId) {
+                const el = document.getElementById(elementId);
+                if (!el) return;
+                navigator.clipboard.writeText(el.textContent.trim()).then(function () {
+                    const btn = event?.target;
+                    if (btn) {
+                        btn.setAttribute('data-bs-original-title', 'Tersalin!');
+                        var t = bootstrap.Tooltip.getInstance(btn);
+                        if (t) { t.show(); setTimeout(() => t.hide(), 900); }
+                    } else {
+                        alert('Token disalin: ' + el.textContent.trim());
+                    }
+                });
+            };
+        </script>
     @endpush
 @endsection

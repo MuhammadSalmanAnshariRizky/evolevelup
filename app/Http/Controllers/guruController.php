@@ -17,7 +17,7 @@ use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-
+use Illuminate\Validation\Rule;
 class guruController extends Controller
 {
     public function dashboardGuru()
@@ -229,18 +229,28 @@ class guruController extends Controller
                 'activities' => $activities,
             ];
         });
-        $grades = [1, 2, 3, 4];
+
+        // Struktur Grade sesuai jenjang
+        $grades = [
+            'SD' => ['1', '2', '3', '4', '5', '6'],
+            'MI' => ['1', '2', '3', '4', '5', '6'],
+            'SMP' => ['1', '2', '3'],
+            'MTs' => ['1', '2', '3'],
+            'SMA' => ['1', '2', '3'],
+            'SMK' => ['1', '2', '3'],
+            'MA' => ['1', '2', '3'],
+            'PT' => [], // Dikosongkan karena grade untuk PT nullable
+        ];
 
         return view('guru.datakelas', compact('dataKelas', 'grades'));
     }
-
 
     public function tambahKelas(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
             'level' => 'required|in:SD,MI,SMP,MTs,SMA,SMK,MA,PT',
-            'grade' => 'required|string|max:10',
+            'grade' => 'required_unless:level,PT|nullable|in:1,2,3,4,5,6',
             'semester' => 'required|in:odd,even',
             'description' => 'nullable|string',
         ]);
@@ -251,7 +261,7 @@ class guruController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'level' => $request->level,
-            'grade' => $request->grade,
+            'grade' => $request->level === 'PT' ? null : $request->grade,
             'semester' => $request->semester,
             'token' => $token,
             'created_by' => Auth::id(),
@@ -389,8 +399,20 @@ class guruController extends Controller
     public function tambahSubject(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'id_class' => 'required|integer|exists:classes,id'
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('subject', 'name')->where(function ($query) use ($request) {
+                    return $query->where('id_class', $request->id_class);
+                }),
+            ],
+            'id_class' => 'required|integer|exists:classes,id',
+        ], [
+            'name.required' => 'Nama mata pelajaran wajib diisi.',
+            'name.unique' => 'Mata pelajaran ini sudah terdaftar pada kelas yang dipilih.',
+            'id_class.required' => 'Kelas wajib dipilih.',
+            'id_class.exists' => 'Kelas yang dipilih tidak valid.',
         ]);
 
         Subject::create([
@@ -402,12 +424,23 @@ class guruController extends Controller
         return redirect()->route('guru.dataSubject')->with('success', 'Mata Pelajaran berhasil ditambahkan!');
     }
 
-    // Edit subject (sekalian ganti kelas)
     public function updateSubject(Request $request, $id)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'id_class' => 'required|integer|exists:classes,id'
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('subject', 'name')->where(function ($query) use ($request) {
+                    return $query->where('id_class', $request->id_class);
+                })->ignore($id), // Mengabaikan ID subject yang sedang di-edit
+            ],
+            'id_class' => 'required|integer|exists:classes,id',
+        ], [
+            'name.required' => 'Nama mata pelajaran wajib diisi.',
+            'name.unique' => 'Mata pelajaran ini sudah terdaftar pada kelas yang dipilih.',
+            'id_class.required' => 'Kelas wajib dipilih.',
+            'id_class.exists' => 'Kelas yang dipilih tidak valid.',
         ]);
 
         $subject = Subject::findOrFail($id);
@@ -419,7 +452,6 @@ class guruController extends Controller
 
         return redirect()->route('guru.dataSubject')->with('success', 'Mata Pelajaran berhasil diperbarui!');
     }
-
     // Hapus subject
     public function hapusSubject($id)
     {
@@ -643,30 +675,41 @@ class guruController extends Controller
      */
     public function simpanAktivitas(Request $request)
     {
-        // 1. PASTIKAN id_topic SELALU ARRAY SEBELUM DIVALIDASI
-        // Jika frontend mengirim data tunggal (bukan array), kita bungkus ke dalam array.
         if ($request->has('id_topic') && !is_array($request->id_topic)) {
             $request->merge([
                 'id_topic' => [$request->id_topic]
             ]);
         }
 
-        // 2. VALIDASI
+        // Validasi beserta Pesan Bahasa Indonesia
         $request->validate([
             'title' => ['required', 'string', 'min:3', 'max:255'],
             'type' => ['required', 'string'],
             'deadline' => ['required', 'date', 'after:now'],
-            'id_topic' => ['required', 'array'], // Sekarang validasi array tidak akan gagal
+            'id_topic' => ['required', 'array'],
             'id_topic.*' => ['exists:topics,id'],
             'addaptive' => ['required', 'in:yes,no'],
             'durasi_pengerjaan' => ['required', 'integer', 'min:1'],
             'kkm' => ['required', 'integer', 'min:0', 'max:100'],
+        ], [
+            // Custom Error Messages
+            'title.required' => 'Judul aktivitas wajib diisi.',
+            'title.min' => 'Judul aktivitas minimal harus 3 karakter.',
+            'title.max' => 'Judul aktivitas maksimal 255 karakter.',
+            'type.required' => 'Tipe aktivitas wajib dipilih.',
+            'deadline.required' => 'Deadline wajib diisi.',
+            'deadline.after' => 'Deadline harus waktu yang akan datang.',
+            'id_topic.required' => 'Topik wajib dipilih.',
+            'id_topic.*.exists' => 'Topik yang dipilih tidak valid.',
+            'durasi_pengerjaan.required' => 'Durasi pengerjaan wajib diisi.',
+            'durasi_pengerjaan.min' => 'Durasi pengerjaan minimal 1 menit.',
+            'kkm.required' => 'KKM wajib diisi.',
+            'kkm.min' => 'KKM minimal bernilai 0.',
+            'kkm.max' => 'KKM maksimal bernilai 100.',
         ]);
 
-        // 3. TENTUKAN SINGLE TOPIC ID (Hanya untuk non-evaluation)
         $singleTopicId = $request->type !== 'evaluation' ? $request->id_topic[0] : null;
 
-        // 4. SIMPAN ACTIVITY
         $activity = Activity::create([
             'title' => $request->title,
             'type' => $request->type,
@@ -677,7 +720,6 @@ class guruController extends Controller
             'kkm' => $request->kkm,
         ]);
 
-        // 5. SIMPAN KE TABEL PIVOT JIKA TIPE EVALUATION
         if ($request->type === 'evaluation') {
             $activity->topics()->attach($request->id_topic);
         }
@@ -685,7 +727,6 @@ class guruController extends Controller
         return redirect()->route('guru.aktivitas.tampil')
             ->with('success', 'Aktivitas berhasil ditambahkan.');
     }
-
 
     /**
      * Mengubah data aktivitas.
@@ -964,6 +1005,7 @@ class guruController extends Controller
             'question_text' => 'required|string',
             'difficulty' => 'nullable|in:mudah,sedang,sulit',
             'id_topic' => 'nullable|exists:topics,id',
+            'hint' => 'nullable|string',
             'tags' => 'nullable|string|max:500',
         ]);
 
@@ -1029,6 +1071,7 @@ class guruController extends Controller
         $question = Question::create([
             'type' => $request->type,
             'question' => json_encode($questionData),
+            'hint' => $request->hint,
             'MC_option' => $mcOption,
             'SA_answer' => $saAnswer,
             'MC_answer' => $mcAnswer,
@@ -1045,25 +1088,22 @@ class guruController extends Controller
     {
         $data = Question::findOrFail($id);
 
-        // ambil kelas yang diajar guru saat ini
         $teacherId = Auth::id();
 
-        // ambil id_class dari teacher_classes (raw query atau model)
         $classIds = DB::table('teacher_classes')
             ->where('id_teacher', $teacherId)
             ->pluck('id_class')
             ->toArray();
 
-        // ambil subjects yang ada di kelas2 tersebut
         $subjectIds = DB::table('subject')
             ->whereIn('id_class', $classIds)
             ->pluck('id')
             ->toArray();
 
-        // ambil topics yang terkait subjects di atas (hanya topik untuk subject yg guru ajar)
         $topics = Topic::whereIn('id_subject', $subjectIds)
             ->orderBy('title')
             ->get();
+
         $kelasGuru = DB::table('classes')
             ->join('teacher_classes', 'classes.id', '=', 'teacher_classes.id_class')
             ->where('teacher_classes.id_teacher', $teacherId)
@@ -1081,16 +1121,11 @@ class guruController extends Controller
     }
 
     /**
-     * Update soal — handling file uploads & opsi dengan aman
+     * Update soal — handling file uploads, opsi, & hint dengan aman
      */
     public function updateSoal(Request $request, $id)
     {
         $data = Question::findOrFail($id);
-
-        // optional: authorization check
-        // if ($data->created_by !== Auth::id()) {
-        //     return redirect()->route('tampilanSoal')->with('error','Tidak berhak mengedit soal ini.');
-        // }
 
         // Basic validation
         $rules = [
@@ -1099,15 +1134,13 @@ class guruController extends Controller
             'difficulty' => 'nullable|in:mudah,sedang,sulit',
             'id_topic' => 'nullable|exists:topics,id',
             'tags' => 'nullable|string|max:500',
+            'hint' => 'nullable|string', // 👈 Validation hint
         ];
 
-        // Jika tipe multiple choice, validasi minimal struktur
         if ($data->type === 'MultipleChoice') {
-            // option_text[] mungkin dikirim; mc_answer wajib
             $rules['option_text'] = 'required|array|min:1';
             $rules['option_text.*'] = 'nullable|string';
             $rules['option_url.*'] = 'nullable|url';
-            // option_image.* akan kita proses secara manual (file)
             $rules['mc_answer'] = 'required|in:a,b,c,d,e';
         } else { // ShortAnswer
             $rules['sa_answer'] = 'nullable|array';
@@ -1122,10 +1155,9 @@ class guruController extends Controller
             'URL' => $request->question_url ?? null,
         ];
 
-        // Handle file upload for question image (override question_url if file provided)
+        // Handle file upload for question image
         if ($request->hasFile('question_image')) {
             $file = $request->file('question_image');
-            // simpan ke storage/app/public/question_images
             $path = $file->store('public/question_images');
             $url = Storage::url($path);
             $questionData['URL'] = $url;
@@ -1136,11 +1168,10 @@ class guruController extends Controller
         $mcAnswer = null;
 
         if ($data->type === 'MultipleChoice') {
-            $texts = $request->input('option_text', []);           // array of strings (may be less than 5)
-            $urls = $request->input('option_url', []);            // array of urls
-            $files = $request->file('option_image', []);           // array of UploadedFile or null
+            $texts = $request->input('option_text', []);
+            $urls = $request->input('option_url', []);
+            $files = $request->file('option_image', []);
 
-            // Ensure we have 5 elements (a-e). If input has less, fill with empty strings
             $labels = ['a', 'b', 'c', 'd', 'e'];
             $options = [];
 
@@ -1149,13 +1180,11 @@ class guruController extends Controller
                 $text = isset($texts[$i]) ? trim((string) $texts[$i]) : '';
                 $optUrl = isset($urls[$i]) ? $urls[$i] : null;
 
-                // If user uploaded a file for this option, store it and override optUrl
                 if (isset($files[$i]) && $files[$i] && is_uploaded_file($files[$i]->getPathname())) {
                     $p = $files[$i]->store('public/option_images');
                     $optUrl = Storage::url($p);
                 }
 
-                // Keep consistent structure: label => ['teks'=>..., 'url'=>...]
                 $options[] = [
                     $label => [
                         'teks' => $text,
@@ -1165,9 +1194,9 @@ class guruController extends Controller
             }
 
             $mcOption = json_encode($options);
-            $mcAnswer = $request->mc_answer; // validated to be a/b/c/d/e
+            $mcAnswer = $request->mc_answer;
         } else {
-            // ShortAnswer: remove empty answers and reindex
+            // ShortAnswer
             $sa = $request->input('sa_answer', []);
             $filtered = array_values(array_filter(array_map(function ($v) {
                 return is_null($v) ? null : trim((string) $v);
@@ -1178,7 +1207,7 @@ class guruController extends Controller
             $saAnswer = !empty($filtered) ? json_encode($filtered) : null;
         }
 
-        // 🔹 LOGIKA PENENTUAN DELTA UNTUK UPDATE
+        // Penentuan delta
         $difficulty = $request->difficulty ?? $data->difficulty;
         $delta = 0.0;
         if ($difficulty === 'mudah') {
@@ -1188,7 +1217,6 @@ class guruController extends Controller
         }
 
         $tags = null;
-
         if ($request->filled('tags')) {
             $tagsArray = array_values(
                 array_filter(
@@ -1196,9 +1224,7 @@ class guruController extends Controller
                 )
             );
 
-            $tags = !empty($tagsArray)
-                ? json_encode($tagsArray)
-                : null;
+            $tags = !empty($tagsArray) ? json_encode($tagsArray) : null;
         }
 
         // Update record
@@ -1210,6 +1236,9 @@ class guruController extends Controller
         $data->delta = $delta;
         $data->id_topic = $request->id_topic ?? $data->id_topic;
         $data->tags = $tags;
+
+        // Simpan hint hanya jika tipe soalnya Isian Singkat
+        $data->hint = ($data->type === 'ShortAnswer') ? $request->hint : null;
 
         $data->save();
 

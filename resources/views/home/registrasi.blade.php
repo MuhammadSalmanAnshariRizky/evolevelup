@@ -169,21 +169,19 @@
                 </div>
 
                 <div class="mb-3">
-                    <label>Nama Lengkap</label>
+                    <label>Nama Lengkap <span class="text-danger">*</span></label>
                     <input type="text" id="name" class="form-control" placeholder="Nama lengkap">
                     <div id="nameError" class="error hidden"></div>
                 </div>
 
-
                 <div class="mb-3">
-                    <label>Email</label>
+                    <label>Email <span class="text-danger">*</span></label>
                     <input type="email" id="email" class="form-control" placeholder="nama@contoh.com">
                     <div id="emailError" class="error hidden"></div>
                 </div>
 
-
                 <div class="mb-3">
-                    <label>Kata Sandi</label>
+                    <label>Kata Sandi <span class="text-danger">*</span></label>
                     <div class="input-group">
                         <input type="password" id="password" class="form-control" placeholder="Minimal 6 karakter">
                         <button type="button" class="toggle-pass" id="togglePass">Tampilkan</button>
@@ -191,17 +189,15 @@
                     <div id="passwordError" class="error hidden"></div>
                 </div>
 
-
                 <div class="mb-3" id="kelasField">
                     <label>Kode Kelas (opsional)</label>
-                    <input type="text" id="kodeKelas" class="form-control" placeholder="Misal: EVO-1234">
+                    <input type="text" id="kodeKelas" class="form-control" placeholder="Masukkan kode kelas jika ada">
                     <div id="kelasError" class="error hidden"></div>
                 </div>
 
-
                 <!-- ID -->
                 <div class="mb-3">
-                    <label>Jenis ID</label>
+                    <label>Jenis ID <span class="text-danger">*</span></label>
                     <select id="type_id_other" class="form-select">
                         <option value="">— Pilih jenis ID —</option>
                         <option value="NISN">NISN</option>
@@ -214,13 +210,10 @@
                 </div>
 
                 <div class="mb-3">
-                    <label>Nomor ID</label>
-                    <input type="text" id="id_other" class="form-control" placeholder="Masukkan jika ada">
+                    <label>Nomor ID <span class="text-danger">*</span></label>
+                    <input type="text" id="id_other" class="form-control" placeholder="Masukkan nomor ID">
                     <div id="idError" class="error hidden"></div>
                 </div>
-
-
-
 
                 <div class="d-grid gap-2 mt-3">
                     <button type="submit" class="btn btn-primary">Daftar</button>
@@ -239,7 +232,6 @@
         const kelasField = document.getElementById('kelasField');
         const togglePass = document.getElementById('togglePass');
         const password = document.getElementById('password');
-        const errMsg = document.getElementById('errMsg');
 
         const nameInput = document.getElementById('name');
         const emailInput = document.getElementById('email');
@@ -255,14 +247,38 @@
 
         function resetErrors() {
             [nameError, emailError, passwordError, kelasError, idError]
-                .forEach(e => e.classList.add('hidden'));
+                .forEach(e => {
+                    e.textContent = '';
+                    e.classList.add('hidden');
+                });
         }
 
-
+        // FUNGSI UNTUK MENGATUR TAMPILAN SESUAI ROLE (MURID / GURU)
         function updateRole() {
             const role = document.querySelector('input[name="role"]:checked').value;
             kelasField.style.display = role === 'murid' ? 'block' : 'none';
+
+            // Reset pilihan Jenis ID saat peran diganti
+            typeIdOtherSelect.value = "";
+
+            // Filter opsi Jenis ID berdasarkan peran
+            const options = typeIdOtherSelect.querySelectorAll('option');
+            options.forEach(opt => {
+                if (opt.value === "") {
+                    opt.style.display = "block";
+                    return;
+                }
+
+                if (role === 'murid') {
+                    // Murid hanya dapat memilih NISN dan NIM
+                    opt.style.display = (opt.value === 'NISN' || opt.value === 'NIM') ? "block" : "none";
+                } else {
+                    // Guru dapat memilih sisanya kecuali NISN dan NIM
+                    opt.style.display = (opt.value !== 'NISN' && opt.value !== 'NIM') ? "block" : "none";
+                }
+            });
         }
+
         roleInputs.forEach(r => r.addEventListener('change', updateRole));
         updateRole();
 
@@ -284,91 +300,89 @@
             const pass = password.value;
             const role = document.querySelector('input[name="role"]:checked').value;
             const kodeKelas = kodeKelasInput.value.trim();
+            const typeIdOther = typeIdOtherSelect.value;
             const idOther = idOtherInput.value.trim();
 
-            /* =====================
-               VALIDASI NAMA
-            ===================== */
-            if (!name) {
-                nameError.textContent = 'Nama tidak boleh kosong.';
-                nameError.classList.remove('hidden');
-                return;
-            }
+            let hasError = false;
 
-            if (name.length < 2) {
+            /* VALIDASI MANDATORI FRONTEND (WAJIB TERISI KECUALI KODE KELAS) */
+
+            // 1. Validasi Nama
+            if (!name) {
+                nameError.textContent = 'Nama lengkap tidak boleh kosong.';
+                nameError.classList.remove('hidden');
+                hasError = true;
+            } else if (name.length < 2) {
                 nameError.textContent = 'Nama terlalu pendek (minimal 2 karakter).';
                 nameError.classList.remove('hidden');
-                return;
-            }
-
-            if (!/^[A-Za-zÀ-ÖØ-öø-ÿ\s]+$/.test(name)) {
+                hasError = true;
+            } else if (!/^[A-Za-zÀ-ÖØ-öø-ÿ\s]+$/.test(name)) {
                 nameError.textContent = 'Nama tidak valid (tidak boleh angka atau simbol).';
                 nameError.classList.remove('hidden');
-                return;
+                hasError = true;
             }
 
-            /* =====================
-               VALIDASI EMAIL
-            ===================== */
+            // 2. Validasi Email
             if (!email) {
                 emailError.textContent = 'Email tidak boleh kosong.';
                 emailError.classList.remove('hidden');
-                return;
-            }
-
-            if (/\s/.test(email)) {
+                hasError = true;
+            } else if (/\s/.test(email)) {
                 emailError.textContent = 'Email tidak boleh mengandung spasi.';
                 emailError.classList.remove('hidden');
-                return;
-            }
-
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                hasError = true;
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                 emailError.textContent = 'Format email tidak valid.';
                 emailError.classList.remove('hidden');
-                return;
+                hasError = true;
             }
 
-            /* =====================
-               VALIDASI PASSWORD
-            ===================== */
-            if (pass.length < 6) {
+            // 3. Validasi Password
+            if (!pass) {
+                passwordError.textContent = 'Kata sandi tidak boleh kosong.';
+                passwordError.classList.remove('hidden');
+                hasError = true;
+            } else if (pass.length < 6) {
                 passwordError.textContent = 'Password minimal 6 karakter.';
                 passwordError.classList.remove('hidden');
-                return;
-            }
-
-            if (/^\d+$/.test(pass)) {
+                hasError = true;
+            } else if (/^\d+$/.test(pass)) {
                 passwordError.textContent = 'Password terlalu lemah (tidak boleh hanya angka).';
                 passwordError.classList.remove('hidden');
+                hasError = true;
+            }
+
+            // 4. Validasi Jenis ID (Wajib)
+            if (!typeIdOther) {
+                idError.textContent = 'Silakan pilih Jenis ID terdekat Anda.';
+                idError.classList.remove('hidden');
+                hasError = true;
+            }
+
+            // 5. Validasi Nomor ID (Wajib)
+            if (!idOther) {
+                idError.textContent = 'Nomor ID tidak boleh kosong.';
+                idError.classList.remove('hidden');
+                hasError = true;
+            } else if (!/^\d+$/.test(idOther)) {
+                idError.textContent = 'Nomor ID harus berupa angka.';
+                idError.classList.remove('hidden');
+                hasError = true;
+            } else if (idOther.length < 6) {
+                idError.textContent = 'Nomor ID terlalu pendek (minimal 6 angka).';
+                idError.classList.remove('hidden');
+                hasError = true;
+            }
+
+            // Jika ada form wajib yang belum lengkap, hentikan pendaftaran & beri alert
+            if (hasError) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Form Belum Lengkap',
+                    text: 'Harap lengkapi semua kolom wajib (*) sebelum mendaftar.',
+                    confirmButtonColor: '#4e73df'
+                });
                 return;
-            }
-
-            /* =====================
-               VALIDASI KODE KELAS
-            ===================== */
-            if (role === 'murid' && kodeKelas) {
-                if (!/^EVO-\d{4}$/.test(kodeKelas)) {
-                    kelasError.textContent = 'Kode kelas tidak valid. Contoh: EVO-1234';
-                    kelasError.classList.remove('hidden');
-                    return;
-                }
-            }
-
-            /* =====================
-               VALIDASI ID
-            ===================== */
-            if (idOther) {
-                if (!/^\d+$/.test(idOther)) {
-                    idError.textContent = 'Nomor ID harus berupa angka.';
-                    idError.classList.remove('hidden');
-                    return;
-                }
-
-                if (idOther.length < 6) {
-                    idError.textContent = 'Nomor ID terlalu pendek.';
-                    idError.classList.remove('hidden');
-                    return;
-                }
             }
 
             const payload = {
@@ -377,17 +391,17 @@
                 password: pass,
                 role: role,
                 kodeKelas: kodeKelas || null,
-                type_id_other: typeIdOtherSelect.value || null,
-                id_other: idOther || null
+                type_id_other: typeIdOther,
+                id_other: idOther
             };
-
-
 
             try {
                 const res = await fetch("{{ route('register.submit') }}", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     },
                     body: JSON.stringify(payload)
@@ -395,56 +409,81 @@
 
                 const json = await res.json();
 
+                // 🔴 PEMROSESAN ERROR VALIDASI BACKEND (HTTP Status 422)
                 if (!res.ok) {
+                    if (res.status === 422 && json.errors) {
+                        let errorListHtml = '<ul class="text-start mb-0" style="font-size: 14px; padding-left: 1.2rem;">';
 
-                    // 🔴 VALIDASI LARAVEL (422)
-                    if (res.status === 422) {
+                        Object.keys(json.errors).forEach(key => {
+                            const messages = json.errors[key];
+                            messages.forEach(msg => {
+                                errorListHtml += `<li>${msg}</li>`;
+                            });
 
-                        // error email unique
-                        if (json.errors && json.errors.email) {
-                            emailError.textContent = json.errors.email[0];
-                            emailError.classList.remove('hidden');
-                            return;
-                        }
+                            if (key === 'email') {
+                                emailError.textContent = messages[0];
+                                emailError.classList.remove('hidden');
+                            }
+                            if (key === 'id_other') {
+                                idError.textContent = messages[0];
+                                idError.classList.remove('hidden');
+                            }
+                            if (key === 'kodeKelas') {
+                                kelasError.textContent = messages[0];
+                                kelasError.classList.remove('hidden');
+                            }
+                            if (key === 'password') {
+                                passwordError.textContent = messages[0];
+                                passwordError.classList.remove('hidden');
+                            }
+                            if (key === 'name') {
+                                nameError.textContent = messages[0];
+                                nameError.classList.remove('hidden');
+                            }
+                        });
 
-                        // error lain (fallback)
+                        errorListHtml += '</ul>';
+
                         Swal.fire({
                             icon: 'error',
-                            title: 'Validasi gagal',
-                            text: json.message || 'Data tidak valid'
+                            title: 'Registrasi Gagal!',
+                            html: errorListHtml,
+                            confirmButtonColor: '#e11d48',
+                            confirmButtonText: 'Tutup'
                         });
                         return;
                     }
 
-                    throw new Error(json.message || 'Registrasi gagal');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Registrasi Gagal',
+                        text: json.message || 'Data yang dimasukkan tidak valid.',
+                        confirmButtonColor: '#e11d48'
+                    });
+                    return;
                 }
 
-
+                // ✅ REGISTRASI BERHASIL
                 Swal.fire({
                     icon: 'success',
                     title: 'Berhasil!',
                     text: 'Akun berhasil dibuat',
                     confirmButtonColor: '#4e73df'
                 }).then(() => {
-                    if (json.redirect) {
-                        window.location.href = json.redirect;
-                    } else {
-                        window.location.href = '/login';
-                    }
+                    window.location.href = json.redirect || '/login';
                 });
 
-
             } catch (err) {
+                console.error('Fetch Error:', err);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Gagal',
-                    text: err.message,
+                    title: 'Gagal Koneksi',
+                    text: 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.',
                     confirmButtonColor: '#e11d48'
                 });
             }
         });
     </script>
-
 
 </body>
 

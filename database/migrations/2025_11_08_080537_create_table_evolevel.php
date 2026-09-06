@@ -26,8 +26,8 @@ return new class extends Migration {
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->enum('level', ['SD', 'Mi', 'SMP', 'Mts', 'SMA', 'SMK', 'MA', 'PT']);
-            $table->enum('grade', ['1', '2', '3', '4']);
+            $table->enum('level', ['SD', 'MI', 'SMP', 'MTs', 'SMA', 'SMK', 'MA', 'PT']);
+            $table->enum('grade', ['1', '2', '3', '4', '5', '6'])->nullable(); // Enum 1-6 & Nullable
             $table->enum('semester', ['odd', 'even']);
             $table->string('token')->unique();
             $table->unsignedBigInteger('created_by');
@@ -86,7 +86,8 @@ return new class extends Migration {
         Schema::create('question', function (Blueprint $table) {
             $table->id();
             $table->enum('type', ['MultipleChoice', 'ShortAnswer']);
-            $table->string('tags')->nullable(); // Diperbaiki dari varchar() ke string()
+            $table->string('tags')->nullable(); 
+            $table->string('hint')->nullable();
             $table->json('question');
             $table->json('MC_option')->nullable();
             $table->json('SA_answer')->nullable();

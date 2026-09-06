@@ -5,7 +5,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-
     <title>Login · RuangKuis</title>
 
     <!-- Bootstrap -->
@@ -43,7 +42,7 @@
             position: relative;
             overflow: hidden;
 
-            /* SOFT AIRY GRADIENT – SAMA RASA DENGAN HERO */
+            /* SOFT AIRY GRADIENT */
             background:
                 radial-gradient(circle at 50% 35%, #7f98ff 0%, transparent 55%),
                 linear-gradient(135deg,
@@ -52,7 +51,7 @@
                     #3f63d6 100%);
         }
 
-        /* CAHAYA HALUS (TIDAK NORAK) */
+        /* CAHAYA HALUS */
         .left-panel::before {
             content: "";
             position: absolute;
@@ -68,7 +67,6 @@
             z-index: 1;
             max-width: 460px;
         }
-
 
         .brand {
             font-weight: 900;
@@ -184,7 +182,7 @@
                             <div class="mb-3">
                                 <label class="form-label">Email</label>
                                 <input type="email" name="email" class="form-control" placeholder="nama@contoh.com"
-                                    required>
+                                    value="{{ old('email') }}" required>
                                 <div class="invalid-feedback">
                                     Masukkan alamat email yang valid.
                                 </div>
@@ -204,14 +202,7 @@
                                 </div>
                             </div>
 
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="remember">
-                                    <label class="form-check-label small">Ingat saya</label>
-                                </div>
-                            </div>
-
-                            <div class="d-grid mb-3">
+                            <div class="d-grid mb-3 mt-4">
                                 <button type="submit" class="btn btn-primary">
                                     Masuk
                                 </button>
@@ -229,86 +220,159 @@
 
         </div>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', function (event) {
-            event.preventDefault();
 
-            const email = this.email.value.trim();
-            const rawPassword = this.password.value; // ⬅ ambil asli (tanpa trim)
-            const password = rawPassword.trim();
-            const minPasswordLength = 6;
-
-            // Email kosong
-            if (!email) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Email belum diisi',
-                    text: 'Silakan masukkan alamat email Anda.',
-                    confirmButtonColor: '#4e73df'
-                });
-                return;
-            }
-
-            // Format email tidak valid
-            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailPattern.test(email)) {
+    {{-- SWEETALERT DARI SESSION LOGIN ERROR (BACKEND) --}}
+    @if (session('login_error') === 'email_not_found')
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Email tidak valid',
-                    text: 'Gunakan format email yang benar.',
+                    title: 'Gagal Masuk!',
+                    text: 'Email tidak ditemukan. Silakan periksa kembali email Anda.',
                     confirmButtonColor: '#4e73df'
                 });
-                return;
-            }
-
-            // 🔴 PASSWORD HANYA SPASI
-            if (!password) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Kata Sandi Kosong',
-                    text: 'Kata sandi tidak boleh hanya berisi spasi.',
-                    confirmButtonColor: '#4e73df'
-                });
-                return;
-            }
-
-            // 🔴 PASSWORD MENGANDUNG SPASI
-            if (/\s/.test(rawPassword)) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Kata Sandi Tidak Valid',
-                    text: 'Kata sandi tidak boleh mengandung spasi.',
-                    confirmButtonColor: '#4e73df'
-                });
-                return;
-            }
-
-            // 🔴 PASSWORD TERLALU PENDEK
-            if (password.length < minPasswordLength) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Kata Sandi Terlalu Pendek',
-                    text: `Kata sandi minimal ${minPasswordLength} karakter.`,
-                    confirmButtonColor: '#4e73df'
-                });
-                return;
-            }
-
-            // ✅ LOLOS VALIDASI
-            Swal.fire({
-                title: 'Memeriksa akun...',
-                text: 'Mohon tunggu sebentar',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
             });
+        </script>
+    @elseif (session('login_error') === 'password_wrong')
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Masuk!',
+                    text: 'Kata sandi yang Anda masukkan salah.',
+                    confirmButtonColor: '#4e73df'
+                });
+            });
+        </script>
+    @elseif (session('error'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Masuk!',
+                    text: "{{ session('error') }}",
+                    confirmButtonColor: '#4e73df'
+                });
+            });
+        </script>
+    @endif
 
-            this.submit();
+    @if ($errors->any())
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                let errorMessages = `
+                        <ul class="text-start mb-0" style="font-size: 14px; padding-left: 1.2rem;">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    `;
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Masuk!',
+                    html: errorMessages,
+                    confirmButtonColor: '#4e73df'
+                });
+            });
+        </script>
+    @endif
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // 👁️ TOGGLE SHOW / HIDE PASSWORD
+            const togglePwd = document.getElementById('togglePwd');
+            const passwordInput = document.getElementById('password');
+            const eyeText = document.getElementById('eyeText');
+
+            if (togglePwd && passwordInput) {
+                togglePwd.addEventListener('click', function () {
+                    const isPassword = passwordInput.type === 'password';
+                    passwordInput.type = isPassword ? 'text' : 'password';
+                    eyeText.textContent = isPassword ? 'Sembunyikan' : 'Tampilkan';
+                });
+            }
+
+            // 🔍 CLIENT SIDE VALIDATION
+            document.getElementById('loginForm').addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                const email = this.email.value.trim();
+                const rawPassword = this.password.value;
+                const password = rawPassword.trim();
+                const minPasswordLength = 6;
+
+                // Email kosong
+                if (!email) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Email belum diisi',
+                        text: 'Silakan masukkan alamat email Anda.',
+                        confirmButtonColor: '#4e73df'
+                    });
+                    return;
+                }
+
+                // Format email tidak valid
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailPattern.test(email)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Email tidak valid',
+                        text: 'Gunakan format email yang benar.',
+                        confirmButtonColor: '#4e73df'
+                    });
+                    return;
+                }
+
+                // Password hanya spasi
+                if (!password) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Kata Sandi Kosong',
+                        text: 'Kata sandi tidak boleh hanya berisi spasi.',
+                        confirmButtonColor: '#4e73df'
+                    });
+                    return;
+                }
+
+                // Password mengandung spasi
+                if (/\s/.test(rawPassword)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Kata Sandi Tidak Valid',
+                        text: 'Kata sandi tidak boleh mengandung spasi.',
+                        confirmButtonColor: '#4e73df'
+                    });
+                    return;
+                }
+
+                // Password terlalu pendek
+                if (password.length < minPasswordLength) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Kata Sandi Terlalu Pendek',
+                        text: `Kata sandi minimal ${minPasswordLength} karakter.`,
+                        confirmButtonColor: '#4e73df'
+                    });
+                    return;
+                }
+
+                // Submit Form jika lolos
+                Swal.fire({
+                    title: 'Memeriksa akun...',
+                    text: 'Mohon tunggu sebentar',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                this.submit();
+            });
         });
     </script>
 </body>
