@@ -7,7 +7,6 @@
             <div class="card-body p-4">
 
                 <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
-                    {{-- KIRI: Judul & Info Kelas --}}
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-1">
                             <h3 class="fw-bold text-primary mb-0 d-flex align-items-center gap-2">
@@ -73,11 +72,11 @@
 
                         <div class="col-md-3">
                             <label class="form-label fw-semibold">Topik</label>
-                            <select name="id_topic" class="form-select">
-                                <option value="">-- Pilih Topik --</option>
+                            <select name="id_topic" class="form-select" id="id_topic">
+                                <option value="" data-level="default">-- Pilih Topik --</option>
                                 @foreach($topics as $t)
-                                    <option value="{{ $t->id }}" {{ (isset($data->id_topic) && $data->id_topic == $t->id) ? 'selected' : '' }}>
-                                        {{ $t->title }}
+                                    <option value="{{ $t->id }}" data-level="{{ $t->level }}" {{ (isset($data->id_topic) && $data->id_topic == $t->id) ? 'selected' : '' }}>
+                                        {{ $t->title }} ({{ $t->level }})
                                     </option>
                                 @endforeach
                             </select>
@@ -129,7 +128,6 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Gambar Soal (opsional)</label>
 
-                            {{-- Custom Input File + Tombol Hapus --}}
                             <div class="input-group mb-2">
                                 <button class="btn btn-outline-secondary" type="button" id="btnTriggerQuestionImage">
                                     <i class="bi bi-image me-1"></i> Pilih File
@@ -171,14 +169,13 @@
                                     $url = $mcOption[$i][$label]['url'] ?? '';
                                 @endphp
 
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-4 mb-3 option-card-col" id="col-option-{{ $label }}" data-opt="{{ $label }}">
                                     <div class="card shadow-sm border-0 h-100 option-card">
                                         <div class="card-body">
                                             <label class="fw-semibold mb-2">Opsi {{ strtoupper($label) }}</label>
                                             <input type="text" name="option_text[]" class="form-control option-text mb-2"
                                                 value="{{ $teks }}" placeholder="Teks opsi {{ strtoupper($label) }}">
 
-                                            {{-- Custom Input Gambar Opsi --}}
                                             <div class="option-image-wrapper">
                                                 <div class="input-group input-group-sm mb-2">
                                                     <button class="btn btn-outline-secondary btn-trigger-opt-file" type="button">
@@ -198,7 +195,6 @@
                                                 <input type="text" name="option_url[]"
                                                     class="form-control form-control-sm opt-url-input mb-2" value="{{ $url }}"
                                                     placeholder="URL gambar (opsional)">
-
                                                 <div class="opt-preview text-center">
                                                     @if(!empty($url))
                                                         <img src="{{ $url }}" class="img-fluid rounded shadow-sm mt-1"
@@ -219,7 +215,7 @@
                                         <select name="mc_answer" id="mc_answer" class="form-select">
                                             <option value="">-- Pilih Jawaban --</option>
                                             @foreach(['a', 'b', 'c', 'd', 'e'] as $opt)
-                                                <option value="{{ $opt }}" {{ $data->MC_answer == $opt ? 'selected' : '' }}>
+                                                <option value="{{ $opt }}" id="mc-ans-opt-{{ $opt }}" {{ $data->MC_answer == $opt ? 'selected' : '' }}>
                                                     {{ strtoupper($opt) }}
                                                 </option>
                                             @endforeach
@@ -292,47 +288,76 @@
                     </section>
 
                     <section class="mb-4">
-                        <h6 class="fw-bold text-primary">Ketentuan Edit</h6>
+                        <h6 class="fw-bold text-primary">Jumlah Opsi Pilihan Ganda</h6>
                         <ul class="text-muted mb-0">
-                            <li>Tipe soal <strong>tidak dapat diubah</strong> setelah soal dibuat.</li>
-                            <li>Anda dapat mengubah tingkat kesulitan dan topik soal.</li>
-                            <li>Perubahan akan langsung memengaruhi aktivitas yang menggunakan soal ini.</li>
-                        </ul>
-                    </section>
-
-                    <section class="mb-4">
-                        <h6 class="fw-bold text-primary">Keterkaitan Kelas</h6>
-                        <ul class="text-muted mb-0">
-                            <li>Soal hanya dapat dikaitkan dengan topik dari kelas yang Anda ampu.</li>
-                            <li>Pastikan topik sesuai dengan kelas dan mata pelajaran.</li>
-                        </ul>
-                    </section>
-
-                    <section class="mb-2">
-                        <h6 class="fw-bold text-primary">Tips</h6>
-                        <ul class="text-muted mb-0">
-                            <li>Gunakan bahasa yang jelas dan tidak ambigu.</li>
-                            <li>Pastikan jawaban benar sudah sesuai sebelum menyimpan.</li>
-                            <li>Gunakan gambar hanya jika benar-benar mendukung soal.</li>
+                            <li><b>SD / MI</b>: 3 Opsi Jawaban (A – C)</li>
+                            <li><b>SMP / MTs</b>: 4 Opsi Jawaban (A – D)</li>
+                            <li><b>SMA / SMK / MA / PT</b>: 5 Opsi Jawaban (A – E)</li>
                         </ul>
                     </section>
                 </div>
 
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">
-                        Tutup
-                    </button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                 </div>
 
             </div>
         </div>
     </div>
 
-    {{-- SweetAlert2 --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const idTopicSelect = document.getElementById('id_topic');
+            const mcAnswerSelect = document.getElementById('mc_answer');
+            const form = document.getElementById('editSoalForm');
+            const submitBtn = document.getElementById('submitBtn');
+
+            // 🔹 PENYESUAIAN JUMLAH OPSI JAWABAN SESUAI LEVEL TOPIK
+            function adjustOptionCount() {
+                if (!idTopicSelect) return;
+                const selectedOption = idTopicSelect.options[idTopicSelect.selectedIndex];
+                const level = selectedOption ? selectedOption.getAttribute('data-level') : 'default';
+
+                let maxOptions = 5; // Default (SMA/SMK/MA/PT)
+
+                if (['SD', 'MI'].includes(level)) {
+                    maxOptions = 3;
+                } else if (['SMP', 'MTs'].includes(level)) {
+                    maxOptions = 4;
+                } else if (['SMA', 'SMK', 'MA', 'PT'].includes(level)) {
+                    maxOptions = 5;
+                }
+
+                const labels = ['a', 'b', 'c', 'd', 'e'];
+
+                labels.forEach((opt, index) => {
+                    const colEl = document.getElementById(`col-option-${opt}`);
+                    const ansOptEl = document.getElementById(`mc-ans-opt-${opt}`);
+
+                    if (index < maxOptions) {
+                        if (colEl) colEl.style.display = 'block';
+                        if (ansOptEl) ansOptEl.style.display = 'block';
+                    } else {
+                        if (colEl) {
+                            colEl.style.display = 'none';
+                            const input = colEl.querySelector('.option-text');
+                            if (input) input.value = '';
+                        }
+                        if (ansOptEl) {
+                            ansOptEl.style.display = 'none';
+                            if (mcAnswerSelect && mcAnswerSelect.value === opt) {
+                                mcAnswerSelect.value = '';
+                            }
+                        }
+                    }
+                });
+            }
+
+            idTopicSelect?.addEventListener('change', adjustOptionCount);
+            adjustOptionCount(); // Jalankan sekali saat halaman dimuat
+
             // GAMBAR SOAL UTAMA
             const btnTriggerQuestionImage = document.getElementById('btnTriggerQuestionImage');
             const questionImageInput = document.getElementById('questionImageInput');
@@ -451,10 +476,7 @@
                 });
             @endif
 
-                // Validasi Form
-                const form = document.getElementById('editSoalForm');
-            const submitBtn = document.getElementById('submitBtn');
-
+            // Validasi Form
             form?.addEventListener('submit', function (e) {
                 submitBtn.disabled = true;
 
@@ -482,12 +504,13 @@
                 }
 
                 if (tipe === 'MultipleChoice') {
-                    const optionInputs = Array.from(document.querySelectorAll('.option-text'));
-                    const labels = ['A', 'B', 'C', 'D', 'E'];
+                    const visibleCols = Array.from(document.querySelectorAll('.option-card-col')).filter(col => col.style.display !== 'none');
 
-                    for (let i = 0; i < optionInputs.length; i++) {
-                        if ((optionInputs[i].value || '').trim() === '') {
-                            return fail(`Opsi ${labels[i]} belum diisi!`, optionInputs[i]);
+                    for (let i = 0; i < visibleCols.length; i++) {
+                        const optText = visibleCols[i].querySelector('.option-text').value.trim();
+                        const optLabel = visibleCols[i].getAttribute('data-opt').toUpperCase();
+                        if (!optText) {
+                            return fail(`Opsi ${optLabel} belum diisi!`, visibleCols[i].querySelector('.option-text'));
                         }
                     }
 

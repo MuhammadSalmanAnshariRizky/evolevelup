@@ -2,6 +2,17 @@
 @section('dataAktivitas', request()->is('guru/aktivitas/*/atur-soal') ? 'active' : '')
 
 @section('content')
+    @php
+        $actType = strtolower($aktivitas->type ?? 'task');
+        if (in_array($actType, ['task', 'quiz'])) {
+            $presets = [30, 35, 40, 45, 50];
+            $minSoal = 30;
+        } else {
+            $presets = [40, 45, 50, 55, 60];
+            $minSoal = 40;
+        }
+    @endphp
+
     <div class="container mt-4">
 
         {{-- HEADER HALAMAN --}}
@@ -41,7 +52,7 @@
                 <div class="fw-semibold text-primary mb-1 d-flex align-items-center gap-1">
                     <i class="bi bi-info-circle-fill"></i> Petunjuk Pengaturan Soal
                 </div>
-                <p class="mb-0 text-muted small">
+                <p class="mb-0 text-muted">
                     Soal terpilih akan ditampilkan pada kolom <strong>Soal Terpilih</strong> di bawah. Klik tombol
                     <span class="badge bg-primary px-2 py-1 me-1"><i class="bi bi-list-check me-1"></i> Lihat Soal</span>
                     pada <strong>bagian bawah kartu Soal Terpilih</strong> untuk memilih soal dari bank soal (manual maupun
@@ -73,13 +84,22 @@
                     </div>
                 @else
                     @foreach($selectedQuestions as $s)
-                        @php $sData = json_decode($s->question); @endphp
+                        @php 
+                                                $sData = json_decode($s->question);
+                            $diff = strtolower($s->difficulty ?? '');
+                            $diffClass = match ($diff) {
+                                'mudah' => 'bg-success-subtle text-success border border-success',
+                                'sedang' => 'bg-warning-subtle text-warning-emphasis border border-warning',
+                                'sulit' => 'bg-danger-subtle text-danger border border-danger',
+                                default => 'bg-info text-dark'
+                            };
+                        @endphp
                         <div class="p-3 border rounded-3 mb-2 bg-light d-flex justify-content-between align-items-start shadow-sm"
                             id="selectedItem-{{ $s->id }}">
                             <div>
                                 <div class="mb-1">
                                     <span class="badge bg-secondary me-1">{{ ucfirst($s->type) }}</span>
-                                    <span class="badge bg-info text-dark me-1">{{ ucfirst($s->difficulty) }}</span>
+                                    <span class="badge {{ $diffClass }} me-1">{{ ucfirst($s->difficulty) }}</span>
                                     @if($s->tags)
                                         <span class="badge bg-light text-dark border"><i
                                                 class="bi bi-tag-fill me-1"></i>{{ $s->tags }}</span>
@@ -117,17 +137,38 @@
             </div>
         </div>
 
-        {{-- INFORMASI COUNT CARD --}}
+        {{-- INFORMASI COUNT & KOMPOSISI KESULITAN CARD --}}
         <div class="card shadow-sm border-0 rounded-4 mb-4">
             <div class="card-body py-3 px-4">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="p-3 bg-primary-subtle text-primary rounded-circle">
-                        <i class="bi bi-card-text fs-3"></i>
+                <div class="row align-items-center g-3">
+                    <div class="col-md-4 border-end-md">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="p-3 bg-primary-subtle text-primary rounded-circle">
+                                <i class="bi bi-card-text fs-3"></i>
+                            </div>
+                            <div>
+                                <div class="small text-muted fw-semibold">Total Soal Terpilih</div>
+                                <div class="fw-bold text-primary fs-3 mb-0" id="currentTotal">
+                                    {{ $selectedQuestions->count() }}
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="small text-muted fw-semibold">Total Soal Terpilih</div>
-                        <div class="fw-bold text-primary fs-3 mb-0" id="currentTotal">
-                            {{ $selectedQuestions->count() }}
+                    <div class="col-md-8">
+                        <div class="small text-muted fw-semibold mb-2">Komposisi Tingkat Kesulitan</div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <span
+                                class="badge bg-success-subtle text-success border border-success px-3 py-2 rounded-pill fs-6 fw-normal">
+                                <i class="bi bi-bar-chart-fill me-1"></i> Mudah: <strong id="countMudah">0</strong>
+                            </span>
+                            <span
+                                class="badge bg-warning-subtle text-warning-emphasis border border-warning px-3 py-2 rounded-pill fs-6 fw-normal">
+                                <i class="bi bi-bar-chart-fill me-1"></i> Sedang: <strong id="countSedang">0</strong>
+                            </span>
+                            <span
+                                class="badge bg-danger-subtle text-danger border border-danger px-3 py-2 rounded-pill fs-6 fw-normal">
+                                <i class="bi bi-bar-chart-fill me-1"></i> Sulit: <strong id="countSulit">0</strong>
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -155,13 +196,15 @@
                             {{-- KONTROL ATAS --}}
                             <div class="d-flex flex-column flex-md-row gap-3 align-items-start mb-2">
                                 <div class="w-100">
-                                    <h6 class="fw-bold text-secondary mb-2">Pilih atau Masukkan Jumlah Soal Minimum</h6>
+                                    <h6 class="fw-bold text-secondary mb-2">Pilih atau Masukkan Jumlah Soal Minimum (Min:
+                                        {{ $minSoal }})
+                                    </h6>
 
                                     @php $savedJumlah = $aktivitas->jumlah_soal ?? null; @endphp
 
                                     <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
                                         <div class="btn-group btn-group-sm" role="group" aria-label="jumlah soal">
-                                            @foreach ([5, 10, 15, 20, 25, 30] as $opt)
+                                            @foreach ($presets as $opt)
                                                 <label
                                                     class="btn btn-outline-primary {{ $savedJumlah == $opt ? 'active' : '' }}">
                                                     <input type="radio" name="modalJumlahRadio" value="{{ $opt }}" class="me-1"
@@ -174,8 +217,8 @@
                                         <div class="input-group input-group-sm" style="width: 180px;">
                                             <span class="input-group-text">Custom</span>
                                             <input type="number" id="customJumlahInput" class="form-control"
-                                                placeholder="Cth: 12" min="1"
-                                                value="{{ !in_array($savedJumlah, [5, 10, 15, 20, 25, 30]) ? $savedJumlah : '' }}">
+                                                placeholder="Min: {{ $minSoal }}" min="{{ $minSoal }}"
+                                                value="{{ !in_array($savedJumlah, $presets) ? $savedJumlah : '' }}">
                                         </div>
                                     </div>
 
@@ -223,7 +266,16 @@
 
                             <tbody id="modalQuestionList">
                                 @foreach ($questions as $q)
-                                    @php $qData = json_decode($q->question); @endphp
+                                    @php 
+                                                                            $qData = json_decode($q->question);
+                                        $qDiff = strtolower($q->difficulty ?? '');
+                                        $qDiffClass = match ($qDiff) {
+                                            'mudah' => 'bg-success-subtle text-success border border-success',
+                                            'sedang' => 'bg-warning-subtle text-warning-emphasis border border-warning',
+                                            'sulit' => 'bg-danger-subtle text-danger border border-danger',
+                                            default => 'bg-info text-dark'
+                                        };
+                                    @endphp
                                     <tr data-qid="{{ $q->id }}" id="modalRow-{{ $q->id }}">
                                         <td class="text-center">
                                             <button
@@ -237,7 +289,7 @@
 
                                         <td class="text-center fw-semibold">{{ $loop->iteration }}</td>
                                         <td><span class="badge bg-secondary">{{ ucfirst($q->type) }}</span></td>
-                                        <td><span class="badge bg-info text-dark">{{ ucfirst($q->difficulty) }}</span></td>
+                                        <td><span class="badge {{ $qDiffClass }}">{{ ucfirst($q->difficulty) }}</span></td>
                                         <td>
                                             @if($q->tags)
                                                 <span class="badge bg-light text-dark border">{{ $q->tags }}</span>
@@ -287,8 +339,9 @@
                         <i class="bi bi-1-circle-fill me-1"></i> Langkah 1 – Menentukan Jumlah Soal
                     </h6>
                     <ul>
-                        <li>Pilih atau ketik <strong>jumlah soal minimum</strong> (menggunakan pilihan tombol preset atau
-                            input custom).</li>
+                        <li>Pilih atau ketik <strong>jumlah soal minimum</strong> (minimal {{ $minSoal }} soal untuk tipe
+                            {{ strtoupper($aktivitas->type) }}).
+                        </li>
                         <li>Jumlah soal ini menjadi acuan validasi kelengkapan soal.</li>
                     </ul>
 
@@ -337,6 +390,8 @@
         const ACTIVITAS_ID = {{ $aktivitas->id }};
         const CSRF = "{{ csrf_token() }}";
         const MAX_QUESTIONS_AVAILABLE = {{ $questions->count() }};
+        const MIN_SOAL_LIMIT = {{ $minSoal }};
+        const ALL_QUESTIONS = @json($questions->keyBy('id'));
 
         let modalSelected = @json($selectedIds);
         window.lastPicked = @json($selectedIds);
@@ -363,47 +418,57 @@
             }
         }
 
-        // Render area soal terpilih
+        // Helper untuk mendapatkan Class Badge Tingkat Kesulitan di JS
+        function getDifficultyBadgeClass(difficulty) {
+            const diff = (difficulty || '').toLowerCase();
+            if (diff === 'mudah') return 'bg-success-subtle text-success border border-success';
+            if (diff === 'sedang') return 'bg-warning-subtle text-warning-emphasis border border-warning';
+            if (diff === 'sulit') return 'bg-danger-subtle text-danger border border-danger';
+            return 'bg-info text-dark';
+        }
+
+        // Render area soal terpilih & Hitung Komposisi Kesulitan
         async function renderSelectedArea(ids, questionsMap = null) {
             const area = document.getElementById('selectedArea');
             if (!area) return;
 
             if (!ids || ids.length === 0) {
                 area.innerHTML = `<div id="noSelectedPlaceholder" class="text-center text-muted py-5">
-                                        <i class="bi bi-clipboard-x text-secondary" style="font-size:2.5rem"></i>
-                                        <div class="mt-2 fw-semibold">Belum ada soal terpilih.</div>
-                                        <div class="small">Klik tombol <strong>Lihat Soal</strong> di bawah untuk menambah soal.</div>
-                                      </div>`;
-                updateCountDisplays(0);
+                                            <i class="bi bi-clipboard-x text-secondary" style="font-size:2.5rem"></i>
+                                            <div class="mt-2 fw-semibold">Belum ada soal terpilih.</div>
+                                            <div class="small">Klik tombol <strong>Lihat Soal</strong> di bawah untuk menambah soal.</div>
+                                          </div>`;
+                updateCountDisplays([]);
                 return;
             }
 
             let html = '';
             ids.forEach(id => {
-                const q = questionsMap && questionsMap[id] ? questionsMap[id] : null;
+                const q = (questionsMap && questionsMap[id]) ? questionsMap[id] : ALL_QUESTIONS[id];
                 let tagHtml = '';
                 if (q && q.tags && q.tags !== '-') {
                     tagHtml = ` — <span class="badge bg-light text-dark border"><i class="bi bi-tag-fill me-1"></i>${q.tags}</span>`;
                 }
-                const smallText = q ? (`<span class="badge bg-secondary me-1">${q.type}</span><span class="badge bg-info text-dark">${q.difficulty}</span>${tagHtml}`) : '';
-                const bodyText = q ? escapeHtml(q.text) : `Memuat soal #${id}...`;
+                const diffClass = q ? getDifficultyBadgeClass(q.difficulty) : 'bg-info text-dark';
+                const smallText = q ? (`<span class="badge bg-secondary me-1">${q.type}</span><span class="badge ${diffClass} me-1">${q.difficulty}</span>${tagHtml}`) : '';
+                const bodyText = q ? escapeHtml(q.text || q.question) : `Memuat soal #${id}...`;
 
                 html += `<div class="p-3 border rounded-3 mb-2 bg-light d-flex justify-content-between align-items-start shadow-sm" id="selectedItem-${id}">
-                                <div>
-                                    <div class="mb-1">${smallText}</div>
-                                    <div class="mt-1 text-dark fw-medium" id="selectedText-${id}">${bodyText}</div>
-                                </div>
-                                <button class="btn btn-sm btn-outline-danger ms-2 flex-shrink-0" onclick="hapusDariTerpilih(${id})" title="Hapus Soal Ini">
-                                    <i class="bi bi-trash3-fill"></i>
-                                </button>
-                            </div>`;
+                                    <div>
+                                        <div class="mb-1">${smallText}</div>
+                                        <div class="mt-1 text-dark fw-medium" id="selectedText-${id}">${bodyText}</div>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-danger ms-2 flex-shrink-0" onclick="hapusDariTerpilih(${id})" title="Hapus Soal Ini">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </button>
+                                </div>`;
             });
             area.innerHTML = html;
-            updateCountDisplays(ids.length);
+            updateCountDisplays(ids, questionsMap);
 
             const toFetch = ids.filter(id => {
-                const q = questionsMap && questionsMap[id] ? questionsMap[id] : null;
-                return !(q && q.text);
+                const q = (questionsMap && questionsMap[id]) ? questionsMap[id] : ALL_QUESTIONS[id];
+                return !(q && (q.text || q.question));
             });
 
             if (toFetch.length === 0) return;
@@ -417,11 +482,30 @@
             }));
         }
 
-        function updateCountDisplays(total) {
+        // Memperbarui Total Count & Komposisi Kesulitan
+        function updateCountDisplays(ids, questionsMap = null) {
+            const total = ids ? ids.length : 0;
             const currentTotalEl = document.getElementById('currentTotal');
             const headerBadgeEl = document.getElementById('headerCountBadge');
             if (currentTotalEl) currentTotalEl.innerText = total;
             if (headerBadgeEl) headerBadgeEl.innerText = total + ' Soal';
+
+            let mudah = 0, sedang = 0, sulit = 0;
+            if (ids && ids.length) {
+                ids.forEach(id => {
+                    const q = (questionsMap && questionsMap[id]) ? questionsMap[id] : ALL_QUESTIONS[id];
+                    if (q) {
+                        const diff = (q.difficulty || '').toLowerCase();
+                        if (diff === 'mudah') mudah++;
+                        else if (diff === 'sedang') sedang++;
+                        else if (diff === 'sulit') sulit++;
+                    }
+                });
+            }
+
+            document.getElementById('countMudah').innerText = mudah;
+            document.getElementById('countSedang').innerText = sedang;
+            document.getElementById('countSulit').innerText = sulit;
         }
 
         const soalModalEl = document.getElementById('soalModal');
@@ -485,11 +569,11 @@
         if (btnApply) {
             btnApply.addEventListener('click', function () {
                 const jumlahSoal = readCheckedN();
-                if (!jumlahSoal || jumlahSoal <= 0) {
+                if (!jumlahSoal || jumlahSoal < MIN_SOAL_LIMIT) {
                     Swal.fire({
                         icon: 'warning',
-                        title: 'Jumlah soal belum ditentukan',
-                        text: 'Silakan pilih atau ketik jumlah soal minimum terlebih dahulu.',
+                        title: 'Jumlah soal belum sesuai',
+                        text: `Silakan pilih atau ketik jumlah soal minimum (Minimal ${MIN_SOAL_LIMIT} Soal).`,
                         confirmButtonColor: '#f87171'
                     });
                     return;
@@ -600,7 +684,7 @@
                             if ((window.lastPicked || []).length === 0) {
                                 renderSelectedArea([]);
                             } else {
-                                updateCountDisplays(window.lastPicked.length);
+                                updateCountDisplays(window.lastPicked);
                             }
 
                             Swal.fire({
@@ -768,11 +852,11 @@
         if (btnAmbil) {
             btnAmbil.addEventListener('click', function () {
                 const jumlah = readCheckedN();
-                if (!jumlah || jumlah <= 0) {
+                if (!jumlah || jumlah < MIN_SOAL_LIMIT) {
                     Swal.fire({
                         icon: 'warning',
-                        title: 'Jumlah Soal Belum Ditentukan',
-                        text: 'Pilih atau masukkan jumlah soal terlebih dahulu.',
+                        title: 'Jumlah Soal Belum Sesuai',
+                        text: `Pilih atau masukkan jumlah soal minimal ${MIN_SOAL_LIMIT} soal.`,
                         confirmButtonColor: '#f87171'
                     });
                     return;
@@ -827,11 +911,11 @@
         if (btnSelectAll) {
             btnSelectAll.addEventListener('click', function () {
                 const jumlah = readCheckedN();
-                if (!jumlah || jumlah <= 0) {
+                if (!jumlah || jumlah < MIN_SOAL_LIMIT) {
                     Swal.fire({
                         icon: 'warning',
                         title: 'Jumlah Soal Belum Ditentukan',
-                        text: 'Silakan pilih atau masukkan jumlah soal minimum terlebih dahulu.',
+                        text: `Silakan pilih atau masukkan jumlah soal minimum terlebih dahulu (Minimal ${MIN_SOAL_LIMIT} soal).`,
                         confirmButtonColor: '#f87171'
                     });
                     return;
@@ -872,11 +956,11 @@
             let n = readCheckedN();
             if (!n) n = (window.lastPicked || []).length || null;
 
-            if (!n || n <= 0) {
+            if (!n || n < MIN_SOAL_LIMIT) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Jumlah Soal Belum Ditentukan',
-                    text: 'Silakan pilih atau masukkan jumlah soal minimum terlebih dahulu.',
+                    text: `Silakan pilih atau masukkan jumlah soal minimum terlebih dahulu (Minimal ${MIN_SOAL_LIMIT} soal).`,
                     confirmButtonColor: '#f87171'
                 });
                 return;
@@ -898,8 +982,8 @@
                     icon: 'warning',
                     title: 'Jumlah Soal Belum Mencukupi',
                     html: `Jumlah soal yang dipilih: <b>${totalDipilih}</b><br>
-                               Jumlah soal minimal yang ditentukan: <b>${n}</b><br><br>
-                               Silakan tambah <b>${n - totalDipilih}</b> soal lagi ke dalam aktivitas ini.`
+                                   Jumlah soal minimal yang ditentukan: <b>${n}</b><br><br>
+                                   Silakan tambah <b>${n - totalDipilih}</b> soal lagi ke dalam aktivitas ini.`
                 });
                 return;
             }

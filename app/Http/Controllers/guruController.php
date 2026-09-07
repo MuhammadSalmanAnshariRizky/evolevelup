@@ -954,50 +954,39 @@ class guruController extends Controller
     {
         $guruId = Auth::id();
 
-        // 🔹 ambil kelas yang diajar guru
+        // 🔹 Ambil kelas yang diajar guru
         $kelasGuru = DB::table('classes')
             ->join('teacher_classes', 'classes.id', '=', 'teacher_classes.id_class')
             ->where('teacher_classes.id_teacher', $guruId)
-            ->select(
-                'classes.id',
-                'classes.level',
-                'classes.grade',
-                'classes.name'
-            )
+            ->select('classes.id', 'classes.level', 'classes.grade', 'classes.name')
             ->orderBy('classes.level')
             ->orderBy('classes.grade')
             ->get();
 
-        // 🔹 ambil class ID
         $kelasIds = $kelasGuru->pluck('id')->toArray();
 
-        // 🔹 ambil subject dalam kelas tersebut
         $subjectIds = DB::table('subject')
             ->whereIn('id_class', $kelasIds)
             ->pluck('id')
             ->toArray();
 
-        // 🔹 ambil topics
+        // 🔹 Ambil topics beserta LEVEL dari kelasnya
         $topics = DB::table('topics')
-            ->whereIn('id_subject', $subjectIds)
-            ->select('id', 'title', 'id_subject')
-            ->orderBy('title')
+            ->join('subject', 'topics.id_subject', '=', 'subject.id')
+            ->join('classes', 'subject.id_class', '=', 'classes.id')
+            ->whereIn('topics.id_subject', $subjectIds)
+            ->select('topics.id', 'topics.title', 'topics.id_subject', 'classes.level')
+            ->orderBy('topics.title')
             ->get();
 
-        // 🔹 ambil subjects (opsional, kamu memang pakai)
         $subjects = DB::table('subject')
             ->whereIn('id', $subjectIds)
             ->select('id', 'name', 'id_class')
             ->get();
 
-        return view('guru.tambahsoal', compact(
-            'topics',
-            'subjects',
-            'kelasGuru'
-        ));
+        return view('guru.tambahsoal', compact('topics', 'subjects', 'kelasGuru'));
     }
 
-    // simpan soal baru
     public function simpanSoal(Request $request)
     {
         $request->validate([
@@ -1014,10 +1003,9 @@ class guruController extends Controller
             'URL' => $request->question_url ?? null,
         ];
 
-        // jika user upload file gambar, kamu bisa simpan file dan set URL di $questionData['URL']
         if ($request->hasFile('question_image')) {
             $f = $request->file('question_image');
-            $path = $f->store('public/question_images'); // sesuaikan disk
+            $path = $f->store('public/question_images');
             $questionData['URL'] = \Storage::url($path);
         }
 
@@ -1029,15 +1017,18 @@ class guruController extends Controller
             $options = [];
             $texts = $request->input('option_text', []);
             $urls = $request->input('option_url', []);
-            // option_image file handling jika diperlukan (saat upload file, butuh loop melalui request->file('option_image'))
+
             foreach ($texts as $index => $text) {
-                $label = chr(97 + $index); // a,b,c,d,e
-                $options[] = [
-                    $label => [
-                        'teks' => $text ?? '',
-                        'url' => $urls[$index] ?? null
-                    ]
-                ];
+                // Hanya simpan opsi yang memiliki teks/isi
+                if ($text !== null && trim($text) !== '') {
+                    $label = chr(97 + $index); // a, b, c, d, e
+                    $options[] = [
+                        $label => [
+                            'teks' => $text,
+                            'url' => $urls[$index] ?? null
+                        ]
+                    ];
+                }
             }
             $mcOption = !empty($options) ? json_encode($options) : null;
             $mcAnswer = $request->mc_answer ?? null;
@@ -1046,29 +1037,20 @@ class guruController extends Controller
         }
 
         $tags = null;
-
         if ($request->filled('tags')) {
-            $tagsArray = array_values(
-                array_filter(
-                    array_map('trim', explode(',', $request->tags))
-                )
-            );
-
-            $tags = !empty($tagsArray)
-                ? json_encode($tagsArray)
-                : null;
+            $tagsArray = array_values(array_filter(array_map('trim', explode(',', $request->tags))));
+            $tags = !empty($tagsArray) ? json_encode($tagsArray) : null;
         }
 
-        // 🔹 LOGIKA PENENTUAN DELTA (RASCH MODEL)
         $difficulty = $request->difficulty ?? 'sedang';
-        $delta = 0.0; // Default sedang
+        $delta = 0.0;
         if ($difficulty === 'mudah') {
             $delta = -1.5;
         } elseif ($difficulty === 'sulit') {
             $delta = 1.5;
         }
 
-        $question = Question::create([
+        Question::create([
             'type' => $request->type,
             'question' => json_encode($questionData),
             'hint' => $request->hint,
@@ -1081,13 +1063,13 @@ class guruController extends Controller
             'tags' => $tags,
             'created_by' => Auth::id(),
         ]);
-        return back()->with('success', 'Soal berhasil disimpan!');
+
+        return redirect()->route('tampilanSoal')->with('success', 'Soal berhasil disimpan!');
     }
     // 🔹 Edit soal
     public function editSoal($id)
     {
         $data = Question::findOrFail($id);
-
         $teacherId = Auth::id();
 
         $classIds = DB::table('teacher_classes')
@@ -1100,19 +1082,18 @@ class guruController extends Controller
             ->pluck('id')
             ->toArray();
 
+        // 🔹 Ambil topik beserta LEVEL dari kelasnya
         $topics = Topic::whereIn('id_subject', $subjectIds)
-            ->orderBy('title')
+            ->join('subject', 'topics.id_subject', '=', 'subject.id')
+            ->join('classes', 'subject.id_class', '=', 'classes.id')
+            ->select('topics.*', 'classes.level')
+            ->orderBy('topics.title')
             ->get();
 
         $kelasGuru = DB::table('classes')
             ->join('teacher_classes', 'classes.id', '=', 'teacher_classes.id_class')
             ->where('teacher_classes.id_teacher', $teacherId)
-            ->select(
-                'classes.id',
-                'classes.level',
-                'classes.grade',
-                'classes.name'
-            )
+            ->select('classes.id', 'classes.level', 'classes.grade', 'classes.name')
             ->orderBy('classes.level')
             ->orderBy('classes.grade')
             ->get();
@@ -1120,21 +1101,17 @@ class guruController extends Controller
         return view('guru.editsoal', compact('data', 'topics', 'kelasGuru'));
     }
 
-    /**
-     * Update soal — handling file uploads, opsi, & hint dengan aman
-     */
     public function updateSoal(Request $request, $id)
     {
         $data = Question::findOrFail($id);
 
-        // Basic validation
         $rules = [
             'question_text' => 'required|string',
             'question_url' => 'nullable|url',
             'difficulty' => 'nullable|in:mudah,sedang,sulit',
             'id_topic' => 'nullable|exists:topics,id',
             'tags' => 'nullable|string|max:500',
-            'hint' => 'nullable|string', // 👈 Validation hint
+            'hint' => 'nullable|string',
         ];
 
         if ($data->type === 'MultipleChoice') {
@@ -1142,25 +1119,22 @@ class guruController extends Controller
             $rules['option_text.*'] = 'nullable|string';
             $rules['option_url.*'] = 'nullable|url';
             $rules['mc_answer'] = 'required|in:a,b,c,d,e';
-        } else { // ShortAnswer
+        } else {
             $rules['sa_answer'] = 'nullable|array';
             $rules['sa_answer.*'] = 'nullable|string';
         }
 
-        $validated = $request->validate($rules);
+        $request->validate($rules);
 
-        // Build question JSON
         $questionData = [
             'text' => $request->question_text,
             'URL' => $request->question_url ?? null,
         ];
 
-        // Handle file upload for question image
         if ($request->hasFile('question_image')) {
             $file = $request->file('question_image');
             $path = $file->store('public/question_images');
-            $url = Storage::url($path);
-            $questionData['URL'] = $url;
+            $questionData['URL'] = \Storage::url($path);
         }
 
         $mcOption = null;
@@ -1178,25 +1152,26 @@ class guruController extends Controller
             for ($i = 0; $i < 5; $i++) {
                 $label = $labels[$i];
                 $text = isset($texts[$i]) ? trim((string) $texts[$i]) : '';
-                $optUrl = isset($urls[$i]) ? $urls[$i] : null;
+                $optUrl = $urls[$i] ?? null;
 
                 if (isset($files[$i]) && $files[$i] && is_uploaded_file($files[$i]->getPathname())) {
                     $p = $files[$i]->store('public/option_images');
-                    $optUrl = Storage::url($p);
+                    $optUrl = \Storage::url($p);
                 }
 
-                $options[] = [
-                    $label => [
-                        'teks' => $text,
-                        'url' => $optUrl ?: null
-                    ]
-                ];
+                if ($text !== '' || $optUrl !== null) {
+                    $options[] = [
+                        $label => [
+                            'teks' => $text,
+                            'url' => $optUrl ?: null
+                        ]
+                    ];
+                }
             }
 
-            $mcOption = json_encode($options);
+            $mcOption = !empty($options) ? json_encode($options) : null;
             $mcAnswer = $request->mc_answer;
         } else {
-            // ShortAnswer
             $sa = $request->input('sa_answer', []);
             $filtered = array_values(array_filter(array_map(function ($v) {
                 return is_null($v) ? null : trim((string) $v);
@@ -1207,7 +1182,6 @@ class guruController extends Controller
             $saAnswer = !empty($filtered) ? json_encode($filtered) : null;
         }
 
-        // Penentuan delta
         $difficulty = $request->difficulty ?? $data->difficulty;
         $delta = 0.0;
         if ($difficulty === 'mudah') {
@@ -1218,16 +1192,10 @@ class guruController extends Controller
 
         $tags = null;
         if ($request->filled('tags')) {
-            $tagsArray = array_values(
-                array_filter(
-                    array_map('trim', explode(',', $request->tags))
-                )
-            );
-
+            $tagsArray = array_values(array_filter(array_map('trim', explode(',', $request->tags))));
             $tags = !empty($tagsArray) ? json_encode($tagsArray) : null;
         }
 
-        // Update record
         $data->question = json_encode($questionData);
         $data->MC_option = $mcOption;
         $data->SA_answer = $saAnswer;
@@ -1236,15 +1204,12 @@ class guruController extends Controller
         $data->delta = $delta;
         $data->id_topic = $request->id_topic ?? $data->id_topic;
         $data->tags = $tags;
-
-        // Simpan hint hanya jika tipe soalnya Isian Singkat
         $data->hint = ($data->type === 'ShortAnswer') ? $request->hint : null;
 
         $data->save();
 
-        return back()->with('success', 'Soal berhasil diedit!');
+        return redirect()->route('tampilanSoal')->with('success', 'Soal berhasil diedit!');
     }
-
     // 🔹 Hapus soal
     public function hapusSoal($id)
     {

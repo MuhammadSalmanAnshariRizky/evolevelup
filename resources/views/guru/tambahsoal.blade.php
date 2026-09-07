@@ -65,15 +65,15 @@
                             </select>
                         </div>
 
-                        {{-- Topik --}}
+                        {{-- Topik (Menyimpan data-level untuk JavaScript) --}}
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Topik (opsional)</label>
                             <select name="id_topic" class="form-select" id="id_topic">
-                                <option value="">-- Pilih Topik --</option>
+                                <option value="" data-level="default">-- Pilih Topik --</option>
                                 @if(isset($topics) && $topics->count())
                                     @foreach($topics as $t)
-                                        <option value="{{ $t->id }}">
-                                            {{ $t->title }}
+                                        <option value="{{ $t->id }}" data-level="{{ $t->level }}">
+                                            {{ $t->title }} ({{ $t->level }})
                                         </option>
                                     @endforeach
                                 @endif
@@ -126,7 +126,6 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Gambar Soal (opsional)</label>
 
-                            {{-- Custom Input File + Tombol Hapus --}}
                             <div class="input-group mb-2">
                                 <button class="btn btn-outline-secondary" type="button" id="btnTriggerQuestionImage">
                                     <i class="bi bi-image me-1"></i> Pilih File
@@ -159,7 +158,7 @@
 
                             <div class="row">
                                 @foreach(['a', 'b', 'c', 'd', 'e'] as $i => $opt)
-                                    <div class="col-md-4 mb-3">
+                                    <div class="col-md-4 mb-3 option-card-col" id="col-option-{{ $opt }}" data-opt="{{ $opt }}">
                                         <div class="card shadow-sm border-0 h-100 option-card">
                                             <div class="card-body">
                                                 <label class="fw-semibold mb-2">Opsi {{ strtoupper($opt) }}</label>
@@ -203,8 +202,8 @@
                                             <select name="mc_answer" id="mc_answer" class="form-select">
                                                 <option value="">-- Pilih Jawaban --</option>
                                                 @foreach(['a', 'b', 'c', 'd', 'e'] as $opt)
-                                                    <option value="{{ $opt }}">{{ strtoupper($opt) }}</option>
-                                                @endforeach
+                                                    <option value="{{ $opt }}" id="mc-ans-opt-{{ $opt }}">{{ strtoupper($opt) }}
+                                                </option>@endforeach
                                             </select>
                                         </div>
                                     </div>
@@ -247,93 +246,30 @@
     <div class="modal fade" id="modalInfoTambahSoal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content rounded-4 shadow">
-
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title">
-                        <i class="bi bi-info-circle me-2"></i>
-                        Panduan Menambah Soal
+                        <i class="bi bi-info-circle me-2"></i> Panduan Menambah Soal
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-
                 <div class="modal-body">
-                    <p>
-                        Halaman <strong>Tambah Soal</strong> digunakan untuk membuat soal baru
-                        yang akan disimpan ke bank soal dan dapat digunakan dalam berbagai aktivitas.
-                    </p>
+                    <p>Halaman <strong>Tambah Soal</strong> digunakan untuk membuat soal baru yang akan disimpan ke bank
+                        soal.</p>
                     <hr>
-                    <h6 class="fw-bold text-primary">
-                        <i class="bi bi-ui-checks me-1"></i>
-                        Tipe & Kesulitan Soal
-                    </h6>
+                    <h6 class="fw-bold text-primary"><i class="bi bi-ui-checks me-1"></i> Jumlah Opsi Pilihan Ganda</h6>
                     <ul>
-                        <li><strong>Tipe Soal</strong> menentukan bentuk soal:
-                            <ul>
-                                <li><b>Pilihan Ganda</b>: memiliki opsi A–E dan satu jawaban benar</li>
-                                <li><b>Isian Singkat</b>: memiliki satu atau lebih jawaban benar serta petunjuk/hint</li>
-                            </ul>
-                        </li>
-                        <li><strong>Tingkat Kesulitan</strong> digunakan untuk pengelompokan dan sistem adaptive.</li>
-                    </ul>
-                    <hr>
-                    <h6 class="fw-bold text-secondary">
-                        <i class="bi bi-tags me-1"></i>
-                        Topik Soal
-                    </h6>
-                    <ul>
-                        <li>Topik bersifat <b>opsional</b>.</li>
-                        <li>Topik yang muncul hanya berasal dari mata pelajaran dan kelas yang Anda ajar.</li>
-                        <li>Topik memudahkan pengelompokan soal dan pemilihan otomatis.</li>
-                    </ul>
-                    <hr>
-                    <h6 class="fw-bold text-success">
-                        <i class="bi bi-question-circle me-1"></i>
-                        Teks & Gambar Pertanyaan
-                    </h6>
-                    <ul>
-                        <li>Teks pertanyaan wajib diisi.</li>
-                        <li>Gambar soal bersifat opsional dan dapat diisi dengan upload file atau URL gambar.</li>
-                    </ul>
-                    <hr>
-                    <h6 class="fw-bold text-warning">
-                        <i class="bi bi-list-check me-1"></i>
-                        Pilihan Jawaban (Pilihan Ganda)
-                    </h6>
-                    <ul>
-                        <li>Semua opsi A–E harus diisi.</li>
-                        <li>Setiap opsi dapat memiliki teks jawaban dan gambar (opsional).</li>
-                        <li>Jawaban benar wajib dipilih.</li>
-                    </ul>
-                    <hr>
-                    <h6 class="fw-bold text-info">
-                        <i class="bi bi-pencil-square me-1"></i>
-                        Jawaban Isian Singkat
-                    </h6>
-                    <ul>
-                        <li>Minimal satu jawaban harus diisi.</li>
-                        <li>Gunakan tombol <b>Tambah Jawaban</b> untuk menambahkan variasi jawaban benar.</li>
-                    </ul>
-                    <hr>
-                    <h6 class="fw-bold text-danger">
-                        <i class="bi bi-shield-check me-1"></i>
-                        Validasi Form
-                    </h6>
-                    <ul>
-                        <li>Sistem akan memeriksa kelengkapan data sebelum soal disimpan.</li>
+                        <li><b>SD / MI</b>: 3 Opsi Jawaban (A – C)</li>
+                        <li><b>SMP / MTs</b>: 4 Opsi Jawaban (A – D)</li>
+                        <li><b>SMA / SMK / MA / PT</b>: 5 Opsi Jawaban (A – E)</li>
                     </ul>
                 </div>
-
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Tutup
-                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                 </div>
-
             </div>
         </div>
     </div>
 
-    {{-- SweetAlert2 --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Scripts -->
@@ -344,20 +280,57 @@
             const opsiSA = document.getElementById('opsiIsianSingkat');
             const petunjukContainer = document.getElementById('petunjukContainer');
             const hintInput = document.getElementById('hint');
-            const tambahJawaban = document.getElementById('tambahJawaban');
-            const jawabanContainer = document.getElementById('jawabanContainer');
-
-            const btnTriggerQuestionImage = document.getElementById('btnTriggerQuestionImage');
-            const questionImageInput = document.getElementById('questionImageInput');
-            const questionFileName = document.getElementById('questionFileName');
-            const questionUrlInput = document.getElementById('question_url');
-            const previewQuestionImage = document.getElementById('previewQuestionImage');
-            const btnClearQuestionImage = document.getElementById('btnClearQuestionImage');
-
+            const idTopicSelect = document.getElementById('id_topic');
+            const mcAnswerSelect = document.getElementById('mc_answer');
             const form = document.getElementById('soalForm');
             const submitBtn = document.getElementById('submitBtn');
 
-            // Toggle area sesuai tipe soal (Opsi PG, Opsi SA, dan Petunjuk Container)
+            // 🔹 LOGIKA DINAMIS JUMLAH OPSI JAWABAN BERDASARKAN LEVEL TOPIK
+            function adjustOptionCount() {
+                const selectedOption = idTopicSelect.options[idTopicSelect.selectedIndex];
+                const level = selectedOption ? selectedOption.getAttribute('data-level') : 'default';
+
+                let maxOptions = 5; // Fallback default (SMA/SMK/MA/PT)
+
+                if (['SD', 'MI'].includes(level)) {
+                    maxOptions = 3; // Opsi A, B, C
+                } else if (['SMP', 'MTs'].includes(level)) {
+                    maxOptions = 4; // Opsi A, B, C, D
+                } else if (['SMA', 'SMK', 'MA', 'PT'].includes(level)) {
+                    maxOptions = 5; // Opsi A, B, C, D, E
+                }
+
+                const labels = ['a', 'b', 'c', 'd', 'e'];
+
+                labels.forEach((opt, index) => {
+                    const colEl = document.getElementById(`col-option-${opt}`);
+                    const ansOptEl = document.getElementById(`mc-ans-opt-${opt}`);
+
+                    if (index < maxOptions) {
+                        if (colEl) colEl.style.display = 'block';
+                        if (ansOptEl) ansOptEl.style.display = 'block';
+                    } else {
+                        if (colEl) {
+                            colEl.style.display = 'none';
+                            // Reset isi input jika disembunyikan
+                            const input = colEl.querySelector('.option-text');
+                            if (input) input.value = '';
+                        }
+                        if (ansOptEl) {
+                            ansOptEl.style.display = 'none';
+                            if (mcAnswerSelect.value === opt) {
+                                mcAnswerSelect.value = ''; // Reset pilihan jika jawaban terpilih disembunyikan
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Jalankan saat topik berubah
+            idTopicSelect.addEventListener('change', adjustOptionCount);
+            adjustOptionCount(); // Jalankan sekali saat load
+
+            // Toggle area tipe soal
             tipeSoal.addEventListener('change', function () {
                 const isShortAnswer = this.value === 'ShortAnswer';
                 const isMultipleChoice = this.value === 'MultipleChoice';
@@ -366,21 +339,28 @@
                 opsiSA.style.display = isShortAnswer ? 'block' : 'none';
                 petunjukContainer.style.display = isShortAnswer ? 'block' : 'none';
 
-                // Bersihkan isi hint jika user berpindah dari Isian Singkat ke Pilihan Ganda
                 if (!isShortAnswer) {
                     hintInput.value = '';
                 }
             });
 
-            tambahJawaban.addEventListener('click', function () {
+            // Tambah Input Isian Singkat
+            document.getElementById('tambahJawaban').addEventListener('click', function () {
                 const input = document.createElement('input');
                 input.type = 'text';
                 input.name = 'sa_answer[]';
                 input.classList.add('form-control', 'sa-answer', 'mb-2');
                 input.placeholder = 'Masukkan jawaban singkat';
-                jawabanContainer.appendChild(input);
+                document.getElementById('jawabanContainer').appendChild(input);
                 input.focus();
             });
+
+            // Handling Image Previews & Clear Buttons
+            const btnTriggerQuestionImage = document.getElementById('btnTriggerQuestionImage');
+            const questionImageInput = document.getElementById('questionImageInput');
+            const questionFileName = document.getElementById('questionFileName');
+            const questionUrlInput = document.getElementById('question_url');
+            const previewQuestionImage = document.getElementById('previewQuestionImage');
 
             btnTriggerQuestionImage.addEventListener('click', () => questionImageInput.click());
 
@@ -390,31 +370,13 @@
                     questionFileName.value = file.name;
                     const reader = new FileReader();
                     reader.onload = function (event) {
-                        previewQuestionImage.innerHTML = `<img src="${event.target.result}" alt="Preview Gambar Soal" class="img-fluid rounded shadow-sm mt-2" style="max-height: 180px;">`;
+                        previewQuestionImage.innerHTML = `<img src="${event.target.result}" class="img-fluid rounded shadow-sm mt-2" style="max-height: 180px;">`;
                     };
                     reader.readAsDataURL(file);
-                } else {
-                    questionFileName.value = '';
-                    renderQuestionUrlPreview();
                 }
             });
 
-            questionUrlInput.addEventListener('input', function () {
-                if (!questionImageInput.files.length) {
-                    renderQuestionUrlPreview();
-                }
-            });
-
-            function renderQuestionUrlPreview() {
-                const url = questionUrlInput.value.trim();
-                if (url) {
-                    previewQuestionImage.innerHTML = `<img src="${url}" alt="Preview URL Gambar" class="img-fluid rounded shadow-sm mt-2" style="max-height: 180px;" onerror="this.remove();">`;
-                } else {
-                    previewQuestionImage.innerHTML = '';
-                }
-            }
-
-            btnClearQuestionImage.addEventListener('click', function () {
+            document.getElementById('btnClearQuestionImage').addEventListener('click', function () {
                 questionImageInput.value = '';
                 questionFileName.value = '';
                 questionUrlInput.value = '';
@@ -440,26 +402,8 @@
                             previewEl.innerHTML = `<img src="${event.target.result}" class="img-fluid rounded shadow-sm mt-1" style="max-height: 100px;">`;
                         };
                         reader.readAsDataURL(file);
-                    } else {
-                        fileNameInput.value = '';
-                        renderOptUrlPreview();
                     }
                 });
-
-                urlInput.addEventListener('input', function () {
-                    if (!fileInput.files.length) {
-                        renderOptUrlPreview();
-                    }
-                });
-
-                function renderOptUrlPreview() {
-                    const url = urlInput.value.trim();
-                    if (url) {
-                        previewEl.innerHTML = `<img src="${url}" class="img-fluid rounded shadow-sm mt-1" style="max-height: 100px;" onerror="this.remove();">`;
-                    } else {
-                        previewEl.innerHTML = '';
-                    }
-                }
 
                 clearBtn.addEventListener('click', function () {
                     fileInput.value = '';
@@ -469,18 +413,7 @@
                 });
             });
 
-            @if(session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil',
-                    text: {!! json_encode(session('success')) !!},
-                    confirmButtonColor: '#3b82f6',
-                    allowOutsideClick: false
-                }).then(() => {
-                    window.location.href = '{{ route('tampilanSoal') }}';
-                });
-            @endif
-
+            // 🔹 VALIDASI FORM SAAT SUBMIT (Hanya Opsi yang Tampak)
             form.addEventListener('submit', function (e) {
                 submitBtn.disabled = true;
 
@@ -504,37 +437,30 @@
                 const difficulty = document.getElementById('difficulty').value;
                 const questionText = document.getElementById('question_text').value.trim();
 
-                if (!tipe) {
-                    return fail('Pilih tipe soal terlebih dahulu.', tipeSoal);
-                }
-
-                if (!difficulty) {
-                    return fail('Pilih tingkat kesulitan soal terlebih dahulu.', document.getElementById('difficulty'));
-                }
-
-                if (!questionText) {
-                    return fail('Teks pertanyaan harus diisi.', document.getElementById('question_text'));
-                }
+                if (!tipe) return fail('Pilih tipe soal terlebih dahulu.', tipeSoal);
+                if (!difficulty) return fail('Pilih tingkat kesulitan soal terlebih dahulu.', document.getElementById('difficulty'));
+                if (!questionText) return fail('Teks pertanyaan harus diisi.', document.getElementById('question_text'));
 
                 if (tipe === 'MultipleChoice') {
-                    const optionInputs = Array.from(document.querySelectorAll('.option-text'));
-                    const labels = ['A', 'B', 'C', 'D', 'E'];
+                    const visibleCols = Array.from(document.querySelectorAll('.option-card-col')).filter(col => col.style.display !== 'none');
 
-                    for (let i = 0; i < optionInputs.length; i++) {
-                        if ((optionInputs[i].value || '').trim() === '') {
-                            return fail(`Opsi ${labels[i]} belum diisi!`, optionInputs[i]);
+                    for (let i = 0; i < visibleCols.length; i++) {
+                        const optText = visibleCols[i].querySelector('.option-text').value.trim();
+                        const optLabel = visibleCols[i].getAttribute('data-opt').toUpperCase();
+                        if (!optText) {
+                            return fail(`Opsi ${optLabel} belum diisi!`, visibleCols[i].querySelector('.option-text'));
                         }
                     }
 
-                    const mcAnswer = document.getElementById('mc_answer').value;
+                    const mcAnswer = mcAnswerSelect.value;
                     if (!mcAnswer) {
-                        return fail('Silakan pilih jawaban benar untuk soal pilihan ganda.', document.getElementById('mc_answer'));
+                        return fail('Silakan pilih jawaban benar untuk soal pilihan ganda.', mcAnswerSelect);
                     }
                 } else if (tipe === 'ShortAnswer') {
                     const saInputs = Array.from(document.querySelectorAll('.sa-answer'));
                     const anyFilled = saInputs.some(i => (i.value || '').trim() !== '');
                     if (!anyFilled) {
-                        return fail('Masukkan minimal satu jawaban untuk isian singkat.', saInputs[0] || document.getElementById('question_text'));
+                        return fail('Masukkan minimal satu jawaban untuk isian singkat.', saInputs[0]);
                     }
                 }
 
