@@ -261,12 +261,12 @@
                         <span>Performa Siswa</span>
                     </a>
                 </li>
-                <li class="nav-item">
+                <!-- <li class="nav-item">
                     <a class="nav-link @yield('dataMatrix')" href="{{ route('activity.matrix.list') }}">
                         <i class="fas fa-fw fa-table"></i>
                         <span>Matriks Aktivitas</span>
                     </a>
-                </li>
+                </li> -->
 
             @endif
 
