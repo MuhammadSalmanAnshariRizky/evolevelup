@@ -257,7 +257,17 @@
                 <div>
                     <div class="mb-1"><strong>Kelas:</strong> {{ $kelas }}</div>
                     <div class="mb-1"><strong>Mata Pelajaran:</strong> {{ $mapel }}</div>
-                    <div><strong>Topik:</strong> {{ $topik }}</div>
+                    <div class="mb-1"><strong>Topik:</strong> {{ $topik }}</div>
+                    
+                    <!-- INDIKATOR REAL-TIME THETA & SE -->
+                    <div class="mt-2 pt-2 border-top d-flex gap-2 align-items-center">
+                        <span class="badge bg-primary px-2 py-1">
+                            <i class="bi bi-graph-up me-1"></i> Theta (&Theta;): <strong id="liveTheta">0.000</strong>
+                        </span>
+                        <span class="badge bg-info text-dark px-2 py-1">
+                            <i class="bi bi-bullseye me-1"></i> Standard Error (SE): <strong id="liveSE">1.000</strong>
+                        </span>
+                    </div>
                 </div>
 
                 <div id="timer" class="shadow-sm">
@@ -338,6 +348,10 @@
 
                     document.getElementById("info-test").hidden = true;
                     document.getElementById("soal-test").hidden = false;
+
+                    // Set nilai awal Theta dan SE di UI
+                    document.getElementById("liveTheta").innerText = (data.theta_initial ?? 0.0).toFixed(3);
+                    document.getElementById("liveSE").innerText = (1.0).toFixed(3);
 
                     const durasiMenit = Number.isInteger(data.durasi_pengerjaan)
                         ? data.durasi_pengerjaan
@@ -445,6 +459,14 @@
                         currentStreak = 0;
                     }
 
+                    // UPDATE REAL-TIME THETA DAN SE DARI RESPON SERVER
+                    if (res.current_theta !== undefined) {
+                        document.getElementById("liveTheta").innerText = Number(res.current_theta).toFixed(3);
+                    }
+                    if (res.current_se !== undefined) {
+                        document.getElementById("liveSE").innerText = Number(res.current_se).toFixed(3);
+                    }
+
                     showAnswerFeedback(res);
                     updateComboUI(currentStreak);
 
@@ -514,7 +536,7 @@
                 html: 'Sistem sedang memproses nilai Anda.',
                 allowOutsideClick: false,
                 didOpen: () => {
-                    Swal.showLoading()
+                    Swal.showLoading();
                 }
             });
 
@@ -528,39 +550,54 @@
                 .then(r => r.json())
                 .then(res => {
                     const db = res.result_db ?? null;
+                    const debug = res.debug_info ?? {};
 
                     const sec = res.duration_seconds ?? (db ? db.waktu_mengerjakan : 0);
                     const m = Math.floor(sec / 60);
                     const s = sec % 60;
 
-                    const jumlahSoalDik = res.jumlah_soal ?? '-';
-                    const totalBnr = res.total_correct ?? 0;
-
-                    const nilaiAkhir = db ? (db.nilai_akhir ?? null) : null;
+                    const totalDik = debug.total_dikerjakan ?? res.jumlah_soal ?? 0;
+                    const totalBnr = debug.benar ?? res.total_correct ?? 0;
+                    const totalSlh = debug.salah ?? res.total_incorrect ?? 0;
+                    const nilaiAkhir = db ? (db.nilai_akhir ?? 0) : 0;
                     const statusText = db ? (db.result_status ?? '-') : '-';
-
-                    const fmt = v => (v === null || v === undefined) ? '-' : (typeof v === 'number' && v % 1 !== 0 ? v.toFixed(2) : v);
                     const isLulus = statusText === 'Pass';
 
                     const html = `
-                    <div style="text-align:left; font-size: 1.02rem;">
-                        <p class="mb-2"><strong>Waktu Pengerjaan:</strong> ${m} menit ${s} detik</p>
-                        <p class="mb-2"><strong>Soal Diselesaikan:</strong> ${jumlahSoalDik} dari Maksimal ${totalQuestions}</p>
-                        <p class="mb-3"><strong>Benar:</strong> <span class="text-success fw-bold">${totalBnr}</span> | <strong>Salah:</strong> <span class="text-danger fw-bold">${jumlahSoalDik !== '-' ? (jumlahSoalDik - totalBnr) : '-'}</span></p>
-                        <hr class="border-2 border-secondary">
-                        <div class="text-center bg-light p-3 rounded-3 shadow-sm border">
-                            <p class="mb-1 text-muted small">Nilai Akhir</p>
-                            <h2 class="mb-2 fw-bolder ${isLulus ? 'text-success' : 'text-danger'}">${fmt(nilaiAkhir)}</h2>
-                            <span class="badge ${isLulus ? 'bg-success' : 'bg-danger'} fs-6 px-4 py-2 mt-1">${isLulus ? 'LULUS' : 'REMEDIAL'}</span>
-                        </div>
+            <div style="text-align:left; font-size: 0.95rem;">
+                <p class="mb-1"><strong>Waktu Pengerjaan:</strong> ${m} menit ${s} detik</p>
+                <p class="mb-1"><strong>Soal Diselesaikan:</strong> ${totalDik} dari Maksimal ${totalQuestions}</p>
+                <p class="mb-3">
+                    <strong>Benar:</strong> <span class="text-success fw-bold">${totalBnr}</span> | 
+                    <strong>Salah:</strong> <span class="text-danger fw-bold">${totalSlh}</span>
+                </p>
+                
+                <div class="text-center bg-light p-3 rounded-3 shadow-sm border mb-3">
+                    <p class="mb-1 text-muted small">Nilai Akhir</p>
+                    <h2 class="mb-1 fw-bolder ${isLulus ? 'text-success' : 'text-danger'}">${nilaiAkhir}</h2>
+                    <span class="badge ${isLulus ? 'bg-success' : 'bg-danger'} fs-6 px-3 py-1">${isLulus ? 'LULUS' : 'REMEDIAL'}</span>
+                </div>
+
+                <!-- PANEL DEBUGGING KEMAMPUAN (THETA) & ALASAN SKOR -->
+                <div class="card border-warning bg-warning-subtle p-2 rounded-3 text-dark style="font-size: 0.85rem;">
+                    <div class="fw-bold text-warning-emphasis mb-1">
+                        <i class="bi bi-bug-fill me-1"></i> Panel Debugging Sistem:
                     </div>
-                `;
+                    <ul class="mb-0 ps-3">
+                        <li><b>Perhitungan Nilai:</b> <code>${debug.rumus ?? '-'}</code> = <b>${debug.nilai_hitung ?? 0}</b></li>
+                        <li><b>Sifat Ujian:</b> ${debug.mode_adaptif ? 'Adaptif (IRT 1PL)' : 'Non-Adaptif'}</li>
+                        <li><b>Skor Kemampuan (&Theta; / Theta):</b> <code>${debug.theta_akhir ?? 0}</code> (Logit)</li>
+                        <li><b>Standard Error (SE):</b> <code>${debug.se_akhir ?? 0}</code> (Target SE &le; ${debug.target_se})</li>
+                    </ul>
+                </div>
+            </div>
+        `;
 
                     Swal.fire({
                         title: "Ujian Selesai!",
                         html: html,
                         icon: "success",
-                        confirmButtonText: "Kembali ke Beranda",
+                        confirmButtonText: "Kembali ke Daftar Aktivitas",
                         confirmButtonColor: '#4e73df',
                         allowOutsideClick: false,
                         width: '600px'

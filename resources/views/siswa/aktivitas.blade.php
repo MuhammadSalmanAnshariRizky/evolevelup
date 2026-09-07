@@ -166,8 +166,6 @@
 
                 <p class="text-muted mb-0">Lihat dan kerjakan aktivitas pembelajaranmu di sini.</p>
             </div>
-
-
         </div>
 
         {{-- BELUM DIKERJAKAN --}}
@@ -181,17 +179,11 @@
                 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 gx-4 gy-4">
                     @foreach ($belumDikerjakan as $sub)
                         @php
-                            // nilai & status
                             $nilai = $sub->nilai_akhir ?? null;
                             $status = $sub->result_status ?? '-';
-
-                            // color untuk status
                             $cls = (strtolower($status) === 'remedial') ? 'danger' : ((strtolower($status) === 'pass') ? 'success' : 'secondary');
-
-                            // apakah sudah dinilai
                             $isAlreadyGraded = !is_null($nilai) && $nilai !== '-';
 
-                            // cek deadline (anggap null = tidak ada deadline)
                             $isPastDeadline = false;
                             if (!empty($sub->deadline)) {
                                 try {
@@ -201,7 +193,6 @@
                                 }
                             }
 
-                            // final: tidak bisa mulai jika sudah dinilai atau lewat deadline
                             $cannotStart = $isAlreadyGraded || $isPastDeadline;
                         @endphp
 
@@ -237,7 +228,6 @@
                                         @endif
                                     </div>
 
-                                    {{-- Nilai + status + tombol (disabled jika perlu) --}}
                                     <div class="d-flex flex-column gap-2 mt-2">
                                         <div class="d-flex align-items-center">
                                             <div>
@@ -257,7 +247,6 @@
                                         </div>
 
                                         <div class="meta-line">
-                                            {{-- tambahan ringkasan waktu --}}
                                             <small class="text-muted">
                                                 Dibuat:
                                                 {{ $sub->created_at ? \Carbon\Carbon::parse($sub->created_at)->format('d M Y') : '-' }}
@@ -274,7 +263,7 @@
                                             </button>
                                         @else
                                             <button class="btn btn-success w-100 action-btn"
-                                                onclick="mulaiAktivitas('{{ $sub->id_activity }}')">
+                                                onclick="mulaiAktivitas('{{ $sub->id_activity }}', '{{ addslashes($sub->aktivitas) }}')">
                                                 <i class="bi bi-play-fill me-1"></i> Kerjakan Sekarang
                                             </button>
                                         @endif
@@ -378,7 +367,7 @@
                                             </button>
                                         @else
                                             <button class="btn btn-success w-100 action-btn"
-                                                onclick="mulaiAktivitas('{{ $sub->id_activity }}')">
+                                                onclick="mulaiAktivitas('{{ $sub->id_activity }}', '{{ addslashes($sub->aktivitas) }}')">
                                                 <i class="bi bi-play-fill me-1"></i> Kerjakan Sekarang
                                             </button>
                                         @endif
@@ -401,150 +390,26 @@
     <div class="modal fade" id="modalInfoAktivitas" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 shadow">
-
-                <!-- HEADER -->
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title">
-                        <i class="bi bi-info-circle me-2"></i>
-                        Informasi Aktivitas
+                        <i class="bi bi-info-circle me-2"></i> Informasi Aktivitas
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-
-                <!-- BODY -->
                 <div class="modal-body">
-
-                    <!-- APA ITU AKTIVITAS -->
                     <section class="mb-4">
                         <h6 class="fw-bold text-primary mb-2">
-                            <i class="bi bi-book me-2"></i>
-                            Apa itu Evaluasi?
+                            <i class="bi bi-book me-2"></i> Apa itu Evaluasi?
                         </h6>
                         <p class="text-muted mb-0">
-                            Evaluasi merupakan tugas atau kuis pembelajaran yang diberikan oleh guru
-                            untuk mengukur pemahaman siswa terhadap suatu topik tertentu.
-                            Evaluasi dapat berupa soal <strong>pilihan ganda</strong> maupun
-                            <strong>isian singkat</strong>.
+                            Evaluasi merupakan tugas atau kuis pembelajaran yang diberikan oleh guru untuk mengukur
+                            pemahaman siswa terhadap suatu topik tertentu.
                         </p>
                     </section>
-
-                    <hr>
-
-                    <!-- SISTEM ADAPTIF -->
-                    <section class="mb-4">
-                        <h6 class="fw-bold text-primary mb-2">
-                            <i class="bi bi-sliders me-2"></i>
-                            Sistem Soal Adaptif
-                        </h6>
-                        <p class="text-muted mb-2">
-                            Pada aktivitas <strong>adaptif</strong>, tingkat kesulitan soal akan
-                            menyesuaikan dengan performa siswa selama pengerjaan.
-                        </p>
-                        <ul class="text-muted ps-3 mb-0">
-                            <li>Jawaban benar berturut-turut → soal menjadi lebih sulit</li>
-                            <li>Jawaban salah berturut-turut → soal menjadi lebih mudah</li>
-                            <li>Penyesuaian dilakukan berdasarkan pola benar dan salah</li>
-                        </ul>
-                    </section>
-
-                    <hr>
-
-                    <!-- PEROLEHAN POIN -->
-                    <section class="mb-4">
-                        <h6 class="fw-bold text-primary mb-2">
-                            <i class="bi bi-gem me-2"></i>
-                            Perolehan Poin
-                        </h6>
-                        <p class="text-muted mb-2">
-                            Setiap jawaban benar akan menghasilkan <strong>poin dasar</strong>
-                            sesuai dengan tingkat kesulitan soal.
-                            Seluruh poin akan <strong>dicatat</strong> dan
-                            <strong>diperingkatkan</strong> pada sistem <strong>Leaderboard</strong>.
-                        </p>
-
-                        <ul class="list-group list-group-flush mb-2">
-                            <li class="list-group-item px-0">Soal mudah: <strong>10 poin</strong></li>
-                            <li class="list-group-item px-0">Soal sedang: <strong>20 poin</strong></li>
-                            <li class="list-group-item px-0">Soal sulit: <strong>30 poin</strong></li>
-                        </ul>
-
-                        <p class="text-muted mb-0">
-                            Jika jawaban salah, maka poin dasar untuk soal tersebut adalah <strong>0</strong>.
-                        </p>
-                    </section>
-
-                    <hr>
-
-                    <!-- BONUS POIN -->
-                    <section class="mb-4">
-                        <h6 class="fw-bold text-primary mb-2">
-                            <i class="bi bi-fire me-2"></i>
-                            Bonus Poin (Streak)
-                        </h6>
-                        <p class="text-muted mb-2">
-                            Pada aktivitas adaptif, siswa dapat memperoleh <strong>bonus poin</strong>
-                            berdasarkan jumlah jawaban benar berturut-turut.
-                        </p>
-
-                        <ul class="list-group list-group-flush mb-2">
-                            <li class="list-group-item px-0">
-                                2 jawaban benar berturut-turut: <strong>+5 poin</strong>
-                            </li>
-                            <li class="list-group-item px-0">
-                                3 jawaban benar berturut-turut: <strong>+10 poin</strong>
-                            </li>
-                            <li class="list-group-item px-0">
-                                4 jawaban benar atau lebih: <strong>+15 poin</strong>
-                            </li>
-                        </ul>
-
-                        <p class="text-muted mb-0">
-                            Jika jawaban salah, maka bonus tidak diberikan dan perhitungan streak direset.
-                        </p>
-                    </section>
-
-                    <hr>
-
-                    <!-- PENILAIAN -->
-                    <section>
-                        <h6 class="fw-bold text-primary mb-2">
-                            <i class="bi bi-bar-chart me-2"></i>
-                            Penilaian (Nilai Akhir)
-                        </h6>
-
-                        <p class="text-muted mb-2">
-                            Nilai akhir dihitung berdasarkan perbandingan
-                            <strong>total poin yang diperoleh</strong>
-                            dengan <strong>poin maksimum atau <i>best case</i></strong>.
-                        </p>
-
-                        <div class="bg-light rounded p-3">
-                            <p class="fw-semibold mb-1">Contoh perhitungan:</p>
-                            <ul class="ps-3 text-muted mb-2">
-                                <li>menjawab sebanyak 5 buah soal yaitu,</li>
-                                <li>2 soal sedang × 20 poin = 40 poin</li>
-                                <li>3 soal sulit × 30 poin = 90 poin</li>
-                                <li><strong>Total poin maksimum = 130 poin</strong></li>
-                            </ul>
-
-                            <p class="fw-semibold mb-1">Rumus nilai akhir:</p>
-                            <p class="text-muted mb-0">
-                                (Total poin diperoleh ÷ Total poin maksimum) × 100
-                                <br>
-                                <strong>(130 ÷ 130) × 100 = 100</strong>
-                            </p>
-                        </div>
-                    </section>
-
                 </div>
-
-                <!-- FOOTER -->
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">
-                        Tutup
-                    </button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                 </div>
-
             </div>
         </div>
     </div>
@@ -553,11 +418,11 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        function mulaiAktivitas(id) {
+        function mulaiAktivitas(id, nama) {
             Swal.fire({
                 icon: 'info',
                 title: 'Mulai Aktivitas',
-                html: 'Kamu akan memulai aktivitas dengan ID: <strong>' + id + '</strong>',
+                html: 'Kamu akan memulai aktivitas: <strong>' + nama + '</strong>',
                 showCancelButton: true,
                 confirmButtonText: 'Lanjut',
                 cancelButtonText: 'Batal',

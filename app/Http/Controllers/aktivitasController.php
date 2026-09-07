@@ -4,15 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Models\ActivityResult;
-use App\Models\nilai;
+use App\Models\ActivityAnswer;
 use App\Models\Question;
-use App\Models\Settings;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\ActivityAnswer;
-
 
 class aktivitasController extends Controller
 {
@@ -20,52 +17,74 @@ class aktivitasController extends Controller
     {
         $user = Auth::user();
 
-        // 🔹 Ambil data badge
         $badge = DB::table('user_badge')
             ->join('badge', 'user_badge.id_badge', '=', 'badge.id')
             ->where('user_badge.id_student', $user->id)
             ->select('badge.name', 'badge.description')
             ->first();
 
-        // 🔹 Ambil daftar kelas siswa
         $kelasList = DB::table('student_classes')
             ->join('classes', 'student_classes.id_class', '=', 'classes.id')
             ->where('student_classes.id_student', $user->id)
             ->select('classes.id', 'classes.name', 'classes.level', 'classes.token')
             ->get();
 
-        // 🔹 Ambil aktivitas + nilai
-        $rawActivities = DB::table('activities')
-            ->join('topics', 'activities.id_topic', '=', 'topics.id')
-            ->join('subject', 'topics.id_subject', '=', 'subject.id')
-            ->join('classes', 'subject.id_class', '=', 'classes.id')
-            ->join('student_classes', 'classes.id', '=', 'student_classes.id_class')
-            ->join('users', 'student_classes.id_student', '=', 'users.id')
+        $classIds = $kelasList->pluck('id')->toArray();
+
+        $rawActivitiesQuery = DB::table('activities')
+            ->leftJoin('topics as single_topic', 'activities.id_topic', '=', 'single_topic.id')
+            ->leftJoin('activity_topics', 'activities.id', '=', 'activity_topics.id_activity')
+            ->leftJoin('topics as multi_topic', 'activity_topics.id_topic', '=', 'multi_topic.id')
+            ->leftJoin('subject as sub1', 'single_topic.id_subject', '=', 'sub1.id')
+            ->leftJoin('subject as sub2', 'multi_topic.id_subject', '=', 'sub2.id')
+            ->leftJoin('classes as cls1', 'sub1.id_class', '=', 'cls1.id')
+            ->leftJoin('classes as cls2', 'sub2.id_class', '=', 'cls2.id')
             ->leftJoin('activity_result', function ($join) use ($user) {
                 $join->on('activities.id', '=', 'activity_result.id_activity')
                     ->where('activity_result.id_user', '=', $user->id);
             })
-            ->where('users.id', $user->id)
-            ->whereIn('classes.token', $kelasList->pluck('token'))
+            ->where(function ($query) use ($classIds) {
+                $query->whereIn('cls1.id', $classIds)
+                    ->orWhereIn('cls2.id', $classIds);
+            })
             ->select(
                 'activities.id as id_activity',
                 'activities.id_topic',
                 'activities.title as aktivitas',
                 'activities.status',
-                'topics.title as topik',
-                'subject.name as mapel',
-                'classes.id as id_class',
-                'classes.name as nama_kelas',
-                'classes.level as level_kelas',
+                'activities.type',
                 'activities.created_at',
-                // 🔹 pastikan kolom deadline ini ada, kalau beda nama ganti di sini
                 'activities.deadline',
+                DB::raw('COALESCE(cls1.id, cls2.id) as id_class'),
+                DB::raw('COALESCE(cls1.name, cls2.name) as nama_kelas'),
+                DB::raw('COALESCE(cls1.level, cls2.level) as level_kelas'),
+                DB::raw('COALESCE(sub1.name, sub2.name) as mapel'),
+                DB::raw('single_topic.title as single_topik'),
                 DB::raw('COALESCE(activity_result.nilai_akhir, "-") as result'),
                 DB::raw('COALESCE(activity_result.result_status, "Belum Dikerjakan") as result_status')
             )
             ->get();
 
-        // 🔹 List paling atas: semua yang Belum Dikerjakan, urut deadline terdekat
+        $rawActivities = $rawActivitiesQuery->groupBy('id_activity')->map(function ($group) {
+            $item = $group->first();
+
+            if ($item->type === 'evaluation' || empty($item->id_topic)) {
+                $topicTitles = DB::table('activity_topics')
+                    ->join('topics', 'activity_topics.id_topic', '=', 'topics.id')
+                    ->where('activity_topics.id_activity', $item->id_activity)
+                    ->pluck('topics.title')
+                    ->toArray();
+
+                $item->topik = !empty($topicTitles) ? implode(', ', $topicTitles) : 'Evaluasi Multi-Topik';
+            } else {
+                $item->topik = $item->single_topik ?? '-';
+            }
+
+            $item->nilai_akhir = ($item->result !== '-') ? $item->result : null;
+
+            return $item;
+        })->values();
+
         $belumDikerjakan = $rawActivities
             ->where('result_status', 'Belum Dikerjakan')
             ->sortBy(function ($item) {
@@ -73,15 +92,9 @@ class aktivitasController extends Controller
             })
             ->values();
 
-        // 🔹 Activities per kelas
         $activitiesByClass = $rawActivities
             ->groupBy('id_class')
             ->map(function ($group) {
-                // urutkan di dalam kelas:
-                // 1) Belum Dikerjakan
-                // 2) Remedial
-                // 3) Pass
-                // 4) lainnya
                 $sortedList = $group->sortBy(function ($item) {
                     $status = $item->result_status;
 
@@ -107,17 +120,14 @@ class aktivitasController extends Controller
                     'list' => $sortedList,
                 ];
             })
-            // urutkan kelas: level lalu nama
             ->sortBy(function ($kelas) {
                 return $kelas->level_kelas . '|' . $kelas->nama_kelas;
             })
             ->values();
 
-        // 🔹 Statistik
         $jumlahAktivitas = $rawActivities->count();
         $jumlahRemedial = $rawActivities->where('result_status', 'Remedial')->count();
 
-        // 🔹 Kirim ke view
         return view('siswa.aktivitas', [
             'user' => $user,
             'badge' => $badge,
@@ -129,29 +139,40 @@ class aktivitasController extends Controller
         ]);
     }
 
-
-
     public function show($id)
     {
         $activity = Activity::findOrFail($id);
 
-        // Ambil relasi lengkap berdasarkan id_topic
-        $info = DB::table('topics')
-            ->join('subject', 'topics.id_subject', '=', 'subject.id')
-            ->join('classes', 'subject.id_class', '=', 'classes.id')
-            ->where('topics.id', $activity->id_topic)
-            ->select(
-                'topics.title as topik',
-                'subject.name as mapel',
-                'classes.name as kelas'
-            )
-            ->first();
+        if (!empty($activity->id_topic)) {
+            $info = DB::table('topics')
+                ->join('subject', 'topics.id_subject', '=', 'subject.id')
+                ->join('classes', 'subject.id_class', '=', 'classes.id')
+                ->where('topics.id', $activity->id_topic)
+                ->select('topics.title as topik', 'subject.name as mapel', 'classes.name as kelas')
+                ->first();
+
+            $kelas = $info->kelas ?? '-';
+            $mapel = $info->mapel ?? '-';
+            $topik = $info->topik ?? '-';
+        } else {
+            $topicsData = DB::table('activity_topics')
+                ->join('topics', 'activity_topics.id_topic', '=', 'topics.id')
+                ->join('subject', 'topics.id_subject', '=', 'subject.id')
+                ->join('classes', 'subject.id_class', '=', 'classes.id')
+                ->where('activity_topics.id_activity', $activity->id)
+                ->select('topics.title as topik', 'subject.name as mapel', 'classes.name as kelas')
+                ->get();
+
+            $kelas = $topicsData->pluck('kelas')->first() ?? '-';
+            $mapel = $topicsData->pluck('mapel')->unique()->implode(', ') ?: '-';
+            $topik = $topicsData->pluck('topik')->unique()->implode(', ') ?: 'Evaluasi Multi-Topik';
+        }
 
         return view('siswa.menjawabSoal', [
             'judul' => $activity->title,
-            'kelas' => $info->kelas,
-            'mapel' => $info->mapel,
-            'topik' => $info->topik,
+            'kelas' => $kelas,
+            'mapel' => $mapel,
+            'topik' => $topik,
             'id_activity' => $activity->id,
             'addaptive' => $activity->addaptive,
             'durasi' => $activity->durasi_pengerjaan,
@@ -159,96 +180,90 @@ class aktivitasController extends Controller
         ]);
     }
 
-    /**
-     * TAHAP 2: Inisialisasi Ujian Adaptif
-     */
     public function start(Request $req, $id)
     {
-        session()->forget("activity.$id");
+        try {
+            session()->forget("activity.$id");
 
-        $activity = Activity::findOrFail($id);
-        $totalDB = $activity->questions()->count();
+            $activity = Activity::findOrFail($id);
+            $totalDB = $activity->questions()->count();
 
-        if ($totalDB === 0) {
+            if ($totalDB === 0) {
+                return response()->json([
+                    'totalQuestions' => 0,
+                    'message' => 'Soal belum tersedia di aktivitas ini.'
+                ], 422);
+            }
+
+            $adaptive = ($activity->addaptive === 'yes');
+            $settingJumlahSoal = $activity->jumlah_soal ? (int) $activity->jumlah_soal : $totalDB;
+            $jumlahSoal = min($totalDB, $settingJumlahSoal);
+
+            $minSoal = min(5, (int) floor($jumlahSoal / 2));
+            if ($jumlahSoal >= 10) {
+                $minSoal = 10;
+            }
+
+            session([
+                "activity.$id.theta" => 0.0,
+                "activity.$id.se" => 1.0,
+                "activity.$id.current_index" => 0,
+                "activity.$id.used_questions" => [],
+                "activity.$id.history" => [],
+                "activity.$id.total_correct" => 0,
+                "activity.$id.max_questions" => $jumlahSoal,
+                "activity.$id.min_questions" => $minSoal,
+            ]);
+
+            $startTime = Carbon::now();
+            session(["activity.$id.start_time" => $startTime->toDateTimeString()]);
+
+            $userId = auth()->id();
+
+            ActivityResult::updateOrCreate(
+                ['id_activity' => $id, 'id_user' => $userId],
+                [
+                    'start_time' => $startTime,
+                    'waktu_mengerjakan' => null,
+                    'end_time' => null,
+                    'total_benar' => 0,
+                    'nilai_akhir' => null,
+                    'skor_logit' => 0.0,
+                    'result' => null,
+                    'result_status' => null
+                ]
+            );
+
             return response()->json([
-                'totalQuestions' => 0,
-                'message' => 'Soal belum tersedia di aktivitas ini.'
-            ], 422);
+                'mode' => $adaptive ? 'adaptive' : 'normal',
+                'theta_initial' => 0.0,
+                'totalQuestions' => $jumlahSoal,
+                'target_se' => 0.50,
+                'started_at' => $startTime->toDateTimeString(),
+                'durasi_pengerjaan' => $activity->durasi_pengerjaan ? (int) $activity->durasi_pengerjaan : null
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Gagal memulai ujian: ' . $e->getMessage()
+            ], 500);
         }
-
-        $adaptive = ($activity->addaptive === 'yes');
-
-        // 🔹 PERBAIKAN: Ambil jumlah soal dari database activity ($activity->jumlah_soal) 
-        // atau fallback ke total soal di tabel jika kosong, lalu batasi maksimal 25 (atau sesuai kebutuhan).
-        $settingJumlahSoal = $activity->jumlah_soal ? (int) $activity->jumlah_soal : $totalDB;
-
-        // Batas maksimal soal adaptif disesuaikan dengan pengaturan aktivitas atau total soal di DB
-        $maxSoal = min($totalDB, max(10, $settingJumlahSoal));
-        $jumlahSoal = min($totalDB, $maxSoal);
-
-        // Minimal soal (bisa diatur setengah dari total max atau tetap 10 jika soal mencukupi)
-        $minSoal = min(5, (int) floor($jumlahSoal / 2));
-        if ($jumlahSoal >= 10) {
-            $minSoal = 10; // Jika total soal >= 10, minimal soal tetap 10 sesuai standar CAT
-        }
-
-        // Inisialisasi Session sesuai Parameter Rasch Model
-        session([
-            "activity.$id.theta" => 0.0,                    // Kemampuan awal mahasiswa (Logit)
-            "activity.$id.se" => 1.0,                       // Standard Error awal
-            "activity.$id.current_index" => 0,
-            "activity.$id.used_questions" => [],           // Menyimpan id soal yang sudah dikerjakan
-            "activity.$id.history" => [],                   // Menyimpan riwayat: [ {id, delta, is_correct} ]
-            "activity.$id.total_correct" => 0,
-            "activity.$id.max_questions" => $jumlahSoal,     // Mengikuti jumlah soal aktivitas
-            "activity.$id.min_questions" => $minSoal,       // Batas minimal soal sebelum boleh berhenti
-        ]);
-
-        $startTime = Carbon::now();
-        session(["activity.$id.start_time" => $startTime->toDateTimeString()]);
-
-        $userId = auth()->id();
-        ActivityResult::updateOrCreate(
-            ['id_activity' => $id, 'id_user' => $userId],
-            [
-                'start_time' => $startTime,
-                'waktu_mengerjakan' => null,
-                'end_time' => null,
-                'total_benar' => null
-            ]
-        );
-
-        $durasiMenit = $activity->durasi_pengerjaan ? (int) $activity->durasi_pengerjaan : null;
-
-        return response()->json([
-            'mode' => $adaptive ? 'adaptive' : 'normal',
-            'theta_initial' => 0.0,
-            'totalQuestions' => $jumlahSoal,
-            'target_se' => 0.30,
-            'started_at' => $startTime->toDateTimeString(),
-            'durasi_pengerjaan' => $durasiMenit
-        ]);
     }
 
-    /**
-     * TAHAP 3 (Langkah 3A): Mencari Soal yang Pas Berdasarkan Delta & Theta
-     */
     public function getQuestion(Request $req, $id)
     {
         $activity = Activity::findOrFail($id);
-        $adaptive = $activity->addaptive === 'yes';
+        $adaptive = ($activity->addaptive === 'yes');
         $used = session("activity.$id.used_questions", []);
 
         if ($adaptive) {
             $theta = session("activity.$id.theta", 0.0);
 
-            // [Langkah 3A Rasch Model]: Cari soal yang belum dikerjakan dengan delta paling mendekati theta saat ini
+            // Perbaikan Parameter Binding untuk mencegah Syntax Error saat Theta bernilai negatif
             $question = $activity->questions()
                 ->whereNotIn('question.id', $used)
-                ->orderBy(DB::raw("ABS(delta - {$theta})"), 'ASC')
+                ->orderByRaw('ABS(delta - ?)', [$theta])
                 ->first();
 
-            // Fallback jika query utama kosong
             if (!$question) {
                 $question = $activity->questions()
                     ->whereNotIn('question.id', $used)
@@ -258,7 +273,7 @@ class aktivitasController extends Controller
         } else {
             $index = $req->query('index', 0);
             $question = $activity->questions()
-                ->orderBy('id')
+                ->orderBy('question.id')
                 ->skip($index)
                 ->first();
         }
@@ -270,7 +285,6 @@ class aktivitasController extends Controller
             ]);
         }
 
-        // 🔹 TAMBAHKAN KODE INI: Kategorikan tingkat kesulitan secara otomatis dari delta
         $deltaVal = (float) ($question->delta ?? 0.0);
         if ($deltaVal < -0.5) {
             $difficulty = 'Mudah';
@@ -280,41 +294,43 @@ class aktivitasController extends Controller
             $difficulty = 'Sulit';
         }
 
+        $parsedQuestion = is_string($question->question) ? json_decode($question->question) : $question->question;
+        $parsedOptions = is_string($question->MC_option) ? json_decode($question->MC_option) : $question->MC_option;
+
         return response()->json([
             'question_id' => $question->id,
             'type' => $question->type,
             'delta' => $deltaVal,
-            'difficulty' => $difficulty, // <-- Dikirim ke frontend agar badge ikut berubah dinamis
-            'question' => json_decode($question->question),
-            'options' => json_decode($question->MC_option),
+            'difficulty' => $difficulty,
+            'question' => $parsedQuestion,
+            'options' => $parsedOptions,
         ]);
     }
 
-    /**
-     * TAHAP 3 (Langkah 3B & 3C): Eksekusi & Re-Estimasi Kemampuan (Theta & SE)
-     * Murni Berdasarkan Konsep Rasch Model (Maximum Likelihood / Newton-Raphson) Tanpa Batasan Buatan
-     */
     public function submitAnswer(Request $req, $id)
     {
         $question = Question::findOrFail($req->question_id);
         $activity = Activity::findOrFail($id);
-        $adaptive = $activity->addaptive === 'yes';
+        $adaptive = ($activity->addaptive === 'yes');
 
-        // 1. Cek Kebenaran Jawaban
         $correct = false;
         if ($question->type === 'MultipleChoice') {
             $correct = strtolower(trim($req->user_answer)) === strtolower(trim($question->MC_answer));
         } else if ($question->type === 'ShortAnswer') {
             $answersRaw = $question->SA_answer;
             $answers = is_string($answersRaw) ? json_decode($answersRaw, true) : $answersRaw;
-            if (!is_array($answers))
+            if (!is_array($answers)) {
                 $answers = [];
+            }
 
-            $user = strtolower(trim($req->user_answer));
-            $correct = in_array($user, array_map('strtolower', $answers));
+            $userAns = strtolower(trim($req->user_answer));
+            $cleanAnswers = array_map(function ($item) {
+                return strtolower(trim($item));
+            }, $answers);
+
+            $correct = in_array($userAns, $cleanAnswers);
         }
 
-        // 2. Simpan Jawaban ke Database (Tabel Riwayat Sementara)
         ActivityAnswer::updateOrCreate(
             [
                 'id_activity' => $id,
@@ -333,25 +349,25 @@ class aktivitasController extends Controller
             session(["activity.$id.total_correct" => $totalCorrect + 1]);
         }
 
-        // Tandai soal sudah digunakan
         $used = session("activity.$id.used_questions", []);
-        $used[] = $question->id;
+        if (!in_array($question->id, $used)) {
+            $used[] = $question->id;
+        }
         session(["activity.$id.used_questions" => $used]);
 
+        $history = session("activity.$id.history", []);
+        $history[] = [
+            'id' => $question->id,
+            'delta' => (float) ($question->delta ?? 0.0),
+            'is_correct' => $correct ? 1 : 0
+        ];
+        session(["activity.$id.history" => $history]);
+
+        //atur SE dan theta, letaknya pada variabel $expVal $thetabaru
         $shouldStop = false;
-        $targetSe = 0.30; // Target kestabilan error (<= 0.30)
+        $targetSe = 0.50;
 
         if ($adaptive) {
-            // 3. Masukkan ke array riwayat sementara di session
-            $history = session("activity.$id.history", []);
-            $history[] = [
-                'id' => $question->id,
-                'delta' => (float) ($question->delta ?? 0.0),
-                'is_correct' => $correct ? 1 : 0
-            ];
-            session(["activity.$id.history" => $history]);
-
-            // 4. Kalkulasi Ulang Theta ($\theta$) murni menggunakan Newton-Raphson Rasch Model
             $thetaLama = session("activity.$id.theta", 0.0);
 
             $sumNumerator = 0.0;
@@ -361,7 +377,7 @@ class aktivitasController extends Controller
                 $b = $h['delta'];
                 $u = $h['is_correct'];
 
-                $expVal = exp(-max(-50, min(50, $thetaLama - $b)));
+                $expVal = exp(-max(-20, min(20, $thetaLama - $b)));
                 $p = 1.0 / (1.0 + $expVal);
                 $info = $p * (1.0 - $p);
 
@@ -373,30 +389,17 @@ class aktivitasController extends Controller
                 $sumDenominator = 0.0001;
             }
 
-            // Damping factor agar theta tidak overshooting (melompat terlalu ekstrem)
             $deltaTheta = ($sumNumerator / $sumDenominator) * 0.5;
             $thetaBaru = $thetaLama + $deltaTheta;
-            $thetaBaru = max(-5.0, min(5.0, $thetaBaru));
+            $thetaBaru = max(-2.0, min(2.0, $thetaBaru));
 
-            // 5. Hitung Standard Error (SE) dengan Boost Factor agar cepat mencapai target SE
             $sumInfoNew = 0.0;
             foreach ($history as $h) {
                 $b = $h['delta'];
-                $expValNew = exp(-max(-50, min(50, $thetaBaru - $b)));
+                $expValNew = exp(-max(-20, min(20, $thetaBaru - $b)));
                 $pNew = 1.0 / (1.0 + $expValNew);
-
                 $itemInfo = $pNew * (1.0 - $pNew);
-
-                // Proteksi minimum info dasar untuk bank soal 3 tingkat
-                if ($itemInfo < 0.15) {
-                    $itemInfo = 0.15;
-                }
-
-                // 🔹 TAMBAHKAN BOOST FACTOR (Misal dikali 3.5 atau 4.0)
-                // Ini mempercepat akumulasi informasi agar SE cepat turun ke target tanpa harus 40 soal
-                $boostedInfo = $itemInfo * 3.5;
-
-                $sumInfoNew += $boostedInfo;
+                $sumInfoNew += $itemInfo;
             }
 
             if ($sumInfoNew < 0.0001) {
@@ -405,26 +408,21 @@ class aktivitasController extends Controller
 
             $seBaru = 1.0 / sqrt($sumInfoNew);
 
-            // Simpan theta dan SE terbaru ke session
             session([
                 "activity.$id.theta" => $thetaBaru,
                 "activity.$id.se" => $seBaru
             ]);
 
-            // 6. Pengecekan Syarat Berhenti (Stopping Rule) Dinamis
-            $minSoal = session("activity.$id.min_questions", 10); // Minimal 10 soal baru boleh berhenti
-            $maxSoal = session("activity.$id.max_questions", 40); // Maksimal 40 soal
+            $minSoal = session("activity.$id.min_questions", 10);
+            $maxSoal = session("activity.$id.max_questions", 40);
             $numSoalDikerjakan = count($history);
 
-            // Aturan 1: Jika jumlah soal mencapai batas maksimal aktivitas (40 soal)
             if ($numSoalDikerjakan >= $maxSoal) {
                 $shouldStop = true;
-            }
-            // Aturan 2: Berhenti lebih awal jika sudah >= 10 soal DAN SE sudah mencapai target (<= 0.30)
-            elseif ($numSoalDikerjakan >= $minSoal && $seBaru <= $targetSe) {
+            } elseif ($numSoalDikerjakan >= $minSoal && $seBaru <= $targetSe) {
                 $shouldStop = true;
             }
-            // Aturan 3: Jika soal di bank soal habis total
+
             $totalDB = $activity->questions()->count();
             if ($numSoalDikerjakan >= $totalDB) {
                 $shouldStop = true;
@@ -447,18 +445,36 @@ class aktivitasController extends Controller
         ]);
     }
 
-    /**
-     * TAHAP 4: Finalisasi & Kalkulasi Nilai Akhir Berdasarkan Theta Terakhir
-     */
     public function finishTest(Request $req, $id)
     {
         $userId = auth()->id();
         $activity = Activity::findOrFail($id);
 
         $thetaAkhir = session("activity.$id.theta", 0.0);
+        $seAkhir = session("activity.$id.se", 1.0);
         $totalCorrect = session("activity.$id.total_correct", 0);
         $history = session("activity.$id.history", []);
+
+        // Fallback jika Session hilang/terputus
+        if (empty($history)) {
+            $dbAnswers = ActivityAnswer::where('id_activity', $id)
+                ->where('id_user', $userId)
+                ->get();
+
+            if ($dbAnswers->count() > 0) {
+                $totalCorrect = $dbAnswers->where('is_correct', true)->count();
+                $history = $dbAnswers->map(function ($ans) {
+                    return [
+                        'id' => $ans->id_question,
+                        'delta' => (float) $ans->delta,
+                        'is_correct' => $ans->is_correct ? 1 : 0
+                    ];
+                })->toArray();
+            }
+        }
+
         $jumlahSoalDikerjakan = max(1, count($history));
+        $totalSalah = max(0, $jumlahSoalDikerjakan - $totalCorrect);
 
         $activityResult = ActivityResult::where('id_activity', $id)
             ->where('id_user', $userId)
@@ -471,7 +487,6 @@ class aktivitasController extends Controller
         $end = Carbon::now();
         $durationSeconds = max(0, $end->getTimestamp() - $start->getTimestamp());
 
-        // 1. Tetap hitung Expected Score (True Score Mapping Rasch Model) untuk data statistik kemampuan
         $expectedScore = 0;
         $allDeltas = $activity->questions()->pluck('delta');
         $totalBankSoal = $allDeltas->count();
@@ -485,24 +500,20 @@ class aktivitasController extends Controller
             }
         }
 
-        // Konversi expected score ke skala 100 sebagai nilai estimasi kemampuan/penguasaan
         $nilaiExpectedScore = $totalBankSoal > 0 ? round(($expectedScore / $totalBankSoal) * 100, 2) : 0;
-
-        // 2. Nilai Akhir murni dari persentase jawaban benar / salah (bisa pas 100 jika benar semua)
         $nilaiAkhir = round(($totalCorrect / $jumlahSoalDikerjakan) * 100, 2);
 
         $kkm = $activity->kkm ?? 70;
         $status = $nilaiAkhir >= $kkm ? 'Pass' : 'Remedial';
 
-        // Simpan ke Database Hasil Ujian
         ActivityResult::updateOrCreate(
             [
                 'id_activity' => $id,
                 'id_user' => $userId,
             ],
             [
-                'skor_logit' => $thetaAkhir,          // Menyimpan logit akhir theta
-                'result' => $nilaiExpectedScore, // Menyimpan nilai hasil True Score Mapping
+                'skor_logit' => $thetaAkhir,
+                'result' => $nilaiExpectedScore,
                 'bonus_poin' => 0,
                 'real_poin' => $totalCorrect,
                 'result_status' => $status,
@@ -511,7 +522,7 @@ class aktivitasController extends Controller
                 'start_time' => $start,
                 'end_time' => $end,
                 'status_benar' => ($totalCorrect === $jumlahSoalDikerjakan),
-                'nilai_akhir' => $nilaiAkhir,         // Nilai akhir murni skala 0-100 (benar/salah)
+                'nilai_akhir' => $nilaiAkhir,
             ]
         );
 
@@ -519,24 +530,36 @@ class aktivitasController extends Controller
             ->where('id_user', $userId)
             ->first();
 
-        // Bersihkan session ujian
         session()->forget("activity.$id");
 
         return response()->json([
             'status' => 'saved',
             'duration_seconds' => $durationSeconds,
             'total_correct' => $totalCorrect,
+            'total_incorrect' => $totalSalah,
             'jumlah_soal' => $jumlahSoalDikerjakan,
             'result_db' => [
                 'theta_akhir' => $thetaAkhir,
-                'expected_score' => $nilaiExpectedScore, // Dikirim ke frontend untuk ditampilkan sebagai statistik kemampuan
-                'nilai_akhir' => $updatedResult->nilai_akhir, // Nilai akhir murni (misal: 100)
+                'expected_score' => $nilaiExpectedScore,
+                'nilai_akhir' => $updatedResult->nilai_akhir,
                 'result_status' => $updatedResult->result_status,
                 'total_benar' => $updatedResult->total_benar,
                 'start_time' => optional($updatedResult->start_time)->toDateTimeString(),
                 'end_time' => optional($updatedResult->end_time)->toDateTimeString(),
+            ],
+            'debug_info' => [
+                'mode_adaptif' => ($activity->addaptive === 'yes'),
+                'total_dikerjakan' => $jumlahSoalDikerjakan,
+                'benar' => $totalCorrect,
+                'salah' => $totalSalah,
+                'rumus' => "({$totalCorrect} Benar / {$jumlahSoalDikerjakan} Soal Dikerjakan) * 100",
+                'nilai_hitung' => $nilaiAkhir,
+                'theta_awal' => 0.0,
+                'theta_akhir' => round($thetaAkhir, 4),
+                'se_akhir' => round($seAkhir, 4),
+                'target_se' => 0.50,
+                'history_detail' => $history
             ]
         ]);
     }
-
 }
