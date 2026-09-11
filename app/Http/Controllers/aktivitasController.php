@@ -258,7 +258,6 @@ class aktivitasController extends Controller
         if ($adaptive) {
             $theta = session("activity.$id.theta", 0.0);
 
-            // Perbaikan Parameter Binding untuk mencegah Syntax Error saat Theta bernilai negatif
             $question = $activity->questions()
                 ->whereNotIn('question.id', $used)
                 ->orderByRaw('ABS(delta - ?)', [$theta])
@@ -304,6 +303,7 @@ class aktivitasController extends Controller
             'difficulty' => $difficulty,
             'question' => $parsedQuestion,
             'options' => $parsedOptions,
+            'hint' => $question->hint ?? null, // <-- TAMPILKAN HINT DI SINI
         ]);
     }
 

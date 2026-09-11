@@ -204,6 +204,12 @@
                         <span>Aktivitas</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link @yield('panduanSiswa')" href="{{ route('panduan.siswa') }}">
+                        <i class="fas fa-fw fa-book"></i>
+                        <span>Panduan Siswa</span>
+                    </a>
+                </li>
             @endif
 
             @if (Auth::user()->role === 'teacher')
@@ -261,12 +267,18 @@
                         <span>Performa Siswa</span>
                     </a>
                 </li>
-                <!-- <li class="nav-item">
-                    <a class="nav-link @yield('dataMatrix')" href="{{ route('activity.matrix.list') }}">
-                        <i class="fas fa-fw fa-table"></i>
-                        <span>Matriks Aktivitas</span>
+                <li class="nav-item">
+                    <a class="nav-link @yield('panduanGuru')" href="{{ route('panduan.guru') }}">
+                        <i class="fas fa-fw fa-book"></i>
+                        <span>Panduan Guru</span>
                     </a>
-                </li> -->
+                </li>
+                <!-- <li class="nav-item">
+                        <a class="nav-link @yield('dataMatrix')" href="{{ route('activity.matrix.list') }}">
+                            <i class="fas fa-fw fa-table"></i>
+                            <span>Matriks Aktivitas</span>
+                        </a>
+                    </li> -->
 
             @endif
 

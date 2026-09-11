@@ -9,6 +9,7 @@ use App\Http\Controllers\guruController;
 use App\Http\Controllers\loginController;
 use App\Http\Controllers\nilaicontroller;
 use App\Http\Controllers\LearningAnalyticsController;
+use App\Http\Controllers\PanduanController;
 use App\Http\Controllers\registerController;
 use App\Http\Controllers\siswaController;
 use App\Http\Controllers\SoalController;
@@ -40,10 +41,16 @@ Route::middleware(['auth', RoleMiddleware::class . ':student'])->group(function 
     Route::get('/badges/{id}/eligibility', [BadgeController::class, 'eligibility'])->name('badges.eligibility');
     Route::post('/student/gabung-kelas', [siswaController::class, 'gabungKelasSiswa'])->name('student.gabungKelas');
 
+    // panduan siswa
+    Route::get('/panduan-siswa', [PanduanController::class, 'panduansiswa'])->name('panduan.siswa');
 });
 
 Route::middleware(['auth', RoleMiddleware::class . ':teacher'])->group(function () {
     Route::get('/dashboardguru', [guruController::class, 'dashboardGuru'])->name('dashboardGuru');
+
+    // panduan
+    Route::get('/panduan-guru', [PanduanController::class, 'panduanguru'])->name('panduan.guru');
+
     //manajemen siswa
     Route::get('/datasiswa', [guruController::class, 'dataSiswa'])->name('dataSiswa');
     Route::get('/dataSiswa/export', [guruController::class, 'exportSiswa'])->name('dataSiswa.export');

@@ -224,6 +224,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['spreadsheet', 'fungsi']),
             'question' => json_encode(['text' => 'Apa fungsi utama spreadsheet?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'Mengelola data numerik', 'url' => null]],
@@ -241,6 +242,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['spreadsheet', 'excel']),
             'question' => json_encode(['text' => 'Aplikasi spreadsheet buatan Microsoft adalah?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'Microsoft Excel', 'url' => null]],
@@ -258,6 +260,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Contohnya aplikasi pengolah angka terkenal buatan Microsoft atau Google.',
+            'tags' => json_encode(['spreadsheet', 'aplikasi']),
             'question' => json_encode(['text' => 'Sebutkan satu contoh aplikasi spreadsheet!', 'URL' => null]),
             'SA_answer' => json_encode(['excel', 'google sheets', 'libreoffice calc', 'wps spreadsheet']),
             'difficulty' => 'mudah',
@@ -268,6 +272,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['excel', 'formula']),
             'question' => json_encode(['text' => 'Tanda apa yang wajib digunakan untuk mengawali penulisan rumus (formula) di Excel?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => '=', 'url' => null]],
@@ -285,6 +290,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['excel', 'ekstensi']),
             'question' => json_encode(['text' => 'Format file (ekstensi) standar (default) dari Microsoft Excel adalah?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => '.xlsx', 'url' => null]],
@@ -302,6 +308,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Gunakan kombinasi tombol Ctrl dengan huruf awal kata "Save".',
+            'tags' => json_encode(['excel', 'shortcut']),
             'question' => json_encode(['text' => 'Kombinasi tombol keyboard (shortcut) untuk menyimpan dokumen (Save) adalah?', 'URL' => null]),
             'SA_answer' => json_encode(['ctrl + s', 'ctrl+s', 'ctrl s']),
             'difficulty' => 'mudah',
@@ -312,6 +320,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['excel', 'fungsi']),
             'question' => json_encode(['text' => 'Fungsi yang digunakan untuk mencari nilai tertinggi dalam suatu kelompok data adalah...', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'MIN', 'url' => null]],
@@ -329,6 +338,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['excel', 'shortcut']),
             'question' => json_encode(['text' => 'Kombinasi tombol keyboard (shortcut) untuk menyalin data (Copy) adalah?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'Ctrl + X', 'url' => null]],
@@ -346,6 +356,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['excel', 'shortcut']),
             'question' => json_encode(['text' => 'Kombinasi tombol keyboard (shortcut) untuk menempelkan data (Paste) adalah?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'Ctrl + X', 'url' => null]],
@@ -363,6 +374,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Kata dalam bahasa Inggris berakhiran "-ow" yang terdiri dari 3 huruf.',
+            'tags' => json_encode(['spreadsheet', 'istilah']),
             'question' => json_encode(['text' => 'Nama lain dari baris pada spreadsheet dalam bahasa Inggris adalah?', 'URL' => null]),
             'SA_answer' => json_encode(['row', 'rows']),
             'difficulty' => 'mudah',
@@ -373,6 +386,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Kata dalam bahasa Inggris diawali dengan huruf "C" (Column).',
+            'tags' => json_encode(['spreadsheet', 'istilah']),
             'question' => json_encode(['text' => 'Nama lain dari kolom pada spreadsheet dalam bahasa Inggris adalah?', 'URL' => null]),
             'SA_answer' => json_encode(['column', 'columns']),
             'difficulty' => 'mudah',
@@ -383,6 +398,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['excel', 'fitur']),
             'question' => json_encode(['text' => 'Untuk menyimpan file dokumen dengan nama baru, perintah yang dipilih adalah?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'Save', 'url' => null]],
@@ -400,6 +416,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Singkatan 3 huruf dari kata "Minimum".',
+            'tags' => json_encode(['excel', 'fungsi']),
             'question' => json_encode(['text' => 'Fungsi yang digunakan untuk mencari nilai terendah adalah?', 'URL' => null]),
             'SA_answer' => json_encode(['min', '=min', 'minimum']),
             'difficulty' => 'mudah',
@@ -410,6 +428,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['spreadsheet', 'cell']),
             'question' => json_encode(['text' => 'Perpotongan baris dan kolom disebut?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'Cell', 'url' => null]],
@@ -427,6 +446,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['excel', 'fungsi']),
             'question' => json_encode(['text' => 'Fungsi SUM pada spreadsheet digunakan untuk?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'Menjumlahkan data numerik', 'url' => null]],
@@ -444,6 +464,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Digunakan untuk menyajikan data secara grafik/grafis.',
+            'tags' => json_encode(['spreadsheet', 'chart']),
             'question' => json_encode(['text' => 'Apa fungsi grafik/chart dalam spreadsheet?', 'URL' => null]),
             'SA_answer' => json_encode(['visualisasi data', 'menyajikan data', 'grafik data', 'memvisualisasikan data']),
             'difficulty' => 'sedang',
@@ -454,6 +476,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Proses menyusun data dari A-Z, Z-A, atau terkecil ke terbesar.',
+            'tags' => json_encode(['spreadsheet', 'sort']),
             'question' => json_encode(['text' => 'Apa kegunaan fitur sort?', 'URL' => null]),
             'SA_answer' => json_encode(['mengurutkan data', 'sorting data', 'urut data', 'mengurutkan']),
             'difficulty' => 'sedang',
@@ -464,6 +488,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Satu lembar kerja tunggal yang ada pada spreadsheet/Excel.',
+            'tags' => json_encode(['spreadsheet', 'worksheet']),
             'question' => json_encode(['text' => 'Apa yang dimaksud dengan worksheet?', 'URL' => null]),
             'SA_answer' => json_encode(['lembar kerja', 'sheet', 'halaman kerja']),
             'difficulty' => 'sedang',
@@ -474,6 +500,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['excel', 'fungsi']),
             'question' => json_encode(['text' => 'Fungsi AVERAGE digunakan untuk?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'Mencari rata-rata', 'url' => null]],
@@ -491,6 +518,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['excel', 'referensi-sel']),
             'question' => json_encode(['text' => 'Bagaimana cara membuat sebuah referensi sel menjadi absolut (tidak berubah saat dicopy)?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'Menambahkan simbol $', 'url' => null]],
@@ -508,6 +536,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Simbol karakter bintang (*).',
+            'tags' => json_encode(['excel', 'operator']),
             'question' => json_encode(['text' => 'Simbol matematika apa yang digunakan untuk operasi perkalian di Excel?', 'URL' => null]),
             'SA_answer' => json_encode(['*', 'bintang', 'asterisk']),
             'difficulty' => 'sedang',
@@ -518,6 +548,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Simbol garis miring ( slash / ).',
+            'tags' => json_encode(['excel', 'operator']),
             'question' => json_encode(['text' => 'Simbol pembagian pada penulisan rumus Excel menggunakan tanda?', 'URL' => null]),
             'SA_answer' => json_encode(['/', 'slash', 'garis miring']),
             'difficulty' => 'sedang',
@@ -528,6 +560,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['excel', 'fungsi']),
             'question' => json_encode(['text' => 'Fungsi COUNT digunakan untuk...', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'Menghitung jumlah sel yang berisi angka', 'url' => null]],
@@ -545,6 +578,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['excel', 'merge']),
             'question' => json_encode(['text' => 'Fitur apa yang digunakan untuk menggabungkan beberapa cell menjadi satu cell?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'Merge & Center', 'url' => null]],
@@ -562,6 +596,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['excel', 'text-formatting']),
             'question' => json_encode(['text' => 'Fitur agar teks yang panjang bisa turun ke bawah menyesuaikan lebar sel adalah...', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'Wrap Text', 'url' => null]],
@@ -579,6 +614,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Fitur bahasa Inggris yang menggunakan kata "Freeze".',
+            'tags' => json_encode(['excel', 'view']),
             'question' => json_encode(['text' => 'Fitur untuk membekukan baris atau kolom agar tidak ikut tergulung (scroll) dinamakan?', 'URL' => null]),
             'SA_answer' => json_encode(['freeze panes', 'freeze pane', 'freeze']),
             'difficulty' => 'sedang',
@@ -589,6 +626,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['excel', 'fungsi-teks']),
             'question' => json_encode(['text' => 'Untuk menggabungkan string/teks dari beberapa cell, kita bisa menggunakan fungsi...', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'CONCATENATE', 'url' => null]],
@@ -606,6 +644,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Worksheet adalah lembar kerja tunggal, sedangkan workbook adalah kumpulan dari beberapa worksheet.',
+            'tags' => json_encode(['spreadsheet', 'konsep']),
             'question' => json_encode(['text' => 'Jelaskan secara singkat perbedaan worksheet dan workbook!', 'URL' => null]),
             'SA_answer' => json_encode([
                 'worksheet lembar kerja workbook kumpulan worksheet',
@@ -620,6 +660,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Fitur ini berguna untuk menyaring dan menampilkan data tertentu sesuai kriteria.',
+            'tags' => json_encode(['spreadsheet', 'filter']),
             'question' => json_encode(['text' => 'Jelaskan kegunaan fitur filter dalam pengolahan data spreadsheet!', 'URL' => null]),
             'SA_answer' => json_encode([
                 'menyaring data sesuai kriteria',
@@ -635,6 +677,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['excel', 'rumus']),
             'question' => json_encode(['text' => 'Rumus yang benar untuk menghitung rata-rata dari sel A1 sampai A5 adalah?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => '=AVERAGE(A1:A5)', 'url' => null]],
@@ -652,6 +695,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['excel', 'logika']),
             'question' => json_encode(['text' => 'Struktur penulisan fungsi logika IF yang tepat di Microsoft Excel adalah?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => '=IF(logical_test, value_if_true, value_if_false)', 'url' => null]],
@@ -669,6 +713,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'ShortAnswer',
+            'hint' => 'VLOOKUP mencari data secara vertikal (kolom), sedangkan HLOOKUP mencari secara horizontal (baris).',
+            'tags' => json_encode(['excel', 'lookup']),
             'question' => json_encode(['text' => 'Sebutkan perbedaan mendasar pencarian tabel pada VLOOKUP dan HLOOKUP!', 'URL' => null]),
             'SA_answer' => json_encode([
                 'vlookup vertikal hlookup horizontal',
@@ -683,6 +729,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['excel', 'fungsi-logika']),
             'question' => json_encode(['text' => 'Fungsi yang dipakai untuk menjumlahkan sel-sel yang memenuhi kriteria (kondisi) tertentu saja disebut...', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'SUM', 'url' => null]],
@@ -700,6 +747,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['excel', 'fungsi-logika']),
             'question' => json_encode(['text' => 'Untuk menghitung banyaknya data sel (frekuensi) yang memenuhi kriteria tertentu, kita menggunakan...', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'COUNTIF', 'url' => null]],
@@ -717,6 +765,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['excel', 'error']),
             'question' => json_encode(['text' => 'Apa penyebab munculnya pesan error #DIV/0! pada lembar kerja Excel?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'Sebuah angka dibagi dengan angka nol (0) atau sel kosong', 'url' => null]],
@@ -734,6 +783,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['excel', 'error']),
             'question' => json_encode(['text' => 'Pesan error #VALUE! pada cell spreadsheet biasanya disebabkan oleh...', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'Lebar kolom kurang besar', 'url' => null]],
@@ -751,6 +801,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Fitur dalam bahasa Inggris: Conditional ...',
+            'tags' => json_encode(['excel', 'formatting']),
             'question' => json_encode(['text' => 'Fitur di Excel yang otomatis memberi warna latar (highlight) pada sel jika nilainya lebih besar dari angka tertentu dinamakan?', 'URL' => null]),
             'SA_answer' => json_encode(['conditional formatting', 'format bersyarat']),
             'difficulty' => 'sulit',
@@ -761,6 +813,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['excel', 'pivot']),
             'question' => json_encode(['text' => 'Fitur yang dirancang untuk merangkum, menganalisis, dan mengeksplorasi ribuan baris data ke dalam laporan dinamis dengan interaktif disebut?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'Pivot Table', 'url' => null]],
@@ -778,6 +831,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Fitur dalam bahasa Inggris: Data ...',
+            'tags' => json_encode(['excel', 'validasi']),
             'question' => json_encode(['text' => 'Untuk membatasi input pengguna agar hanya bisa memasukkan angka 1 sampai 10 di sebuah sel, fitur apa yang dipakai?', 'URL' => null]),
             'SA_answer' => json_encode(['data validation', 'validasi data']),
             'difficulty' => 'sulit',
@@ -788,6 +843,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['excel', 'error']),
             'question' => json_encode(['text' => 'Fungsi untuk memeriksa apakah suatu rumus menghasilkan error atau tidak, dan menukarnya dengan nilai tertentu (misalnya diganti teks "Kosong") adalah?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'IFERROR', 'url' => null]],
@@ -806,6 +862,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika2->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['ip-address', 'ipv4']),
             'difficulty' => 'mudah',
             'delta' => -1.5,
             'created_by' => $guru1->id,
@@ -823,6 +880,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika2->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['ip-address', 'subnetting']),
             'difficulty' => 'mudah',
             'delta' => -1.5,
             'created_by' => $guru1->id,
@@ -840,6 +898,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika2->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Dikenal juga dengan istilah "localhost" atau "loopback".',
+            'tags' => json_encode(['ip-address', 'loopback']),
             'difficulty' => 'mudah',
             'delta' => -1.5,
             'created_by' => $guru1->id,
@@ -850,6 +910,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika2->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Panjangnya 4 kali lipat dari ukuran bit IPv4 (32 x 4).',
+            'tags' => json_encode(['ip-address', 'ipv6']),
             'difficulty' => 'sedang',
             'delta' => 0.0,
             'created_by' => $guru1->id,
@@ -860,6 +922,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika2->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['ip-address', 'subnetting']),
             'difficulty' => 'sedang',
             'delta' => 0.0,
             'created_by' => $guru1->id,
@@ -877,6 +940,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika2->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['ip-address', 'subnetting']),
             'difficulty' => 'sedang',
             'delta' => 0.0,
             'created_by' => $guru1->id,
@@ -894,6 +958,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika2->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['ip-address', 'subnetting']),
             'difficulty' => 'sulit',
             'delta' => 1.5,
             'created_by' => $guru1->id,
@@ -911,6 +976,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika2->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['ip-address', 'subnetting']),
             'difficulty' => 'sulit',
             'delta' => 1.5,
             'created_by' => $guru1->id,
@@ -928,6 +994,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika2->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Istilah bahasa Inggris yang berarti menyiarkan/mengirim ke semua node (Broadcast).',
+            'tags' => json_encode(['ip-address', 'broadcast']),
             'difficulty' => 'sulit',
             'delta' => 1.5,
             'created_by' => $guru1->id,
@@ -938,6 +1006,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika2->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Terdiri dari angka 1 sebanyak 8 digit (1 byte penuh).',
+            'tags' => json_encode(['biner', 'konversi']),
             'difficulty' => 'sedang',
             'delta' => 0.0,
             'created_by' => $guru1->id,
@@ -949,6 +1019,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika3->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['html', 'web']),
             'difficulty' => 'mudah',
             'delta' => -1.5,
             'created_by' => $guru1->id,
@@ -966,6 +1037,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika3->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['html', 'heading']),
             'difficulty' => 'mudah',
             'delta' => -1.5,
             'created_by' => $guru1->id,
@@ -983,6 +1055,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika3->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Tag 1 huruf yang merupakan singkatan dari Anchor (<a>).',
+            'tags' => json_encode(['html', 'hyperlink']),
             'difficulty' => 'mudah',
             'delta' => -1.5,
             'created_by' => $guru1->id,
@@ -993,6 +1067,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika3->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['bootstrap', 'grid']),
             'difficulty' => 'sedang',
             'delta' => 0.0,
             'created_by' => $guru1->id,
@@ -1010,6 +1085,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika3->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Singkatan 2 huruf dari "Ordered List" (<ol>).',
+            'tags' => json_encode(['html', 'list']),
             'difficulty' => 'sedang',
             'delta' => 0.0,
             'created_by' => $guru1->id,
@@ -1020,6 +1097,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika3->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['css', 'styling']),
             'difficulty' => 'sedang',
             'delta' => 0.0,
             'created_by' => $guru1->id,
@@ -1037,6 +1115,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika3->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Singkatan 3 huruf dari kata "button".',
+            'tags' => json_encode(['bootstrap', 'button']),
             'difficulty' => 'sedang',
             'delta' => 0.0,
             'created_by' => $guru1->id,
@@ -1047,6 +1127,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika3->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['css', 'selector']),
             'difficulty' => 'sulit',
             'delta' => 1.5,
             'created_by' => $guru1->id,
@@ -1064,6 +1145,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika3->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Gunakan fitur CSS @media query atau istilah "responsive".',
+            'tags' => json_encode(['css', 'responsive']),
             'difficulty' => 'sulit',
             'delta' => 1.5,
             'created_by' => $guru1->id,
@@ -1074,6 +1157,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika3->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['html', 'css']),
             'difficulty' => 'sulit',
             'delta' => 1.5,
             'created_by' => $guru1->id,
@@ -1092,6 +1176,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika4->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['backend', 'php']),
             'difficulty' => 'mudah',
             'delta' => -1.5,
             'created_by' => $guru1->id,
@@ -1109,6 +1194,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika4->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Simbol mata uang dolar ($).',
+            'tags' => json_encode(['php', 'variabel']),
             'difficulty' => 'mudah',
             'delta' => -1.5,
             'created_by' => $guru1->id,
@@ -1119,6 +1206,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika4->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Contoh aplikasi lokal server populer yang diawali huruf X (seperti XAMPP) atau Laragon.',
+            'tags' => json_encode(['backend', 'server']),
             'difficulty' => 'mudah',
             'delta' => -1.5,
             'created_by' => $guru1->id,
@@ -1129,6 +1218,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika4->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['sql', 'database']),
             'difficulty' => 'sedang',
             'delta' => 0.0,
             'created_by' => $guru1->id,
@@ -1146,6 +1236,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika4->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['http', 'form']),
             'difficulty' => 'sedang',
             'delta' => 0.0,
             'created_by' => $guru1->id,
@@ -1163,6 +1254,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika4->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Kata dalam bahasa Inggris yang berarti "mati" atau "keluar" (die / exit).',
+            'tags' => json_encode(['php', 'fungsi']),
             'difficulty' => 'sedang',
             'delta' => 0.0,
             'created_by' => $guru1->id,
@@ -1173,6 +1266,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika4->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['php', 'database']),
             'difficulty' => 'sulit',
             'delta' => 1.5,
             'created_by' => $guru1->id,
@@ -1190,6 +1284,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika4->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['php', 'keamanan']),
             'difficulty' => 'sulit',
             'delta' => 1.5,
             'created_by' => $guru1->id,
@@ -1207,6 +1302,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika4->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Gunakan perintah fungsi: session_start()',
+            'tags' => json_encode(['php', 'session']),
             'difficulty' => 'sulit',
             'delta' => 1.5,
             'created_by' => $guru1->id,
@@ -1217,6 +1314,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika4->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Contoh framework PHP modern populer seperti Laravel atau CodeIgniter.',
+            'tags' => json_encode(['php', 'framework']),
             'difficulty' => 'sedang',
             'delta' => 0.0,
             'created_by' => $guru1->id,
@@ -1228,6 +1327,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika5->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['media-pembelajaran', 'edukasi']),
             'difficulty' => 'mudah',
             'delta' => -1.5,
             'created_by' => $guru1->id,
@@ -1245,6 +1345,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika5->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['lms', 'e-learning']),
             'difficulty' => 'mudah',
             'delta' => -1.5,
             'created_by' => $guru1->id,
@@ -1262,6 +1363,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika5->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Contoh platform kuis interaktif populer seperti Kahoot atau Quizizz.',
+            'tags' => json_encode(['kuis', 'interaktif']),
             'difficulty' => 'mudah',
             'delta' => -1.5,
             'created_by' => $guru1->id,
@@ -1272,6 +1375,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika5->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['gamifikasi', 'e-learning']),
             'difficulty' => 'sedang',
             'delta' => 0.0,
             'created_by' => $guru1->id,
@@ -1289,6 +1393,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika5->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Halaman utama ringkasan progres belajar / panel kontrol (Dashboard).',
+            'tags' => json_encode(['dashboard', 'ui']),
             'difficulty' => 'sedang',
             'delta' => 0.0,
             'created_by' => $guru1->id,
@@ -1299,6 +1405,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika5->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Istilah umpan balik atau tanggapan sesaat setelah menjawab soal.',
+            'tags' => json_encode(['feedback', 'lms']),
             'difficulty' => 'sedang',
             'delta' => 0.0,
             'created_by' => $guru1->id,
@@ -1309,6 +1417,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika5->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['e-learning', 'metode']),
             'difficulty' => 'sulit',
             'delta' => 1.5,
             'created_by' => $guru1->id,
@@ -1326,6 +1435,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika5->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['scorm', 'lms']),
             'difficulty' => 'sulit',
             'delta' => 1.5,
             'created_by' => $guru1->id,
@@ -1343,6 +1453,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika5->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Singkatan 2 huruf dari kata User Experience (UX).',
+            'tags' => json_encode(['ux', 'ui-ux']),
             'difficulty' => 'sulit',
             'delta' => 1.5,
             'created_by' => $guru1->id,
@@ -1353,6 +1465,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika5->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['multimedia', 'pembelajaran']),
             'difficulty' => 'mudah',
             'delta' => -1.5,
             'created_by' => $guru1->id,
@@ -1371,6 +1484,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika6->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['citra-digital', 'piksel']),
             'difficulty' => 'mudah',
             'delta' => -1.5,
             'created_by' => $guru1->id,
@@ -1388,6 +1502,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika6->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['warna', 'rgb']),
             'difficulty' => 'mudah',
             'delta' => -1.5,
             'created_by' => $guru1->id,
@@ -1405,6 +1520,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika6->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Ekstensi file 3 huruf untuk gambar transparan (misal: PNG).',
+            'tags' => json_encode(['format-gambar', 'png']),
             'difficulty' => 'mudah',
             'delta' => -1.5,
             'created_by' => $guru1->id,
@@ -1415,6 +1532,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika6->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Istilah yang menentukan kejelasan atau ketajaman piksel gambar (Resolusi).',
+            'tags' => json_encode(['citra-digital', 'resolusi']),
             'difficulty' => 'sedang',
             'delta' => 0.0,
             'created_by' => $guru1->id,
@@ -1425,6 +1544,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika6->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['segmentasi', 'citra']),
             'difficulty' => 'sedang',
             'delta' => 0.0,
             'created_by' => $guru1->id,
@@ -1442,6 +1562,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika6->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['grayscale', 'citra']),
             'difficulty' => 'sedang',
             'delta' => 0.0,
             'created_by' => $guru1->id,
@@ -1459,6 +1580,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika6->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Jenis grafis garis/matematika yang tidak pecah saat diperbesar (Vektor).',
+            'tags' => json_encode(['vektor', 'citra']),
             'difficulty' => 'sulit',
             'delta' => 1.5,
             'created_by' => $guru1->id,
@@ -1469,6 +1592,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika6->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['thresholding', 'segmentasi']),
             'difficulty' => 'sulit',
             'delta' => 1.5,
             'created_by' => $guru1->id,
@@ -1486,6 +1610,8 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika6->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Contoh nama filter/algoritma deteksi tepi: Sobel, Canny, Prewitt, atau Roberts.',
+            'tags' => json_encode(['edge-detection', 'citra']),
             'difficulty' => 'sulit',
             'delta' => 1.5,
             'created_by' => $guru1->id,
@@ -1496,6 +1622,7 @@ class DatabaseSeeder extends Seeder
         $informatikaQuestions[] = Question::create([
             'id_topic' => $topicInformatika6->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['filtering', 'noise']),
             'difficulty' => 'sulit',
             'delta' => 1.5,
             'created_by' => $guru1->id,
@@ -1516,6 +1643,7 @@ class DatabaseSeeder extends Seeder
         $ipaQuestions[] = Question::create([
             'id_topic' => $topicIPA->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['fisika', 'glb']),
             'question' => json_encode(['text' => 'Gerak lurus beraturan adalah gerak dengan?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'Kecepatan tetap', 'url' => null]],
@@ -1533,6 +1661,7 @@ class DatabaseSeeder extends Seeder
         $ipaQuestions[] = Question::create([
             'id_topic' => $topicIPA->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['fisika', 'satuan']),
             'question' => json_encode(['text' => 'Satuan kecepatan dalam SI adalah?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'm/s', 'url' => null]],
@@ -1550,6 +1679,8 @@ class DatabaseSeeder extends Seeder
         $ipaQuestions[] = Question::create([
             'id_topic' => $topicIPA->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Contoh kendaraan yang bergerak pada lintasan lurus seperti mobil, sepeda, atau kereta.',
+            'tags' => json_encode(['fisika', 'gerak']),
             'question' => json_encode(['text' => 'Sebutkan satu contoh gerak lurus dalam kehidupan sehari-hari!', 'URL' => null]),
             'SA_answer' => json_encode(['mobil', 'sepeda', 'kereta']),
             'difficulty' => 'mudah',
@@ -1560,6 +1691,7 @@ class DatabaseSeeder extends Seeder
         $ipaQuestions[] = Question::create([
             'id_topic' => $topicIPA->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['fisika', 'rumus']),
             'question' => json_encode(['text' => 'Rumus kecepatan adalah?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'v = s / t', 'url' => null]],
@@ -1577,6 +1709,7 @@ class DatabaseSeeder extends Seeder
         $ipaQuestions[] = Question::create([
             'id_topic' => $topicIPA->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['fisika', 'pengukuran']),
             'question' => json_encode(['text' => 'Alat untuk mengukur waktu adalah?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => 'Stopwatch', 'url' => null]],
@@ -1594,6 +1727,8 @@ class DatabaseSeeder extends Seeder
         $ipaQuestions[] = Question::create([
             'id_topic' => $topicIPA->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Perbandingan antara jarak tempuh (s) dibagi dengan waktu (t).',
+            'tags' => json_encode(['fisika', 'kecepatan']),
             'question' => json_encode(['text' => 'Apa yang dimaksud dengan kecepatan?', 'URL' => null]),
             'SA_answer' => json_encode([
                 'jarak per waktu',
@@ -1608,6 +1743,8 @@ class DatabaseSeeder extends Seeder
         $ipaQuestions[] = Question::create([
             'id_topic' => $topicIPA->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Panjang seluruh lintasan yang ditempuh oleh suatu benda saat bergerak.',
+            'tags' => json_encode(['fisika', 'jarak']),
             'question' => json_encode(['text' => 'Apa yang dimaksud dengan jarak?', 'URL' => null]),
             'SA_answer' => json_encode([
                 'panjang lintasan',
@@ -1622,6 +1759,8 @@ class DatabaseSeeder extends Seeder
         $ipaQuestions[] = Question::create([
             'id_topic' => $topicIPA->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Lama waktu atau durasi saat benda berpindah posisi.',
+            'tags' => json_encode(['fisika', 'waktu']),
             'question' => json_encode(['text' => 'Apa yang dimaksud dengan waktu dalam gerak?', 'URL' => null]),
             'SA_answer' => json_encode([
                 'lama gerak',
@@ -1636,6 +1775,8 @@ class DatabaseSeeder extends Seeder
         $ipaQuestions[] = Question::create([
             'id_topic' => $topicIPA->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Gerak pada lintasan lurus dengan nilai kecepatan yang konstan/tetap.',
+            'tags' => json_encode(['fisika', 'glb']),
             'question' => json_encode(['text' => 'Jelaskan apa yang dimaksud dengan gerak lurus beraturan!', 'URL' => null]),
             'SA_answer' => json_encode([
                 'kecepatan tetap lintasan lurus',
@@ -1650,6 +1791,8 @@ class DatabaseSeeder extends Seeder
         $ipaQuestions[] = Question::create([
             'id_topic' => $topicIPA->id,
             'type' => 'ShortAnswer',
+            'hint' => 'Jarak adalah total panjang lintasan, sedangkan perpindahan mengukur perubahan posisi dari titik awal ke titik akhir.',
+            'tags' => json_encode(['fisika', 'konsep']),
             'question' => json_encode(['text' => 'Jelaskan perbedaan jarak dan perpindahan!', 'URL' => null]),
             'SA_answer' => json_encode([
                 'jarak lintasan perpindahan posisi',
@@ -1664,6 +1807,7 @@ class DatabaseSeeder extends Seeder
         $ipaQuestions[] = Question::create([
             'id_topic' => $topicIPA->id,
             'type' => 'MultipleChoice',
+            'tags' => json_encode(['fisika', 'soal-hitungan']),
             'question' => json_encode(['text' => 'Jika sebuah benda menempuh jarak 100 m dalam 20 s, maka kecepatannya adalah?', 'URL' => null]),
             'MC_option' => json_encode([
                 ['a' => ['teks' => '5 m/s', 'url' => null]],

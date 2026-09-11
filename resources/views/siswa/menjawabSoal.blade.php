@@ -257,17 +257,7 @@
                 <div>
                     <div class="mb-1"><strong>Kelas:</strong> {{ $kelas }}</div>
                     <div class="mb-1"><strong>Mata Pelajaran:</strong> {{ $mapel }}</div>
-                    <div class="mb-1"><strong>Topik:</strong> {{ $topik }}</div>
-                    
-                    <!-- INDIKATOR REAL-TIME THETA & SE -->
-                    <div class="mt-2 pt-2 border-top d-flex gap-2 align-items-center">
-                        <span class="badge bg-primary px-2 py-1">
-                            <i class="bi bi-graph-up me-1"></i> Theta (&Theta;): <strong id="liveTheta">0.000</strong>
-                        </span>
-                        <span class="badge bg-info text-dark px-2 py-1">
-                            <i class="bi bi-bullseye me-1"></i> Standard Error (SE): <strong id="liveSE">1.000</strong>
-                        </span>
-                    </div>
+                    <div><strong>Topik:</strong> {{ $topik }}</div>
                 </div>
 
                 <div id="timer" class="shadow-sm">
@@ -349,10 +339,6 @@
                     document.getElementById("info-test").hidden = true;
                     document.getElementById("soal-test").hidden = false;
 
-                    // Set nilai awal Theta dan SE di UI
-                    document.getElementById("liveTheta").innerText = (data.theta_initial ?? 0.0).toFixed(3);
-                    document.getElementById("liveSE").innerText = (1.0).toFixed(3);
-
                     const durasiMenit = Number.isInteger(data.durasi_pengerjaan)
                         ? data.durasi_pengerjaan
                         : 30;
@@ -389,21 +375,33 @@
                             let val = o[key].teks;
 
                             html += `
-                            <div class="form-check option-item d-flex align-items-center">
-                                <input type="radio" name="answer" value="${key}" id="opt_${key}" class="form-check-input"
-                                    ${answers[currentIndex] === key ? "checked" : ""}>
-                                <label class="form-check-label" for="opt_${key}">
-                                    <strong class="me-1">${key.toUpperCase()}.</strong> ${val}
-                                </label>
-                            </div>
-                            `;
+                    <div class="form-check option-item d-flex align-items-center">
+                        <input type="radio" name="answer" value="${key}" id="opt_${key}" class="form-check-input"
+                            ${answers[currentIndex] === key ? "checked" : ""}>
+                        <label class="form-check-label" for="opt_${key}">
+                            <strong class="me-1">${key.toUpperCase()}.</strong> ${val}
+                        </label>
+                    </div>
+                    `;
                         });
                     } else if (q.type === "ShortAnswer") {
                         html = `
-                            <input type="text" name="answer" class="form-control form-control-lg rounded-3"
-                                placeholder="Ketik jawaban Anda di sini..."
-                                value="${answers[currentIndex] ?? ''}">
-                        `;
+                    <input type="text" name="answer" class="form-control form-control-lg rounded-3 mb-3"
+                        placeholder="Ketik jawaban Anda di sini..."
+                        value="${answers[currentIndex] ?? ''}">
+                `;
+
+                        // TAMPILKAN HINT JIKA ADA
+                        if (q.hint && q.hint.trim() !== "") {
+                            html += `
+                    <div class="alert alert-warning border-0 bg-warning-subtle text-dark p-3 rounded-3 d-flex align-items-center gap-2 shadow-sm">
+                        <i class="bi bi-lightbulb-fill text-warning fs-4 me-2"></i>
+                        <div>
+                            <strong>Petunjuk:</strong> ${q.hint}
+                        </div>
+                    </div>
+                    `;
+                        }
                     }
 
                     document.getElementById("optionsContainer").innerHTML = html;
@@ -457,14 +455,6 @@
                     } else {
                         totalSalah++;
                         currentStreak = 0;
-                    }
-
-                    // UPDATE REAL-TIME THETA DAN SE DARI RESPON SERVER
-                    if (res.current_theta !== undefined) {
-                        document.getElementById("liveTheta").innerText = Number(res.current_theta).toFixed(3);
-                    }
-                    if (res.current_se !== undefined) {
-                        document.getElementById("liveSE").innerText = Number(res.current_se).toFixed(3);
                     }
 
                     showAnswerFeedback(res);

@@ -81,7 +81,7 @@
                                         <td>{{ $subject->creator_name ?? '—' }}</td>
                                         <td>
                                             <div class="d-flex gap-2">
-                                                <button class="btn btn-success btn-sm btn-edit-subject" data-id="{{ $subject->id }}"
+                                                <button class="btn btn-warning btn-sm btn-edit-subject" data-id="{{ $subject->id }}"
                                                     data-name="{{ $subject->name }}" data-class="{{ $item->kelas->id }}">
                                                     Edit
                                                 </button>

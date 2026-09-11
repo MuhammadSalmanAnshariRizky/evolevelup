@@ -94,7 +94,7 @@
                                         </td>
                                         <td class="text-center">
                                             <div class="d-flex gap-2 justify-content-center">
-                                                <button class="btn btn-success btn-sm btn-edit-topic" data-id="{{ $topic->id }}">
+                                                <button class="btn btn-warning btn-sm btn-edit-topic" data-id="{{ $topic->id }}">
                                                     Edit
                                                 </button>
 
