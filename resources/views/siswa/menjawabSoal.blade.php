@@ -350,7 +350,15 @@
                 })
                 .catch(err => console.warn('Start dibatalkan:', err.message));
         }
-
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
         function loadQuestion() {
             document.getElementById("soalNumHeader").innerText = (currentIndex + 1);
 
@@ -364,15 +372,16 @@
 
                     currentQuestionID = q.question_id;
 
-                    // 1. Tampilkan Teks Soal
-                    document.getElementById('questionText').innerHTML = q.question.text;
+                    // 1. Tampilkan Teks Soal secara aman menggunakan textContent
+                    document.getElementById('questionText').textContent = q.question.text;
 
                     // 2. Render Pilihan Jawaban
                     let html = "";
                     if (q.type === "MultipleChoice") {
                         q.options.forEach(o => {
                             let key = Object.keys(o)[0];
-                            let val = o[key].teks;
+                            // 🔹 Escape HTML pada teks opsi jawaban
+                            let val = escapeHtml(o[key].teks);
 
                             html += `
                     <div class="form-check option-item d-flex align-items-center">
@@ -385,19 +394,20 @@
                     `;
                         });
                     } else if (q.type === "ShortAnswer") {
+                        const userAns = escapeHtml(answers[currentIndex] ?? '');
                         html = `
                     <input type="text" name="answer" class="form-control form-control-lg rounded-3 mb-3"
                         placeholder="Ketik jawaban Anda di sini..."
-                        value="${answers[currentIndex] ?? ''}">
+                        value="${userAns}">
                 `;
 
-                        // TAMPILKAN HINT JIKA ADA
+                        // 🔹 Escape HTML pada teks hint
                         if (q.hint && q.hint.trim() !== "") {
                             html += `
                     <div class="alert alert-warning border-0 bg-warning-subtle text-dark p-3 rounded-3 d-flex align-items-center gap-2 shadow-sm">
                         <i class="bi bi-lightbulb-fill text-warning fs-4 me-2"></i>
                         <div>
-                            <strong>Petunjuk:</strong> ${q.hint}
+                            <strong>Petunjuk:</strong> ${escapeHtml(q.hint)}
                         </div>
                     </div>
                     `;
