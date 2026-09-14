@@ -238,7 +238,7 @@ class aktivitasController extends Controller
                 'mode' => $adaptive ? 'adaptive' : 'normal',
                 'theta_initial' => 0.0,
                 'totalQuestions' => $jumlahSoal,
-                'target_se' => 0.50,
+                'target_se' => 0.35, // Updated target SE ke 0.35
                 'started_at' => $startTime->toDateTimeString(),
                 'durasi_pengerjaan' => $activity->durasi_pengerjaan ? (int) $activity->durasi_pengerjaan : null
             ]);
@@ -303,7 +303,7 @@ class aktivitasController extends Controller
             'difficulty' => $difficulty,
             'question' => $parsedQuestion,
             'options' => $parsedOptions,
-            'hint' => $question->hint ?? null, // <-- TAMPILKAN HINT DI SINI
+            'hint' => $question->hint ?? null,
         ]);
     }
 
@@ -363,9 +363,8 @@ class aktivitasController extends Controller
         ];
         session(["activity.$id.history" => $history]);
 
-        //atur SE dan theta, letaknya pada variabel $expVal $thetabaru
         $shouldStop = false;
-        $targetSe = 0.50;
+        $targetSe = 0.35; // Updated target SE ke 0.35
 
         if ($adaptive) {
             $thetaLama = session("activity.$id.theta", 0.0);
@@ -455,7 +454,6 @@ class aktivitasController extends Controller
         $totalCorrect = session("activity.$id.total_correct", 0);
         $history = session("activity.$id.history", []);
 
-        // Fallback jika Session hilang/terputus
         if (empty($history)) {
             $dbAnswers = ActivityAnswer::where('id_activity', $id)
                 ->where('id_user', $userId)
@@ -557,7 +555,7 @@ class aktivitasController extends Controller
                 'theta_awal' => 0.0,
                 'theta_akhir' => round($thetaAkhir, 4),
                 'se_akhir' => round($seAkhir, 4),
-                'target_se' => 0.50,
+                'target_se' => 0.35, // Updated target SE ke 0.35
                 'history_detail' => $history
             ]
         ]);
