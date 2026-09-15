@@ -25,7 +25,6 @@
             color: #333;
         }
 
-        /* Card Informasi Awal */
         .info-card {
             border: none;
             border-radius: 1rem;
@@ -33,7 +32,6 @@
             background: #ffffff;
         }
 
-        /* Panel Soal Utama */
         #soal-test {
             background: #ffffff;
             border-radius: 1rem;
@@ -42,7 +40,6 @@
             animation: fadeIn 0.4s ease;
         }
 
-        /* Meta soal */
         .soal-meta {
             padding: 15px 20px;
             border-radius: 0.75rem;
@@ -55,7 +52,6 @@
             color: var(--primary-color);
         }
 
-        /* Timer */
         #timer {
             font-size: 1.3rem;
             font-weight: 700;
@@ -68,14 +64,12 @@
             letter-spacing: 1px;
         }
 
-        /* Teks Soal & Kotak Soal */
         .question-box {
             font-size: 1.125rem;
             line-height: 1.7;
             color: #2e384d;
         }
 
-        /* Opsi jawaban */
         .option-item {
             padding: 14px 18px;
             border-radius: 0.75rem;
@@ -96,7 +90,6 @@
             font-weight: 600;
         }
 
-        /* Tombol Next */
         .btn-next {
             padding: 10px 24px;
             font-size: 1rem;
@@ -113,7 +106,6 @@
             box-shadow: 0 6px 15px rgba(28, 200, 138, 0.4);
         }
 
-        /* Radio Button Custom */
         .form-check-input {
             width: 20px;
             height: 20px;
@@ -129,7 +121,6 @@
             width: 100%;
         }
 
-        /* Animasi */
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -142,7 +133,6 @@
             }
         }
 
-        /* Floating Widgets (Combo & Fire) */
         #comboMeter {
             position: fixed;
             top: 20px;
@@ -199,7 +189,7 @@
 
 <body class="py-5">
 
-    <div class="container" style="max-width: 800px;">
+    <div class="container" style="max-width: 900px;">
 
         <h3 class="text-center fw-bold mb-4 text-dark">
             <i class="bi bi-journal-code text-primary me-2"></i>{{ $judul }}
@@ -253,15 +243,48 @@
 
         <div id="soal-test" hidden>
 
-            <div class="soal-meta d-flex justify-content-between align-items-center shadow-sm">
-                <div>
-                    <div class="mb-1"><strong>Kelas:</strong> {{ $kelas }}</div>
-                    <div class="mb-1"><strong>Mata Pelajaran:</strong> {{ $mapel }}</div>
-                    <div><strong>Topik:</strong> {{ $topik }}</div>
+            <div class="soal-meta shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <div class="mb-1"><strong>Kelas:</strong> {{ $kelas }}</div>
+                        <div class="mb-1"><strong>Mata Pelajaran:</strong> {{ $mapel }}</div>
+                        <div><strong>Topik:</strong> {{ $topik }}</div>
+                    </div>
+
+                    <div id="timer" class="shadow-sm">
+                        <i class="bi bi-clock-history me-1"></i>{{ str_pad($durasi, 2, '0', STR_PAD_LEFT) }}:00
+                    </div>
                 </div>
 
-                <div id="timer" class="shadow-sm">
-                    <i class="bi bi-clock-history me-1"></i>{{ str_pad($durasi, 2, '0', STR_PAD_LEFT) }}:00
+                <div class="bg-white p-3 rounded border shadow-sm mt-3" style="font-size: 0.85rem;">
+                    <div class="fw-bold text-primary border-bottom pb-1 mb-2 d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-calculator me-1"></i> Perhitungan Real-Time IRT Rasch Model (1PL)</span>
+                        <span class="badge bg-primary-subtle text-primary border">Target SE &le; <span id="targetSEDisplay">0.50</span></span>
+                    </div>
+
+                    <div class="row g-2">
+                        <div class="col-md-4 border-end pe-2">
+                            <div><span class="text-muted">Ability (&Theta;):</span> <strong id="liveTheta" class="text-primary">0.0000</strong> Logit</div>
+                            <div>
+                                <span class="text-muted">Difficulty (&delta;):</span> 
+                                <strong id="liveDelta" class="text-dark">0.0000</strong> Logit 
+                                <span id="liveDifficulty" class="badge bg-secondary ms-1">-</span>
+                            </div>
+                            <div><span class="text-muted">Peluang Benar (P):</span> <strong id="liveP" class="text-success">0.5000</strong></div>
+                        </div>
+
+                        <div class="col-md-4 border-end px-2">
+                            <div><span class="text-muted">Info Soal I = P(1-P):</span> <strong id="liveItemInfo" class="text-info">0.2500</strong></div>
+                            <div><span class="text-muted">Total Info (&sum;I):</span> <strong id="liveSumInfo" class="text-secondary">0.0000</strong></div>
+                            <div><span class="text-muted">Standard Error (SE):</span> <strong id="liveSE" class="text-danger">1.0000</strong></div>
+                        </div>
+
+                        <div class="col-md-4 ps-2">
+                            <div><span class="text-muted">Residual (&sum;(u - P)):</span> <strong id="liveNumerator" class="text-dark">0.0000</strong></div>
+                            <div><span class="text-muted">Penyesuaian (&Delta;&Theta;):</span> <strong id="liveDeltaTheta" class="text-warning-emphasis">0.0000</strong></div>
+                            <div><span class="text-muted">Formula Update:</span> <code>&Theta;<sub>baru</sub> = &Theta; + &Delta;&Theta;</code></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -350,6 +373,7 @@
                 })
                 .catch(err => console.warn('Start dibatalkan:', err.message));
         }
+
         function escapeHtml(text) {
             if (!text) return '';
             return String(text)
@@ -359,6 +383,18 @@
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
         }
+
+        function getDifficultyBadgeClass(difficulty) {
+            switch (difficulty) {
+                case 'Sangat Mudah': return 'bg-success';
+                case 'Mudah': return 'bg-info text-dark';
+                case 'Sedang': return 'bg-warning text-dark';
+                case 'Sulit': return 'bg-danger';
+                case 'Sangat Sulit': return 'bg-dark text-white';
+                default: return 'bg-secondary';
+            }
+        }
+
         function loadQuestion() {
             document.getElementById("soalNumHeader").innerText = (currentIndex + 1);
 
@@ -372,45 +408,53 @@
 
                     currentQuestionID = q.question_id;
 
-                    // 1. Tampilkan Teks Soal secara aman menggunakan textContent
+                    if (q.theta !== undefined) document.getElementById("liveTheta").innerText = Number(q.theta).toFixed(4);
+                    if (q.delta !== undefined) document.getElementById("liveDelta").innerText = Number(q.delta).toFixed(4);
+                    if (q.difficulty !== undefined) {
+                        const badgeEl = document.getElementById("liveDifficulty");
+                        badgeEl.innerText = q.difficulty;
+                        badgeEl.className = `badge ms-1 ${getDifficultyBadgeClass(q.difficulty)}`;
+                    }
+                    if (q.p_value !== undefined) document.getElementById("liveP").innerText = Number(q.p_value).toFixed(4);
+                    if (q.item_info !== undefined) document.getElementById("liveItemInfo").innerText = Number(q.item_info).toFixed(4);
+                    if (q.sum_info !== undefined) document.getElementById("liveSumInfo").innerText = Number(q.sum_info).toFixed(4);
+                    if (q.current_se !== undefined) document.getElementById("liveSE").innerText = Number(q.current_se).toFixed(4);
+
                     document.getElementById('questionText').textContent = q.question.text;
 
-                    // 2. Render Pilihan Jawaban
                     let html = "";
                     if (q.type === "MultipleChoice") {
                         q.options.forEach(o => {
                             let key = Object.keys(o)[0];
-                            // 🔹 Escape HTML pada teks opsi jawaban
                             let val = escapeHtml(o[key].teks);
 
                             html += `
-                    <div class="form-check option-item d-flex align-items-center">
-                        <input type="radio" name="answer" value="${key}" id="opt_${key}" class="form-check-input"
-                            ${answers[currentIndex] === key ? "checked" : ""}>
-                        <label class="form-check-label" for="opt_${key}">
-                            <strong class="me-1">${key.toUpperCase()}.</strong> ${val}
-                        </label>
-                    </div>
-                    `;
+                            <div class="form-check option-item d-flex align-items-center">
+                                <input type="radio" name="answer" value="${key}" id="opt_${key}" class="form-check-input"
+                                    ${answers[currentIndex] === key ? "checked" : ""}>
+                                <label class="form-check-label" for="opt_${key}">
+                                    <strong class="me-1">${key.toUpperCase()}.</strong> ${val}
+                                </label>
+                            </div>
+                            `;
                         });
                     } else if (q.type === "ShortAnswer") {
                         const userAns = escapeHtml(answers[currentIndex] ?? '');
                         html = `
-                    <input type="text" name="answer" class="form-control form-control-lg rounded-3 mb-3"
-                        placeholder="Ketik jawaban Anda di sini..."
-                        value="${userAns}">
-                `;
+                            <input type="text" name="answer" class="form-control form-control-lg rounded-3 mb-3"
+                                placeholder="Ketik jawaban Anda di sini..."
+                                value="${userAns}">
+                        `;
 
-                        // 🔹 Escape HTML pada teks hint
                         if (q.hint && q.hint.trim() !== "") {
                             html += `
-                    <div class="alert alert-warning border-0 bg-warning-subtle text-dark p-3 rounded-3 d-flex align-items-center gap-2 shadow-sm">
-                        <i class="bi bi-lightbulb-fill text-warning fs-4 me-2"></i>
-                        <div>
-                            <strong>Petunjuk:</strong> ${escapeHtml(q.hint)}
-                        </div>
-                    </div>
-                    `;
+                            <div class="alert alert-warning border-0 bg-warning-subtle text-dark p-3 rounded-3 d-flex align-items-center gap-2 shadow-sm">
+                                <i class="bi bi-lightbulb-fill text-warning fs-4 me-2"></i>
+                                <div>
+                                    <strong>Petunjuk:</strong> ${escapeHtml(q.hint)}
+                                </div>
+                            </div>
+                            `;
                         }
                     }
 
@@ -459,6 +503,13 @@
             })
                 .then(r => r.json())
                 .then(res => {
+                    if (res.current_theta !== undefined) document.getElementById("liveTheta").innerText = Number(res.current_theta).toFixed(4);
+                    if (res.current_p !== undefined) document.getElementById("liveP").innerText = Number(res.current_p).toFixed(4);
+                    if (res.current_se !== undefined) document.getElementById("liveSE").innerText = Number(res.current_se).toFixed(4);
+                    if (res.sum_numerator !== undefined) document.getElementById("liveNumerator").innerText = Number(res.sum_numerator).toFixed(4);
+                    if (res.sum_info !== undefined) document.getElementById("liveSumInfo").innerText = Number(res.sum_info).toFixed(4);
+                    if (res.delta_theta !== undefined) document.getElementById("liveDeltaTheta").innerText = Number(res.delta_theta).toFixed(4);
+
                     if (res.correct === true) {
                         totalBenar++;
                         currentStreak++;
@@ -578,7 +629,6 @@
                     <span class="badge ${isLulus ? 'bg-success' : 'bg-danger'} fs-6 px-3 py-1">${isLulus ? 'LULUS' : 'REMEDIAL'}</span>
                 </div>
 
-                <!-- PANEL DEBUGGING KEMAMPUAN (THETA) & ALASAN SKOR -->
                 <div class="card border-warning bg-warning-subtle p-2 rounded-3 text-dark style="font-size: 0.85rem;">
                     <div class="fw-bold text-warning-emphasis mb-1">
                         <i class="bi bi-bug-fill me-1"></i> Panel Debugging Sistem:
@@ -588,6 +638,7 @@
                         <li><b>Sifat Ujian:</b> ${debug.mode_adaptif ? 'Adaptif (IRT 1PL)' : 'Non-Adaptif'}</li>
                         <li><b>Skor Kemampuan (&Theta; / Theta):</b> <code>${debug.theta_akhir ?? 0}</code> (Logit)</li>
                         <li><b>Standard Error (SE):</b> <code>${debug.se_akhir ?? 0}</code> (Target SE &le; ${debug.target_se})</li>
+                        <li><b>Rata-rata Nilai P (Peluang):</b> <code>${debug.p_value_akhir ?? debug.p_value ?? '-'}</code></li>
                     </ul>
                 </div>
             </div>

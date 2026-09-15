@@ -238,7 +238,7 @@ class aktivitasController extends Controller
                 'mode' => $adaptive ? 'adaptive' : 'normal',
                 'theta_initial' => 0.0,
                 'totalQuestions' => $jumlahSoal,
-                'target_se' => 0.35, // Updated target SE ke 0.35
+                'target_se' => 0.5,
                 'started_at' => $startTime->toDateTimeString(),
                 'durasi_pengerjaan' => $activity->durasi_pengerjaan ? (int) $activity->durasi_pengerjaan : null
             ]);
@@ -254,10 +254,11 @@ class aktivitasController extends Controller
         $activity = Activity::findOrFail($id);
         $adaptive = ($activity->addaptive === 'yes');
         $used = session("activity.$id.used_questions", []);
+        $theta = session("activity.$id.theta", 0.0);
+        $se = session("activity.$id.se", 1.0);
+        $history = session("activity.$id.history", []);
 
         if ($adaptive) {
-            $theta = session("activity.$id.theta", 0.0);
-
             $question = $activity->questions()
                 ->whereNotIn('question.id', $used)
                 ->orderByRaw('ABS(delta - ?)', [$theta])
@@ -285,12 +286,30 @@ class aktivitasController extends Controller
         }
 
         $deltaVal = (float) ($question->delta ?? 0.0);
-        if ($deltaVal < -0.5) {
+
+        // Kategori tingkat kesulitan 5 level sesuai rentang delta -2.0 s.d 2.0
+        if ($deltaVal <= -1.5) {
+            $difficulty = 'Sangat Mudah';
+        } elseif ($deltaVal <= -0.5) {
             $difficulty = 'Mudah';
         } elseif ($deltaVal <= 0.5) {
             $difficulty = 'Sedang';
-        } else {
+        } elseif ($deltaVal <= 1.5) {
             $difficulty = 'Sulit';
+        } else {
+            $difficulty = 'Sangat Sulit';
+        }
+
+        $expVal = exp(-max(-20, min(20, $theta - $deltaVal)));
+        $pValue = 1.0 / (1.0 + $expVal);
+        $itemInfo = $pValue * (1.0 - $pValue);
+
+        $sumInfoAccumulated = 0.0;
+        foreach ($history as $h) {
+            $b = $h['delta'];
+            $expH = exp(-max(-20, min(20, $theta - $b)));
+            $pH = 1.0 / (1.0 + $expH);
+            $sumInfoAccumulated += ($pH * (1.0 - $pH));
         }
 
         $parsedQuestion = is_string($question->question) ? json_decode($question->question) : $question->question;
@@ -300,7 +319,12 @@ class aktivitasController extends Controller
             'question_id' => $question->id,
             'type' => $question->type,
             'delta' => $deltaVal,
+            'theta' => round($theta, 4),
             'difficulty' => $difficulty,
+            'p_value' => round($pValue, 4),
+            'item_info' => round($itemInfo, 4),
+            'sum_info' => round($sumInfoAccumulated, 4),
+            'current_se' => round($se, 4),
             'question' => $parsedQuestion,
             'options' => $parsedOptions,
             'hint' => $question->hint ?? null,
@@ -364,14 +388,13 @@ class aktivitasController extends Controller
         session(["activity.$id.history" => $history]);
 
         $shouldStop = false;
-        $targetSe = 0.35; // Updated target SE ke 0.35
+        $targetSe = 0.5;
+        $sumNumerator = 0.0;
+        $sumDenominator = 0.0;
+        $deltaTheta = 0.0;
+        $thetaLama = session("activity.$id.theta", 0.0);
 
         if ($adaptive) {
-            $thetaLama = session("activity.$id.theta", 0.0);
-
-            $sumNumerator = 0.0;
-            $sumDenominator = 0.0;
-
             foreach ($history as $h) {
                 $b = $h['delta'];
                 $u = $h['is_correct'];
@@ -388,8 +411,15 @@ class aktivitasController extends Controller
                 $sumDenominator = 0.0001;
             }
 
-            $deltaTheta = ($sumNumerator / $sumDenominator) * 0.5;
+            // Newton-Raphson
+            $deltaTheta = $sumNumerator / $sumDenominator;
+
+            // Maximum Step Constraint per butir (-0.5 s.d. +0.5)
+            $deltaTheta = max(-0.5, min(0.5, $deltaTheta));
+
             $thetaBaru = $thetaLama + $deltaTheta;
+
+            // Dibatasi ketat ke rentang -2.0 sampai 2.0
             $thetaBaru = max(-2.0, min(2.0, $thetaBaru));
 
             $sumInfoNew = 0.0;
@@ -433,13 +463,23 @@ class aktivitasController extends Controller
             $saOptions = is_array($question->SA_answer) ? $question->SA_answer : json_decode($question->SA_answer, true);
         }
 
+        $thetaTerbaru = session("activity.$id.theta", 0.0);
+        $deltaQuestion = (float) ($question->delta ?? 0.0);
+        $expValCurrent = exp(-max(-20, min(20, $thetaTerbaru - $deltaQuestion)));
+        $currentP = 1.0 / (1.0 + $expValCurrent);
+
         return response()->json([
             'correct' => $correct,
             'correct_answer' => $question->type === 'MultipleChoice' ? strtoupper($question->MC_answer) : implode(', ', $saOptions ?? []),
             'explanation' => $question->explanation ?? null,
             'should_stop' => $shouldStop,
-            'current_theta' => session("activity.$id.theta", 0.0),
-            'current_se' => session("activity.$id.se", 1.0),
+            'theta_lama' => round($thetaLama, 4),
+            'current_theta' => round($thetaTerbaru, 4),
+            'delta_theta' => round($deltaTheta, 4),
+            'sum_numerator' => round($sumNumerator, 4),
+            'sum_info' => round($sumDenominator, 4),
+            'current_se' => round(session("activity.$id.se", 1.0), 4),
+            'current_p' => round($currentP, 4),
             'target_se' => $targetSe
         ]);
     }
@@ -492,7 +532,7 @@ class aktivitasController extends Controller
         if ($totalBankSoal > 0) {
             foreach ($allDeltas as $delta) {
                 $deltaVal = (float) ($delta ?? 0.0);
-                $eksponensial = exp($thetaAkhir - $deltaVal);
+                $eksponensial = exp(max(-20, min(20, $thetaAkhir - $deltaVal)));
                 $probabilitas = $eksponensial / (1 + $eksponensial);
                 $expectedScore += $probabilitas;
             }
@@ -528,6 +568,8 @@ class aktivitasController extends Controller
             ->where('id_user', $userId)
             ->first();
 
+        $avgP = $totalBankSoal > 0 ? round($expectedScore / $totalBankSoal, 4) : 0;
+
         session()->forget("activity.$id");
 
         return response()->json([
@@ -555,7 +597,8 @@ class aktivitasController extends Controller
                 'theta_awal' => 0.0,
                 'theta_akhir' => round($thetaAkhir, 4),
                 'se_akhir' => round($seAkhir, 4),
-                'target_se' => 0.35, // Updated target SE ke 0.35
+                'p_value_akhir' => $avgP,
+                'target_se' => 0.5,
                 'history_detail' => $history
             ]
         ]);

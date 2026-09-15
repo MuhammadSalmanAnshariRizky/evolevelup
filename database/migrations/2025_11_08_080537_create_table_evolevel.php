@@ -92,7 +92,7 @@ return new class extends Migration {
             $table->json('MC_option')->nullable();
             $table->json('SA_answer')->nullable();
             $table->char('MC_answer')->nullable();
-            $table->enum('difficulty', ['mudah', 'sedang', 'sulit']);
+            $table->enum('difficulty', ['sangat mudah','mudah', 'sedang', 'sulit','sangat sulit'])->nullable(true);
             $table->decimal('delta', 8, 2)->default(0.00);
             $table->unsignedBigInteger('id_topic');
             $table->unsignedBigInteger('created_by');
