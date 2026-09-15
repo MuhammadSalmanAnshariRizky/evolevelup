@@ -8,11 +8,13 @@
         .page-header {
             margin-bottom: 1.5rem;
         }
+
         .table-card {
             border-radius: 14px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
             border: none;
         }
+
         .muted-small {
             font-size: .85rem;
             color: #6c757d;
@@ -57,55 +59,47 @@
                     <div class="alert alert-info mb-0">Belum ada kelas atau aktivitas untuk Anda.</div>
                 @else
                     <div class="table-responsive">
-                        <table id="nilaiTable" class="table table-hover align-middle w-100">
-                            <thead class="table-light">
+                        <table class="table align-middle table-hover">
+                            <thead>
                                 <tr>
-                                    <th style="width: 50px;">No</th>
+                                    <th>No</th>
                                     <th>Kelas</th>
                                     <th>Mata Pelajaran</th>
                                     <th>Topik</th>
                                     <th>Nama Aktivitas</th>
-                                    <th class="text-center">Siswa Mengerjakan</th>
-                                    <th class="text-center" style="width: 130px;">Aksi</th>
+                                    <th>Siswa Mengerjakan</th>
+                                    <th>Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @php $no = 1; @endphp
-                                @foreach ($grouped as $class)
-                                    @foreach ($class['subjects'] as $subject)
-                                        @foreach ($subject['topics'] as $topic)
-                                            @foreach ($topic['activities'] as $act)
-                                                @php
-                                                    $cnt = $act['results_count'] ?? 0;
-                                                    $badgeClass = $cnt > 0 ? 'bg-success' : 'bg-secondary';
-                                                @endphp
-                                                <tr>
-                                                    <td class="text-center fw-semibold">{{ $no++ }}</td>
-                                                    <td>
-                                                        <span class="fw-bold text-dark">{{ $class['class_name'] }}</span>
-                                                    </td>
-                                                    <td>
-                                                        <span class="badge bg-info text-dark">{{ $subject['name'] }}</span>
-                                                    </td>
-                                                    <td>
-                                                        <small class="fw-semibold text-secondary">{{ $topic['title'] }}</small>
-                                                    </td>
-                                                    <td>
-                                                        <span class="fw-semibold">{{ $act['title'] }}</span>
-                                                    </td>
-                                                    <td class="text-center">
-                                                        <span class="badge {{ $badgeClass }}">
-                                                            {{ $cnt }} Nilai
-                                                        </span>
-                                                    </td>
-                                                    <td class="text-center">
-                                                        <a href="{{ route('detail.nilai', $act['id']) }}"
-                                                            class="btn btn-sm btn-primary">
-                                                            <i class="fas fa-eye me-1"></i> Lihat
-                                                        </a>
-                                                    </td>
-                                                </tr>
-                                            @endforeach
+                                @foreach($grouped as $classData)
+                                    @foreach($classData['subjects'] as $subject)
+                                        {{-- Diubah: Mengulang langsung ke activities, bukan topics --}}
+                                        @foreach($subject['activities'] as $activity)
+                                            <tr>
+                                                <td>{{ $no++ }}</td>
+                                                <td>{{ $classData['class_name'] }}</td>
+                                                <td>
+                                                    <span class="badge bg-info text-white">
+                                                        {{ $subject['name'] }}
+                                                    </span>
+                                                </td>
+                                                {{-- Topik gabungan/penunjang yang dibuat di Controller --}}
+                                                <td>{{ $activity['topic_title'] }}</td>
+                                                <td><strong>{{ $activity['title'] }}</strong></td>
+                                                <td>
+                                                    <span class="badge bg-secondary">
+                                                        {{ $activity['results_count'] }} Nilai
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <a href="{{ route('detail.nilai', $activity['id']) }}"
+                                                        class="btn btn-sm btn-primary">
+                                                        Lihat
+                                                    </a>
+                                                </td>
+                                            </tr>
                                         @endforeach
                                     @endforeach
                                 @endforeach
@@ -130,14 +124,18 @@
                 </div>
                 <div class="modal-body">
                     <p class="mb-3">
-                        Halaman <strong>Data Nilai</strong> menampilkan seluruh rekap aktivitas pengerjaan kuis/ujian siswa yang diurutkan secara terstruktur.
+                        Halaman <strong>Data Nilai</strong> menampilkan seluruh rekap aktivitas pengerjaan kuis/ujian siswa
+                        yang diurutkan secara terstruktur.
                     </p>
                     <hr class="my-3">
                     <h6 class="fw-bold text-primary mb-2"><i class="bi bi-search me-1"></i> Fitur Tabel</h6>
                     <ul class="mb-3">
-                        <li><strong>Pencarian Cepat</strong>: Cari nama aktivitas, topik, mapel, atau kelas pada kolom pencarian.</li>
+                        <li><strong>Pencarian Cepat</strong>: Cari nama aktivitas, topik, mapel, atau kelas pada kolom
+                            pencarian.</li>
                         <li><strong>Pengurutan (Sorting)</strong>: Klik header kolom untuk mengurutkan data.</li>
-                        <li><strong>Status Nilai</strong>: Badge <span class="badge bg-success">Hijau</span> menandakan sudah ada siswa yang mengerjakan, sedangkan <span class="badge bg-secondary">Abu-abu</span> menandakan belum ada pengerjaan.</li>
+                        <li><strong>Status Nilai</strong>: Badge <span class="badge bg-success">Hijau</span> menandakan
+                            sudah ada siswa yang mengerjakan, sedangkan <span class="badge bg-secondary">Abu-abu</span>
+                            menandakan belum ada pengerjaan.</li>
                     </ul>
                 </div>
                 <div class="modal-footer">

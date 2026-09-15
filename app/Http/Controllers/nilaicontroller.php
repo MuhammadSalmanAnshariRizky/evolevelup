@@ -21,142 +21,100 @@ class nilaicontroller extends Controller
     {
         $teacherId = Auth::id();
 
-        // 1) Ambil ID kelas yang diaampu guru dari pivot teacher_classes
+        // 1) Ambil ID kelas yang diampu guru
         $classIds = DB::table('teacher_classes')
             ->where('id_teacher', $teacherId)
             ->pluck('id_class')
             ->toArray();
 
         if (empty($classIds)) {
-            $grouped = collect([]);
-            return view('guru.datanilai', [
-                'grouped' => $grouped
-            ]);
+            return view('guru.datanilai', ['grouped' => collect([])]);
         }
 
         $resultByClass = collect();
 
-        // 2) Untuk tiap kelas ambil siswa, subject, topic, activity, dan hasil
+        // 2) Per kelas: Ambil aktivitas langsung berbasis id_class
         foreach ($classIds as $classId) {
             $studentIds = DB::table('student_classes')
                 ->where('id_class', $classId)
                 ->pluck('id_student')
                 ->toArray();
 
-            $students = collect();
-            if (!empty($studentIds)) {
-                $students = User::whereIn('id', $studentIds)
-                    ->select('id', 'name', 'email')
-                    ->get();
-            }
+            $students = empty($studentIds) ? collect([]) : User::whereIn('id', $studentIds)->select('id', 'name', 'email')->get();
 
-            // Ambil subjects di kelas ini
-            $subjects = Subject::where('id_class', $classId)
-                ->with([
-                    'topics' => function ($qTopic) {
-                        $qTopic->with([
-                            'activities' => function ($qAct) {
-                                $qAct->with([
-                                    'activityResults' => function ($qAR) {
-                                        $qAR->select('id', 'id_activity', 'id_user', 'nilai_akhir', 'result');
-                                    }
-                                ]);
-                            }
-                        ]);
-                    }
-                ])
-                ->get();
+            // Ambil mata pelajaran di kelas ini
+            $subjects = Subject::where('id_class', $classId)->get();
 
-            // Jika kosong, fallback kueri
-            if ($subjects->isEmpty()) {
-                $subjects = Subject::where('id_class', $classId)
-                    ->with(['topics.activities.activityResults'])
-                    ->get();
-            }
-
-            $classData = [
-                'class_id' => $classId,
-                'class_name' => null,
-                'students' => $students,
-                'subjects' => []
-            ];
-
-            $classModel = Classes::find($classId);
-            $classData['class_name'] = $classModel ? $classModel->name : ('Kelas ' . $classId);
-
+            $subjectItems = [];
             foreach ($subjects as $subject) {
-                $subjectItem = [
-                    'id' => $subject->id ?? null,
-                    'name' => $subject->name ?? 'Mata Pelajaran',
-                    'topics' => []
-                ];
 
-                $topics = $subject->topics ?? collect();
-                foreach ($topics as $topic) {
-                    $topicItem = [
-                        'id' => $topic->id ?? null,
-                        'title' => $topic->title ?? 'Topik',
-                        'activities' => []
-                    ];
+                // Ambil aktivitas langsung dari id_topic milik subject ini
+                $directActivities = Activity::whereHas('topic', function ($q) use ($subject) {
+                    $q->where('id_subject', $subject->id);
+                })->with('topic')->get();
 
-                    $activities = collect();
-                    if (isset($topic->activities)) {
-                        $activities = $topic->activities;
-                    } else {
-                        $activities = Activity::where('id_topic', $topic->id)->get();
+                // Ambil aktivitas evaluasi (multi-topic) yang terkait dengan topik di subject ini
+                $evalActivities = Activity::whereHas('topics', function ($q) use ($subject) {
+                    $q->where('id_subject', $subject->id);
+                })->with('topics')->get();
+
+                // Gabungkan & hilangkan duplikasi aktivitas
+                $allActivities = $directActivities->merge($evalActivities)->unique('id');
+
+                $activityList = [];
+                foreach ($allActivities as $activity) {
+
+                    // Kumpulkan nama topik sebagai penunjang
+                    $topicNames = collect();
+                    if ($activity->topic) {
+                        $topicNames->push($activity->topic->title);
                     }
+                    if ($activity->relationLoaded('topics') || $activity->topics()->exists()) {
+                        foreach ($activity->topics as $t) {
+                            $topicNames->push($t->title);
+                        }
+                    }
+                    $topicString = $topicNames->unique()->implode(', ') ?: '-';
 
-                    // Tambahkan dukungan untuk mengambil aktivitas bertipe 'evaluation' yang terikat melalui activity_topics
-                    $evaluationActivities = DB::table('activities')
-                        ->join('activity_topics', 'activities.id', '=', 'activity_topics.id_activity')
-                        ->where('activity_topics.id_topic', $topic->id)
+                    // Ambil nilai berdasarkan id_activity dari tabel activity_result
+                    $results = DB::table('activity_result')
+                        ->where('id_activity', $activity->id)
+                        ->whereIn('id_user', $studentIds)
+                        ->select('id', 'id_activity', 'id_user', 'nilai_akhir', 'result')
                         ->get();
 
-                    foreach ($evaluationActivities as $evalAct) {
-                        $actObj = Activity::find($evalAct->id);
-                        if ($actObj && !$activities->contains('id', $actObj->id)) {
-                            $activities->push($actObj);
-                        }
-                    }
-
-                    foreach ($activities as $activity) {
-                        $resultsQuery = DB::table('activity_result')
-                            ->where('id_activity', $activity->id)
-                            ->whereIn('id_user', $studentIds);
-
-                        $results = $resultsQuery->select('id', 'id_activity', 'id_user', 'nilai_akhir', 'result')->get();
-
-                        $resultsByStudent = [];
-                        foreach ($results as $r) {
-                            $nilai = null;
-                            if (isset($r->nilai_akhir) && !is_null($r->nilai_akhir)) {
-                                $nilai = $r->nilai_akhir;
-                            } elseif (isset($r->result) && !is_null($r->result)) {
-                                $nilai = $r->result;
-                            }
-                            $resultsByStudent[$r->id_user] = [
-                                'id' => $r->id,
-                                'nilai' => $nilai
-                            ];
-                        }
-
-                        $activityItem = [
-                            'id' => $activity->id,
-                            'title' => $activity->title ?? 'Aktivitas',
-                            'results' => $resultsByStudent,
-                            'results_count' => count($resultsByStudent)
+                    $resultsByStudent = [];
+                    foreach ($results as $r) {
+                        $nilai = $r->nilai_akhir ?? $r->result ?? null;
+                        $resultsByStudent[$r->id_user] = [
+                            'id' => $r->id,
+                            'nilai' => $nilai
                         ];
-
-                        $topicItem['activities'][] = $activityItem;
                     }
 
-                    $subjectItem['topics'][] = $topicItem;
+                    $activityList[] = [
+                        'id' => $activity->id,
+                        'title' => $activity->title ?? 'Aktivitas',
+                        'topic_title' => $topicString, // Gabungan topik penunjang
+                        'results' => $resultsByStudent,
+                        'results_count' => count($resultsByStudent)
+                    ];
                 }
 
-                $classData['subjects'][] = $subjectItem;
+                $subjectItems[] = [
+                    'id' => $subject->id,
+                    'name' => $subject->name ?? 'Mata Pelajaran',
+                    'activities' => $activityList // Struktur data langsung aktivitas
+                ];
             }
 
-            $resultByClass->push($classData);
+            $classModel = Classes::find($classId);
+            $resultByClass->push([
+                'class_id' => $classId,
+                'class_name' => $classModel ? $classModel->name : ('Kelas ' . $classId),
+                'students' => $students,
+                'subjects' => $subjectItems
+            ]);
         }
 
         return view('guru.datanilai', [
