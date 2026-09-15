@@ -793,25 +793,17 @@ class guruController extends Controller
 
         // Jika guru tidak mengajar kelas apapun
         if (empty($kelasIds)) {
-            $data = collect();
-            $topics = collect();
-            $subjects = collect();
-
-            return view('guru.datasoal', compact(
-                'data',
-                'topics',
-                'subjects'
-            ));
+            return view('guru.datasoal', [
+                'data' => collect(),
+                'topics' => collect(),
+                'subjects' => collect(),
+            ]);
         }
 
         // 2. Ambil subject yang masuk ke kelas guru
         $subjects = DB::table('subject')
             ->whereIn('id_class', $kelasIds)
-            ->select(
-                'id',
-                'name',
-                'id_class'
-            )
+            ->select('id', 'name', 'id_class')
             ->orderBy('name')
             ->get();
 
@@ -820,15 +812,11 @@ class guruController extends Controller
 
         $topics = DB::table('topics')
             ->whereIn('id_subject', $subjectIds)
-            ->select(
-                'id',
-                'title',
-                'id_subject'
-            )
+            ->select('id', 'title', 'id_subject')
             ->orderBy('title')
             ->get();
 
-        // 4. Ambil soal
+        // 4. Ambil soal yang sesuai dengan kelas guru
         $questions = DB::table('question')
             ->join('topics', 'question.id_topic', '=', 'topics.id')
             ->join('subject', 'topics.id_subject', '=', 'subject.id')
@@ -843,40 +831,31 @@ class guruController extends Controller
             ->orderBy('question.created_at', 'desc')
             ->get();
 
-        // 5. Decode data JSON
+        // 5. Decode data JSON dengan fallback aman
         foreach ($questions as $item) {
 
-            // Pertanyaan
-            $item->question = is_string($item->question)
-                ? json_decode($item->question)
-                : $item->question;
+            // Pertanyaan: Jaga agar teks HTML / raw string tidak menjadi null jika json_decode gagal
+            if (is_string($item->question)) {
+                $decoded = json_decode($item->question);
+                $item->question = $decoded ?? (object) ['text' => $item->question];
+            }
 
-            // Pilihan ganda
-            $item->MC_option = $item->MC_option
-                ? (
-                    is_string($item->MC_option)
-                    ? json_decode($item->MC_option)
-                    : $item->MC_option
-                )
-                : null;
+            // Pilihan Ganda
+            if (is_string($item->MC_option)) {
+                $item->MC_option = json_decode($item->MC_option);
+            }
 
-            // Jawaban isian
-            $item->SA_answer = $item->SA_answer
-                ? (
-                    is_string($item->SA_answer)
-                    ? json_decode($item->SA_answer)
-                    : $item->SA_answer
-                )
-                : null;
+            // Jawaban Isian
+            if (is_string($item->SA_answer)) {
+                $item->SA_answer = json_decode($item->SA_answer);
+            }
 
-            // TAGS
-            $item->tags = $item->tags
-                ? (
-                    is_string($item->tags)
-                    ? json_decode($item->tags, true)
-                    : $item->tags
-                )
-                : [];
+            // Tags: Pastikan selalu bertipe array untuk perulangan di Blade
+            if (is_string($item->tags)) {
+                $item->tags = json_decode($item->tags, true) ?? [];
+            } elseif (is_null($item->tags)) {
+                $item->tags = [];
+            }
         }
 
         return view('guru.datasoal', [
@@ -992,7 +971,7 @@ class guruController extends Controller
         $request->validate([
             'type' => 'required|in:MultipleChoice,ShortAnswer',
             'question_text' => 'required|string',
-            'difficulty' => 'nullable|in:mudah,sedang,sulit',
+            'difficulty' => 'nullable|in:sangat mudah,mudah,sedang,sulit,sangat sulit',
             'id_topic' => 'nullable|exists:topics,id',
             'hint' => 'nullable|string',
             'tags' => 'nullable|string|max:500',
@@ -1019,7 +998,6 @@ class guruController extends Controller
             $urls = $request->input('option_url', []);
 
             foreach ($texts as $index => $text) {
-                // Hanya simpan opsi yang memiliki teks/isi
                 if ($text !== null && trim($text) !== '') {
                     $label = chr(97 + $index); // a, b, c, d, e
                     $options[] = [
@@ -1042,13 +1020,16 @@ class guruController extends Controller
             $tags = !empty($tagsArray) ? json_encode($tagsArray) : null;
         }
 
+        // 🔹 Penentuan Delta (Rasch Model) berdasarkan 5 Tingkat Kesulitan
         $difficulty = $request->difficulty ?? 'sedang';
-        $delta = 0.0;
-        if ($difficulty === 'mudah') {
-            $delta = -1.5;
-        } elseif ($difficulty === 'sulit') {
-            $delta = 1.5;
-        }
+        $delta = match ($difficulty) {
+            'sangat mudah' => -2.0,
+            'mudah' => -1.0,
+            'sedang' => 0.0,
+            'sulit' => 1.0,
+            'sangat sulit' => 2.0,
+            default => 0.0,
+        };
 
         Question::create([
             'type' => $request->type,
@@ -1108,7 +1089,7 @@ class guruController extends Controller
         $rules = [
             'question_text' => 'required|string',
             'question_url' => 'nullable|url',
-            'difficulty' => 'nullable|in:mudah,sedang,sulit',
+            'difficulty' => 'nullable|in:sangat mudah,mudah,sedang,sulit,sangat sulit',
             'id_topic' => 'nullable|exists:topics,id',
             'tags' => 'nullable|string|max:500',
             'hint' => 'nullable|string',
@@ -1182,13 +1163,16 @@ class guruController extends Controller
             $saAnswer = !empty($filtered) ? json_encode($filtered) : null;
         }
 
+        // 🔹 Penentuan Delta (Rasch Model) berdasarkan 5 Tingkat Kesulitan
         $difficulty = $request->difficulty ?? $data->difficulty;
-        $delta = 0.0;
-        if ($difficulty === 'mudah') {
-            $delta = -1.5;
-        } elseif ($difficulty === 'sulit') {
-            $delta = 1.5;
-        }
+        $delta = match ($difficulty) {
+            'sangat mudah' => -2.0,
+            'mudah' => -1.0,
+            'sedang' => 0.0,
+            'sulit' => 1.0,
+            'sangat sulit' => 2.0,
+            default => 0.0,
+        };
 
         $tags = null;
         if ($request->filled('tags')) {

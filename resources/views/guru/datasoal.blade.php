@@ -104,6 +104,7 @@
                             @php
                                 $topicObj = $topics->firstWhere('id', $item->id_topic);
                                 $topicTitle = $topicObj ? $topicObj->title : '-';
+                                $diff = strtolower($item->difficulty ?? '');
                             @endphp
                             <tr data-question-id="{{ $item->id }}" data-topic-title="{{ $topicTitle }}"
                                 data-id_topic="{{ $item->id_topic ?? '' }}">
@@ -131,10 +132,11 @@
                                     @endforelse
                                 </td>
                                 <td>
-                                    <span class="badge 
-                                                                                        @if($item->difficulty == 'mudah') bg-success 
-                                                                                        @elseif($item->difficulty == 'sedang') bg-warning text-dark 
-                                                                                        @else bg-danger @endif">
+                                    <span class="badge px-2 py-1 
+                                        @if(in_array($diff, ['mudah', 'easy'])) bg-success-subtle text-success border border-success-subtle 
+                                        @elseif(in_array($diff, ['sedang', 'medium'])) bg-warning-subtle text-warning-emphasis border border-warning-subtle 
+                                        @elseif(in_array($diff, ['sulit', 'hard'])) bg-danger-subtle text-danger border border-danger-subtle 
+                                        @else bg-secondary-subtle text-secondary border border-secondary-subtle @endif">
                                         {{ ucfirst($item->difficulty) }}
                                     </span>
 
@@ -176,11 +178,13 @@
                 </table>
             </div>
         </div>
+
         <div class="d-block d-md-none mt-3">
             @foreach($data as $item)
                 @php
                     $topicObj = $topics->firstWhere('id', $item->id_topic);
                     $topicTitle = $topicObj ? $topicObj->title : '-';
+                    $diffMobile = strtolower($item->difficulty ?? '');
                 @endphp
 
                 <div class="card shadow-sm mb-3 soal-card" data-id_topic="{{ $item->id_topic ?? '' }}">
@@ -192,10 +196,11 @@
                                 class="badge bg-secondary">{{ $item->type == 'MultipleChoice' ? 'Pilihan Ganda' : 'Isian Singkat' }}</span>
 
                             <div class="text-end">
-                                <span class="badge 
-                                                                                    @if($item->difficulty == 'mudah') bg-success 
-                                                                                    @elseif($item->difficulty == 'sedang') bg-warning text-dark 
-                                                                                    @else bg-danger @endif">
+                                <span class="badge px-2 py-1 
+                                    @if(in_array($diffMobile, ['mudah', 'easy'])) bg-success-subtle text-success border border-success-subtle 
+                                    @elseif(in_array($diffMobile, ['sedang', 'medium'])) bg-warning-subtle text-warning-emphasis border border-warning-subtle 
+                                    @elseif(in_array($diffMobile, ['sulit', 'hard'])) bg-danger-subtle text-danger border border-danger-subtle 
+                                    @else bg-secondary-subtle text-secondary border border-secondary-subtle @endif">
                                     {{ ucfirst($item->difficulty) }}
                                 </span>
                                 <span class="badge bg-light text-dark border ms-1" title="Tingkat Kesulitan / Delta">
@@ -468,14 +473,10 @@
                             <i class="bi bi-bar-chart me-1"></i> Kesulitan Soal & Delta
                         </h6>
                         <ul>
-                            <li><span class="badge bg-success">Mudah</span> – Untuk pemahaman dasar (Nilai Delta lebih
-                                rendah/negatif).</li>
-                            <li><span class="badge bg-warning text-dark">Sedang</span> – Untuk pemahaman menengah (Nilai
-                                Delta di kisaran 0.0).</li>
-                            <li><span class="badge bg-danger">Sulit</span> – Untuk pemahaman tingkat lanjut (Nilai Delta
-                                tinggi/positif).</li>
-                            <li>Nilai <strong>Delta</strong> ini digunakan oleh algoritma ujian adaptif untuk menentukan
-                                soal yang sesuai dengan kemampuan siswa.</li>
+                            <li><span class="badge bg-success-subtle text-success border border-success-subtle">Mudah</span> – Untuk pemahaman dasar (Nilai Delta lebih rendah/negatif).</li>
+                            <li><span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">Sedang</span> – Untuk pemahaman menengah (Nilai Delta di kisaran 0.0).</li>
+                            <li><span class="badge bg-danger-subtle text-danger border border-danger-subtle">Sulit</span> – Untuk pemahaman tingkat lanjut (Nilai Delta tinggi/positif).</li>
+                            <li>Nilai <strong>Delta</strong> ini digunakan oleh algoritma ujian adaptif untuk menentukan soal yang sesuai dengan kemampuan siswa.</li>
                         </ul>
 
                     </div>
@@ -629,17 +630,16 @@
                 $('#soalImage').html(q?.URL ? `<img src="${q.URL}" class="img-fluid rounded" style="max-height:250px">` : "");
                 var pilihan = $('#soalPilihan').empty();
 
-                // Karena kita tetap mengirimkan raw data-type, kode JavaScript ini tidak akan terpengaruh
                 if (type === "MultipleChoice" && opt) {
                     opt.forEach(o => {
                         var label = Object.keys(o)[0];
                         var d = o[label];
                         pilihan.append(`
-                                                    <div class="border p-2 mb-2 rounded">
-                                                        <strong>${label.toUpperCase()}.</strong> ${d.teks}
-                                                        ${d.url ? `<br><img src="${d.url}" class="img-thumbnail mt-2" style="max-height:100px">` : ""}
-                                                    </div>
-                                                `);
+                            <div class="border p-2 mb-2 rounded">
+                                <strong>${label.toUpperCase()}.</strong> ${d.teks}
+                                ${d.url ? `<br><img src="${d.url}" class="img-thumbnail mt-2" style="max-height:100px">` : ""}
+                            </div>
+                        `);
                     });
                 } else {
                     pilihan.html("<em>Tidak ada pilihan jawaban.</em>");
@@ -749,18 +749,18 @@
                     Swal.fire({
                         title: 'Hapus Soal?',
                         html: `
-                                                    <div class="text-start">
-                                                        <p class="mb-2">
-                                                            Anda akan menghapus:
-                                                        </p>
-                                                        <blockquote class="small border-start ps-2 text-muted">
-                                                            ${soalText}
-                                                        </blockquote>
-                                                        <small class="text-danger">
-                                                            ⚠️ Soal yang dihapus tidak dapat dikembalikan.
-                                                        </small>
-                                                    </div>
-                                                `,
+                            <div class="text-start">
+                                <p class="mb-2">
+                                    Anda akan menghapus:
+                                </p>
+                                <blockquote class="small border-start ps-2 text-muted">
+                                    ${soalText}
+                                </blockquote>
+                                <small class="text-danger">
+                                    ⚠️ Soal yang dihapus tidak dapat dikembalikan.
+                                </small>
+                            </div>
+                        `,
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#dc3545',
@@ -786,5 +786,4 @@
 
         });
     </script>
-
 @endpush

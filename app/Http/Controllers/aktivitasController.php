@@ -183,8 +183,6 @@ class aktivitasController extends Controller
     public function start(Request $req, $id)
     {
         try {
-            session()->forget("activity.$id");
-
             $activity = Activity::findOrFail($id);
             $totalDB = $activity->questions()->count();
 
@@ -195,6 +193,7 @@ class aktivitasController extends Controller
                 ], 422);
             }
 
+            $userId = auth()->id();
             $adaptive = ($activity->addaptive === 'yes');
             $settingJumlahSoal = $activity->jumlah_soal ? (int) $activity->jumlah_soal : $totalDB;
             $jumlahSoal = min($totalDB, $settingJumlahSoal);
@@ -204,42 +203,120 @@ class aktivitasController extends Controller
                 $minSoal = 10;
             }
 
-            session([
-                "activity.$id.theta" => 0.0,
-                "activity.$id.se" => 1.0,
-                "activity.$id.current_index" => 0,
-                "activity.$id.used_questions" => [],
-                "activity.$id.history" => [],
-                "activity.$id.total_correct" => 0,
-                "activity.$id.max_questions" => $jumlahSoal,
-                "activity.$id.min_questions" => $minSoal,
-            ]);
+            // AMBIL DATA DARI DATABASE (Pencegahan utama bug refresh/reload)
+            $existingAnswers = ActivityAnswer::where('id_activity', $id)
+                ->where('id_user', $userId)
+                ->get();
 
-            $startTime = Carbon::now();
-            session(["activity.$id.start_time" => $startTime->toDateTimeString()]);
+            $activityResult = ActivityResult::where('id_activity', $id)
+                ->where('id_user', $userId)
+                ->first();
 
-            $userId = auth()->id();
+            // Jika sudah ada riwayat jawaban di database, PASTIKAN SESSION DIPULIHKAN SEPENUHNYA
+            if ($existingAnswers->isNotEmpty() || (session()->has("activity.$id") && !empty(session("activity.$id.used_questions")))) {
 
-            ActivityResult::updateOrCreate(
-                ['id_activity' => $id, 'id_user' => $userId],
-                [
-                    'start_time' => $startTime,
-                    'waktu_mengerjakan' => null,
-                    'end_time' => null,
-                    'total_benar' => 0,
-                    'nilai_akhir' => null,
-                    'skor_logit' => 0.0,
-                    'result' => null,
-                    'result_status' => null
-                ]
-            );
+                // Jika session hilang tapi database ada, recovery dari database
+                $usedQuestions = $existingAnswers->pluck('id_question')->toArray();
+                $history = $existingAnswers->map(function ($ans) {
+                    return [
+                        'id' => $ans->id_question,
+                        'delta' => (float) $ans->delta,
+                        'is_correct' => $ans->is_correct ? 1 : 0
+                    ];
+                })->toArray();
+
+                $totalCorrect = $existingAnswers->where('is_correct', true)->count();
+                $currentIndex = count($usedQuestions);
+
+                // Hitung ulang Theta & SE secara presisi dari histori database
+                $theta = 0.0;
+                $se = 1.0;
+                if (!empty($history) && $adaptive) {
+                    $sumNum = 0.0;
+                    $sumDen = 0.0;
+                    foreach ($history as $h) {
+                        $b = $h['delta'];
+                        $u = $h['is_correct'];
+                        $expVal = exp(-max(-20, min(20, $theta - $b)));
+                        $p = 1.0 / (1.0 + $expVal);
+                        $sumNum += ($u - $p);
+                        $sumDen += ($p * (1.0 - $p));
+                    }
+                    if ($sumDen > 0.0001) {
+                        $deltaTheta = max(-0.5, min(0.5, $sumNum / $sumDen));
+                        $theta = max(-2.0, min(2.0, $theta + $deltaTheta));
+                        $se = 1.0 / sqrt($sumDen);
+                    }
+                }
+
+                // Ambil atau generate ulang urutan soal agar konsisten
+                $questionOrder = session("activity.$id.question_order");
+                if (!$questionOrder) {
+                    $questionOrder = $activity->questions()->inRandomOrder()->pluck('question.id')->toArray();
+                }
+
+                $startTime = session("activity.$id.start_time");
+                if (!$startTime && $activityResult && $activityResult->start_time) {
+                    $startTime = Carbon::parse($activityResult->start_time)->toDateTimeString();
+                } else if (!$startTime) {
+                    $startTime = Carbon::now()->toDateTimeString();
+                }
+
+                // Set ulang session dengan state terakhir yang valid
+                session([
+                    "activity.$id.theta" => $theta,
+                    "activity.$id.se" => $se,
+                    "activity.$id.current_index" => $currentIndex,
+                    "activity.$id.used_questions" => $usedQuestions,
+                    "activity.$id.question_order" => $questionOrder,
+                    "activity.$id.history" => $history,
+                    "activity.$id.total_correct" => $totalCorrect,
+                    "activity.$id.max_questions" => $jumlahSoal,
+                    "activity.$id.min_questions" => $minSoal,
+                    "activity.$id.start_time" => $startTime
+                ]);
+
+            } else {
+                // Inisialisasi Sesi Baru (Hanya jika benar-benar belum pernah mengerjakan / kosong melompong)
+                $questionOrder = $activity->questions()->inRandomOrder()->pluck('question.id')->toArray();
+                $startTime = Carbon::now()->toDateTimeString();
+
+                session([
+                    "activity.$id.theta" => 0.0,
+                    "activity.$id.se" => 1.0,
+                    "activity.$id.current_index" => 0,
+                    "activity.$id.used_questions" => [],
+                    "activity.$id.question_order" => $questionOrder,
+                    "activity.$id.history" => [],
+                    "activity.$id.total_correct" => 0,
+                    "activity.$id.max_questions" => $jumlahSoal,
+                    "activity.$id.min_questions" => $minSoal,
+                    "activity.$id.start_time" => $startTime
+                ]);
+
+                ActivityResult::updateOrCreate(
+                    ['id_activity' => $id, 'id_user' => $userId],
+                    [
+                        'start_time' => Carbon::parse($startTime),
+                        'waktu_mengerjakan' => null,
+                        'end_time' => null,
+                        'total_benar' => 0,
+                        'nilai_akhir' => null,
+                        'skor_logit' => 0.0,
+                        'result' => null,
+                        'result_status' => null
+                    ]
+                );
+            }
 
             return response()->json([
                 'mode' => $adaptive ? 'adaptive' : 'normal',
-                'theta_initial' => 0.0,
+                'theta_initial' => session("activity.$id.theta", 0.0),
                 'totalQuestions' => $jumlahSoal,
+                'current_index' => session("activity.$id.current_index", 0),
+                'total_correct' => session("activity.$id.total_correct", 0),
                 'target_se' => 0.5,
-                'started_at' => $startTime->toDateTimeString(),
+                'started_at' => session("activity.$id.start_time"),
                 'durasi_pengerjaan' => $activity->durasi_pengerjaan ? (int) $activity->durasi_pengerjaan : null
             ]);
         } catch (\Exception $e) {
@@ -258,10 +335,23 @@ class aktivitasController extends Controller
         $se = session("activity.$id.se", 1.0);
         $history = session("activity.$id.history", []);
 
+        // Sinkronisasi Proteksi Jika Session Hilang Saat Reload
+        if (empty($used)) {
+            $dbAnswers = ActivityAnswer::where('id_activity', $id)
+                ->where('id_user', auth()->id())
+                ->pluck('id_question')
+                ->toArray();
+            $used = $dbAnswers;
+            session(["activity.$id.used_questions" => $used]);
+        }
+
         if ($adaptive) {
             $question = $activity->questions()
                 ->whereNotIn('question.id', $used)
                 ->orderByRaw('ABS(delta - ?)', [$theta])
+                ->take(3)
+                ->get()
+                ->shuffle()
                 ->first();
 
             if (!$question) {
@@ -271,11 +361,17 @@ class aktivitasController extends Controller
                     ->first();
             }
         } else {
-            $index = $req->query('index', 0);
-            $question = $activity->questions()
-                ->orderBy('question.id')
-                ->skip($index)
-                ->first();
+            $questionOrder = session("activity.$id.question_order", []);
+            $index = count($used);
+
+            if (isset($questionOrder[$index])) {
+                $question = $activity->questions()->where('question.id', $questionOrder[$index])->first();
+            } else {
+                $question = $activity->questions()
+                    ->whereNotIn('question.id', $used)
+                    ->inRandomOrder()
+                    ->first();
+            }
         }
 
         if (!$question) {
@@ -287,7 +383,6 @@ class aktivitasController extends Controller
 
         $deltaVal = (float) ($question->delta ?? 0.0);
 
-        // Kategori tingkat kesulitan 5 level sesuai rentang delta -2.0 s.d 2.0
         if ($deltaVal <= -1.5) {
             $difficulty = 'Sangat Mudah';
         } elseif ($deltaVal <= -0.5) {
@@ -317,6 +412,7 @@ class aktivitasController extends Controller
 
         return response()->json([
             'question_id' => $question->id,
+            'current_index' => count($used),
             'type' => $question->type,
             'delta' => $deltaVal,
             'theta' => round($theta, 4),

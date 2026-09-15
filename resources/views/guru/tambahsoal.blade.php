@@ -53,15 +53,16 @@
                                 <option value="ShortAnswer">Isian Singkat</option>
                             </select>
                         </div>
-
                         {{-- Kesulitan --}}
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Tingkat Kesulitan</label>
                             <select name="difficulty" class="form-select" id="difficulty" required>
                                 <option value="">-- Pilih Kesulitan --</option>
+                                <option value="sangat mudah">Sangat Mudah</option>
                                 <option value="mudah">Mudah</option>
                                 <option value="sedang">Sedang</option>
                                 <option value="sulit">Sulit</option>
+                                <option value="sangat sulit">Sangat Sulit</option>
                             </select>
                         </div>
 

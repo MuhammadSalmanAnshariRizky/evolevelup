@@ -230,7 +230,7 @@
 
                     <div class="d-flex justify-content-center gap-3">
                         <button class="btn btn-primary px-4 py-2 fw-semibold rounded-pill shadow-sm" onclick="mulai()">
-                            <i class="bi bi-play-fill me-1"></i> Mulai Ujian
+                            <i class="bi bi-play-fill me-1"></i> Mulai / Lanjutkan Ujian
                         </button>
                         <a href="{{ route('siswa.aktivitas') }}"
                             class="btn btn-outline-secondary px-4 py-2 fw-semibold rounded-pill">
@@ -257,32 +257,42 @@
                 </div>
 
                 <div class="bg-white p-3 rounded border shadow-sm mt-3" style="font-size: 0.85rem;">
-                    <div class="fw-bold text-primary border-bottom pb-1 mb-2 d-flex justify-content-between align-items-center">
+                    <div
+                        class="fw-bold text-primary border-bottom pb-1 mb-2 d-flex justify-content-between align-items-center">
                         <span><i class="bi bi-calculator me-1"></i> Perhitungan Real-Time IRT Rasch Model (1PL)</span>
-                        <span class="badge bg-primary-subtle text-primary border">Target SE &le; <span id="targetSEDisplay">0.50</span></span>
+                        <span class="badge bg-primary-subtle text-primary border">Target SE &le; <span
+                                id="targetSEDisplay">0.50</span></span>
                     </div>
 
                     <div class="row g-2">
                         <div class="col-md-4 border-end pe-2">
-                            <div><span class="text-muted">Ability (&Theta;):</span> <strong id="liveTheta" class="text-primary">0.0000</strong> Logit</div>
+                            <div><span class="text-muted">Ability (&Theta;):</span> <strong id="liveTheta"
+                                    class="text-primary">0.0000</strong> Logit</div>
                             <div>
-                                <span class="text-muted">Difficulty (&delta;):</span> 
-                                <strong id="liveDelta" class="text-dark">0.0000</strong> Logit 
+                                <span class="text-muted">Difficulty (&delta;):</span>
+                                <strong id="liveDelta" class="text-dark">0.0000</strong> Logit
                                 <span id="liveDifficulty" class="badge bg-secondary ms-1">-</span>
                             </div>
-                            <div><span class="text-muted">Peluang Benar (P):</span> <strong id="liveP" class="text-success">0.5000</strong></div>
+                            <div><span class="text-muted">Peluang Benar (P):</span> <strong id="liveP"
+                                    class="text-success">0.5000</strong></div>
                         </div>
 
                         <div class="col-md-4 border-end px-2">
-                            <div><span class="text-muted">Info Soal I = P(1-P):</span> <strong id="liveItemInfo" class="text-info">0.2500</strong></div>
-                            <div><span class="text-muted">Total Info (&sum;I):</span> <strong id="liveSumInfo" class="text-secondary">0.0000</strong></div>
-                            <div><span class="text-muted">Standard Error (SE):</span> <strong id="liveSE" class="text-danger">1.0000</strong></div>
+                            <div><span class="text-muted">Info Soal I = P(1-P):</span> <strong id="liveItemInfo"
+                                    class="text-info">0.2500</strong></div>
+                            <div><span class="text-muted">Total Info (&sum;I):</span> <strong id="liveSumInfo"
+                                    class="text-secondary">0.0000</strong></div>
+                            <div><span class="text-muted">Standard Error (SE):</span> <strong id="liveSE"
+                                    class="text-danger">1.0000</strong></div>
                         </div>
 
                         <div class="col-md-4 ps-2">
-                            <div><span class="text-muted">Residual (&sum;(u - P)):</span> <strong id="liveNumerator" class="text-dark">0.0000</strong></div>
-                            <div><span class="text-muted">Penyesuaian (&Delta;&Theta;):</span> <strong id="liveDeltaTheta" class="text-warning-emphasis">0.0000</strong></div>
-                            <div><span class="text-muted">Formula Update:</span> <code>&Theta;<sub>baru</sub> = &Theta; + &Delta;&Theta;</code></div>
+                            <div><span class="text-muted">Residual (&sum;(u - P)):</span> <strong id="liveNumerator"
+                                    class="text-dark">0.0000</strong></div>
+                            <div><span class="text-muted">Penyesuaian (&Delta;&Theta;):</span> <strong
+                                    id="liveDeltaTheta" class="text-warning-emphasis">0.0000</strong></div>
+                            <div><span class="text-muted">Formula Update:</span>
+                                <code>&Theta;<sub>baru</sub> = &Theta; + &Delta;&Theta;</code></div>
                         </div>
                     </div>
                 </div>
@@ -309,7 +319,6 @@
 
     <div id="comboMeter"></div>
     <div id="onFire"><i class="bi bi-fire text-danger me-1"></i>ON FIRE!</div>
-
     <script>
         let currentIndex = 0;
         let totalQuestions = 0;
@@ -321,7 +330,40 @@
         let totalSalah = 0;
         let currentStreak = 0;
 
+        // Panggil saat halaman siap untuk sinkronisasi otomatis saat reload
+        document.addEventListener("DOMContentLoaded", function () {
+            checkExistingSession();
+        });
+
+        function checkExistingSession() {
+            fetch(`/activity/{{ $id_activity }}/start`)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data) return;
+
+                    totalQuestions = data.totalQuestions;
+                    totalBenar = data.total_correct ?? 0;
+                    currentIndex = data.current_index ?? 0; // Ambil index terbaru dari server (hasil recovery DB)
+                    answers = Array(totalQuestions).fill(null);
+
+                    const durasiMenit = Number.isInteger(data.durasi_pengerjaan) ? data.durasi_pengerjaan : 30;
+                    timeLeft = durasiMenit * 60;
+
+                    // Jika siswa sudah mulai mengerjakan sebelumnya (currentIndex > 0), 
+                    // langsung sembunyikan info box dan masuk ke soal ujian tanpa klik tombol lagi!
+                    if (currentIndex > 0) {
+                        document.getElementById("info-test").hidden = true;
+                        document.getElementById("soal-test").hidden = false;
+                        loadQuestion();
+                        startTimer();
+                    }
+                })
+                .catch(err => console.warn('Gagal sinkronisasi sesi:', err));
+        }
+
         function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+
             timerInterval = setInterval(() => {
                 timeLeft--;
 
@@ -357,6 +399,8 @@
                 })
                 .then(data => {
                     totalQuestions = data.totalQuestions;
+                    currentIndex = data.current_index ?? 0;
+                    totalBenar = data.total_correct ?? 0;
                     answers = Array(totalQuestions).fill(null);
 
                     document.getElementById("info-test").hidden = true;
@@ -396,9 +440,7 @@
         }
 
         function loadQuestion() {
-            document.getElementById("soalNumHeader").innerText = (currentIndex + 1);
-
-            fetch(`/activity/{{ $id_activity }}/question?index=${currentIndex}`)
+            fetch(`/activity/{{ $id_activity }}/question`)
                 .then(r => r.json())
                 .then(q => {
                     if (q.end) {
@@ -406,6 +448,11 @@
                         return;
                     }
 
+                    if (q.current_index !== undefined) {
+                        currentIndex = q.current_index;
+                    }
+
+                    document.getElementById("soalNumHeader").innerText = (currentIndex + 1);
                     currentQuestionID = q.question_id;
 
                     if (q.theta !== undefined) document.getElementById("liveTheta").innerText = Number(q.theta).toFixed(4);
@@ -527,8 +574,7 @@
                         if (res.should_stop || currentIndex >= totalQuestions - 1) {
                             showResult();
                         } else {
-                            currentIndex++;
-                            loadQuestion();
+                            loadQuestion(); // Panggil loadQuestion langsung karena server sudah increment index secara otomatis via submit
                         }
                     }, 1300);
                 })
@@ -629,7 +675,7 @@
                     <span class="badge ${isLulus ? 'bg-success' : 'bg-danger'} fs-6 px-3 py-1">${isLulus ? 'LULUS' : 'REMEDIAL'}</span>
                 </div>
 
-                <div class="card border-warning bg-warning-subtle p-2 rounded-3 text-dark style="font-size: 0.85rem;">
+                <div class="card border-warning bg-warning-subtle p-2 rounded-3 text-dark" style="font-size: 0.85rem;">
                     <div class="fw-bold text-warning-emphasis mb-1">
                         <i class="bi bi-bug-fill me-1"></i> Panel Debugging Sistem:
                     </div>

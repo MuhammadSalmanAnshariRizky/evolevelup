@@ -64,9 +64,13 @@
                         <div class="col-md-3">
                             <label class="form-label fw-semibold">Tingkat Kesulitan</label>
                             <select name="difficulty" class="form-select" id="difficulty" required>
+                                <option value="sangat mudah" {{ $data->difficulty == 'sangat mudah' ? 'selected' : '' }}>
+                                    Sangat Mudah</option>
                                 <option value="mudah" {{ $data->difficulty == 'mudah' ? 'selected' : '' }}>Mudah</option>
                                 <option value="sedang" {{ $data->difficulty == 'sedang' ? 'selected' : '' }}>Sedang</option>
                                 <option value="sulit" {{ $data->difficulty == 'sulit' ? 'selected' : '' }}>Sulit</option>
+                                <option value="sangat sulit" {{ $data->difficulty == 'sangat sulit' ? 'selected' : '' }}>
+                                    Sangat Sulit</option>
                             </select>
                         </div>
 

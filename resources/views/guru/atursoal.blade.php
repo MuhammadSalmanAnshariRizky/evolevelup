@@ -85,13 +85,15 @@
                 @else
                     @foreach($selectedQuestions as $s)
                         @php 
-                                                $sData = json_decode($s->question);
+                            $sData = json_decode($s->question);
                             $diff = strtolower($s->difficulty ?? '');
                             $diffClass = match ($diff) {
-                                'mudah' => 'bg-success-subtle text-success border border-success',
-                                'sedang' => 'bg-warning-subtle text-warning-emphasis border border-warning',
-                                'sulit' => 'bg-danger-subtle text-danger border border-danger',
-                                default => 'bg-info text-dark'
+                                'sangat mudah' => 'bg-info-subtle text-info border border-info',
+                                'mudah'        => 'bg-success-subtle text-success border border-success',
+                                'sedang'       => 'bg-warning-subtle text-warning-emphasis border border-warning',
+                                'sulit'        => 'bg-danger-subtle text-danger border border-danger',
+                                'sangat sulit' => 'bg-secondary-subtle text-secondary border border-secondary',
+                                default        => 'bg-light text-dark border',
                             };
                         @endphp
                         <div class="p-3 border rounded-3 mb-2 bg-light d-flex justify-content-between align-items-start shadow-sm"
@@ -141,7 +143,7 @@
         <div class="card shadow-sm border-0 rounded-4 mb-4">
             <div class="card-body py-3 px-4">
                 <div class="row align-items-center g-3">
-                    <div class="col-md-4 border-end-md">
+                    <div class="col-md-3 border-end-md">
                         <div class="d-flex align-items-center gap-3">
                             <div class="p-3 bg-primary-subtle text-primary rounded-circle">
                                 <i class="bi bi-card-text fs-3"></i>
@@ -154,9 +156,13 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-8">
+                    <div class="col-md-9">
                         <div class="small text-muted fw-semibold mb-2">Komposisi Tingkat Kesulitan</div>
                         <div class="d-flex gap-2 flex-wrap">
+                            <span
+                                class="badge bg-info-subtle text-info border border-info px-3 py-2 rounded-pill fs-6 fw-normal">
+                                <i class="bi bi-bar-chart-fill me-1"></i> Sangat Mudah: <strong id="countSangatMudah">0</strong>
+                            </span>
                             <span
                                 class="badge bg-success-subtle text-success border border-success px-3 py-2 rounded-pill fs-6 fw-normal">
                                 <i class="bi bi-bar-chart-fill me-1"></i> Mudah: <strong id="countMudah">0</strong>
@@ -168,6 +174,10 @@
                             <span
                                 class="badge bg-danger-subtle text-danger border border-danger px-3 py-2 rounded-pill fs-6 fw-normal">
                                 <i class="bi bi-bar-chart-fill me-1"></i> Sulit: <strong id="countSulit">0</strong>
+                            </span>
+                            <span
+                                class="badge bg-secondary-subtle text-secondary border border-secondary px-3 py-2 rounded-pill fs-6 fw-normal">
+                                <i class="bi bi-bar-chart-fill me-1"></i> Sangat Sulit: <strong id="countSangatSulit">0</strong>
                             </span>
                         </div>
                     </div>
@@ -258,7 +268,7 @@
                                     <th style="width:84px">Pilih</th>
                                     <th style="width:56px">No</th>
                                     <th style="min-width:110px">Tipe</th>
-                                    <th style="min-width:100px">Kesulitan</th>
+                                    <th style="min-width:110px">Kesulitan</th>
                                     <th style="min-width:100px">Tags</th>
                                     <th>Pertanyaan</th>
                                 </tr>
@@ -267,13 +277,15 @@
                             <tbody id="modalQuestionList">
                                 @foreach ($questions as $q)
                                     @php 
-                                                                            $qData = json_decode($q->question);
+                                        $qData = json_decode($q->question);
                                         $qDiff = strtolower($q->difficulty ?? '');
                                         $qDiffClass = match ($qDiff) {
-                                            'mudah' => 'bg-success-subtle text-success border border-success',
-                                            'sedang' => 'bg-warning-subtle text-warning-emphasis border border-warning',
-                                            'sulit' => 'bg-danger-subtle text-danger border border-danger',
-                                            default => 'bg-info text-dark'
+                                            'sangat mudah' => 'bg-info-subtle text-info border border-info',
+                                            'mudah'        => 'bg-success-subtle text-success border border-success',
+                                            'sedang'       => 'bg-warning-subtle text-warning-emphasis border border-warning',
+                                            'sulit'        => 'bg-danger-subtle text-danger border border-danger',
+                                            'sangat sulit' => 'bg-secondary-subtle text-secondary border border-secondary',
+                                            default        => 'bg-light text-dark border',
                                         };
                                     @endphp
                                     <tr data-qid="{{ $q->id }}" id="modalRow-{{ $q->id }}">
@@ -418,13 +430,15 @@
             }
         }
 
-        // Helper untuk mendapatkan Class Badge Tingkat Kesulitan di JS
+        // Helper untuk mendapatkan Class Badge 5 Tingkat Kesulitan di JS
         function getDifficultyBadgeClass(difficulty) {
             const diff = (difficulty || '').toLowerCase();
+            if (diff === 'sangat mudah') return 'bg-info-subtle text-info border border-info';
             if (diff === 'mudah') return 'bg-success-subtle text-success border border-success';
             if (diff === 'sedang') return 'bg-warning-subtle text-warning-emphasis border border-warning';
             if (diff === 'sulit') return 'bg-danger-subtle text-danger border border-danger';
-            return 'bg-info text-dark';
+            if (diff === 'sangat sulit') return 'bg-secondary-subtle text-secondary border border-secondary';
+            return 'bg-light text-dark border';
         }
 
         // Render area soal terpilih & Hitung Komposisi Kesulitan
@@ -449,7 +463,7 @@
                 if (q && q.tags && q.tags !== '-') {
                     tagHtml = ` — <span class="badge bg-light text-dark border"><i class="bi bi-tag-fill me-1"></i>${q.tags}</span>`;
                 }
-                const diffClass = q ? getDifficultyBadgeClass(q.difficulty) : 'bg-info text-dark';
+                const diffClass = q ? getDifficultyBadgeClass(q.difficulty) : 'bg-light text-dark border';
                 const smallText = q ? (`<span class="badge bg-secondary me-1">${q.type}</span><span class="badge ${diffClass} me-1">${q.difficulty}</span>${tagHtml}`) : '';
                 const bodyText = q ? escapeHtml(q.text || q.question) : `Memuat soal #${id}...`;
 
@@ -482,7 +496,7 @@
             }));
         }
 
-        // Memperbarui Total Count & Komposisi Kesulitan
+        // Memperbarui Total Count & Komposisi Kesulitan (5 Tingkat Kesulitan)
         function updateCountDisplays(ids, questionsMap = null) {
             const total = ids ? ids.length : 0;
             const currentTotalEl = document.getElementById('currentTotal');
@@ -490,22 +504,26 @@
             if (currentTotalEl) currentTotalEl.innerText = total;
             if (headerBadgeEl) headerBadgeEl.innerText = total + ' Soal';
 
-            let mudah = 0, sedang = 0, sulit = 0;
+            let sangatMudah = 0, mudah = 0, sedang = 0, sulit = 0, sangatSulit = 0;
             if (ids && ids.length) {
                 ids.forEach(id => {
                     const q = (questionsMap && questionsMap[id]) ? questionsMap[id] : ALL_QUESTIONS[id];
                     if (q) {
                         const diff = (q.difficulty || '').toLowerCase();
-                        if (diff === 'mudah') mudah++;
+                        if (diff === 'sangat mudah') sangatMudah++;
+                        else if (diff === 'mudah') mudah++;
                         else if (diff === 'sedang') sedang++;
                         else if (diff === 'sulit') sulit++;
+                        else if (diff === 'sangat sulit') sangatSulit++;
                     }
                 });
             }
 
-            document.getElementById('countMudah').innerText = mudah;
-            document.getElementById('countSedang').innerText = sedang;
-            document.getElementById('countSulit').innerText = sulit;
+            if (document.getElementById('countSangatMudah')) document.getElementById('countSangatMudah').innerText = sangatMudah;
+            if (document.getElementById('countMudah')) document.getElementById('countMudah').innerText = mudah;
+            if (document.getElementById('countSedang')) document.getElementById('countSedang').innerText = sedang;
+            if (document.getElementById('countSulit')) document.getElementById('countSulit').innerText = sulit;
+            if (document.getElementById('countSangatSulit')) document.getElementById('countSangatSulit').innerText = sangatSulit;
         }
 
         const soalModalEl = document.getElementById('soalModal');

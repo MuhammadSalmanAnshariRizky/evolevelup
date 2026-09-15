@@ -46,14 +46,24 @@ class siswaController extends Controller
         // -----------------------------
         // Aktivitas: KUMPULKAN PER KELAS
         // -----------------------------
+        // -----------------------------
+        // Aktivitas: KUMPULKAN PER KELAS (Mendukung Evaluation / Multi-Topik)
+        // -----------------------------
         $activitiesByClass = collect();
 
         foreach ($kelasList as $kelas) {
             $raw = DB::table('activities')
-                ->join('topics', 'activities.id_topic', '=', 'topics.id')
-                ->join('subject', 'topics.id_subject', '=', 'subject.id')
-                ->join('classes', 'subject.id_class', '=', 'classes.id')
-                ->where('classes.id', $kelas->id)
+                ->leftJoin('topics as single_topic', 'activities.id_topic', '=', 'single_topic.id')
+                ->leftJoin('activity_topics', 'activities.id', '=', 'activity_topics.id_activity')
+                ->leftJoin('topics as multi_topic', 'activity_topics.id_topic', '=', 'multi_topic.id')
+                ->leftJoin('subject as sub1', 'single_topic.id_subject', '=', 'sub1.id')
+                ->leftJoin('subject as sub2', 'multi_topic.id_subject', '=', 'sub2.id')
+                ->leftJoin('classes as cls1', 'sub1.id_class', '=', 'cls1.id')
+                ->leftJoin('classes as cls2', 'sub2.id_class', '=', 'cls2.id')
+                ->where(function ($query) use ($kelas) {
+                    $query->where('cls1.id', $kelas->id)
+                        ->orWhere('cls2.id', $kelas->id);
+                })
                 ->leftJoin('activity_result', function ($join) use ($user) {
                     $join->on('activities.id', '=', 'activity_result.id_activity')
                         ->where('activity_result.id_user', '=', $user->id);
@@ -63,38 +73,43 @@ class siswaController extends Controller
                     'activities.id_topic',
                     'activities.title as aktivitas',
                     'activities.status',
-                    'topics.title as topik',
-                    'subject.name as mapel',
+                    'activities.type',
+                    'single_topic.title as single_topik',
+                    DB::raw('COALESCE(sub1.name, sub2.name) as mapel'),
                     'activities.created_at',
                     DB::raw('COALESCE(activity_result.result, "-") as result'),
+                    DB::raw('COALESCE(activity_result.nilai_akhir, "-") as nilai_akhir'),
                     DB::raw('COALESCE(activity_result.result_status, "Belum Dikerjakan") as result_status')
                 )
-                ->orderBy('topics.id')
+                ->distinct()
                 ->orderBy('activities.created_at', 'asc')
                 ->get();
 
-            $grouped = $raw->groupBy('id_topic')->map(function ($group) {
-                $data = [
-                    'id_topic' => $group->first()->id_topic,
-                    'topik' => $group->first()->topik,
-                    'mapel' => $group->first()->mapel,
-                    'tanggal' => $group->first()->created_at,
-                    'basic' => null,
-                    'additional' => null,
-                    'remedial' => null,
-                ];
+            $grouped = $raw->groupBy('id_activity')->map(function ($group) {
+                $act = $group->first();
 
-                foreach ($group as $act) {
-                    $status = strtolower($act->status);
-                    if ($status === 'basic')
-                        $data['basic'] = $act;
-                    if ($status === 'additional')
-                        $data['additional'] = $act;
-                    if ($status === 'remedial')
-                        $data['remedial'] = $act;
+                // Tangani penamaan topik jika evaluasi / multi-topik
+                if ($act->type === 'evaluation' || empty($act->id_topic)) {
+                    $topicTitles = DB::table('activity_topics')
+                        ->join('topics', 'activity_topics.id_topic', '=', 'topics.id')
+                        ->where('activity_topics.id_activity', $act->id_activity)
+                        ->pluck('topics.title')
+                        ->toArray();
+                    $topikNama = !empty($topicTitles) ? implode(', ', $topicTitles) : 'Evaluasi Multi-Topik';
+                } else {
+                    $topikNama = $act->single_topik ?? '-';
                 }
 
-                return (object) $data;
+                return (object) [
+                    'id_activity' => $act->id_activity,
+                    'topik' => $topikNama,
+                    'mapel' => $act->mapel ?? '-',
+                    'aktivitas' => $act->aktivitas,
+                    'tanggal' => $act->created_at,
+                    'result' => $act->result,
+                    'nilai_akhir' => $act->nilai_akhir,
+                    'result_status' => $act->result_status,
+                ];
             });
 
             $activitiesByClass->push((object) [
@@ -478,28 +493,37 @@ class siswaController extends Controller
         // Tambahan: Daftar Nilai (ambil dari activity_result + relasi)
         // -----------------------------
         // Cari semua activity_result milik user yang berkaitan dengan kelas user
+// -----------------------------
+        // Tambahan: Daftar Nilai (Mendukung Evaluation)
+        // -----------------------------
         $kelasIds = $kelasList->pluck('id')->toArray();
 
         $nilaiList = DB::table('activity_result')
             ->join('activities', 'activity_result.id_activity', '=', 'activities.id')
-            ->join('topics', 'activities.id_topic', '=', 'topics.id')
-            ->join('subject', 'topics.id_subject', '=', 'subject.id')
-            ->join('classes', 'subject.id_class', '=', 'classes.id')
+            ->leftJoin('topics as single_topic', 'activities.id_topic', '=', 'single_topic.id')
+            ->leftJoin('activity_topics', 'activity_topics.id_activity', '=', 'activities.id')
+            ->leftJoin('topics as multi_topic', 'activity_topics.id_topic', '=', 'multi_topic.id')
+            ->leftJoin('subject as sub1', 'single_topic.id_subject', '=', 'sub1.id')
+            ->leftJoin('subject as sub2', 'multi_topic.id_subject', '=', 'sub2.id')
+            ->leftJoin('classes as cls1', 'sub1.id_class', '=', 'cls1.id')
+            ->leftJoin('classes as cls2', 'sub2.id_class', '=', 'cls2.id')
             ->where('activity_result.id_user', $user->id)
-            ->whereIn('classes.id', $kelasIds)
+            ->where(function ($query) use ($kelasIds) {
+                $query->whereIn('cls1.id', $kelasIds)
+                    ->orWhereIn('cls2.id', $kelasIds);
+            })
             ->select(
                 'activity_result.id as id_result',
                 'activity_result.result as result_value',
                 'activity_result.nilai_akhir as nilai_akhir',
                 'activity_result.created_at as result_created_at',
                 'activities.title as aktivitas',
-                'topics.title as topik',
-                'subject.name as mapel',
-                'classes.name as kelas'
+                DB::raw('COALESCE(cls1.name, cls2.name) as kelas'),
+                DB::raw('COALESCE(sub1.name, sub2.name) as mapel')
             )
+            ->distinct()
             ->orderByDesc('activity_result.created_at')
             ->get();
-
         // -----------------------------
         // View
         // -----------------------------
