@@ -257,42 +257,32 @@
                 </div>
 
                 <div class="bg-white p-3 rounded border shadow-sm mt-3" style="font-size: 0.85rem;">
-                    <div
-                        class="fw-bold text-primary border-bottom pb-1 mb-2 d-flex justify-content-between align-items-center">
+                    <div class="fw-bold text-primary border-bottom pb-1 mb-2 d-flex justify-content-between align-items-center">
                         <span><i class="bi bi-calculator me-1"></i> Perhitungan Real-Time IRT Rasch Model (1PL)</span>
-                        <span class="badge bg-primary-subtle text-primary border">Target SE &le; <span
-                                id="targetSEDisplay">0.50</span></span>
+                        <span class="badge bg-primary-subtle text-primary border">Target SE &le; <span id="targetSEDisplay">0.50</span></span>
                     </div>
 
                     <div class="row g-2">
                         <div class="col-md-4 border-end pe-2">
-                            <div><span class="text-muted">Ability (&Theta;):</span> <strong id="liveTheta"
-                                    class="text-primary">0.0000</strong> Logit</div>
+                            <div><span class="text-muted">Ability (&Theta;):</span> <strong id="liveTheta" class="text-primary">0.0000</strong> Logit</div>
                             <div>
                                 <span class="text-muted">Difficulty (&delta;):</span>
                                 <strong id="liveDelta" class="text-dark">0.0000</strong> Logit
                                 <span id="liveDifficulty" class="badge bg-secondary ms-1">-</span>
                             </div>
-                            <div><span class="text-muted">Peluang Benar (P):</span> <strong id="liveP"
-                                    class="text-success">0.5000</strong></div>
+                            <div><span class="text-muted">Peluang Benar (P):</span> <strong id="liveP" class="text-success">0.5000</strong></div>
                         </div>
 
                         <div class="col-md-4 border-end px-2">
-                            <div><span class="text-muted">Info Soal I = P(1-P):</span> <strong id="liveItemInfo"
-                                    class="text-info">0.2500</strong></div>
-                            <div><span class="text-muted">Total Info (&sum;I):</span> <strong id="liveSumInfo"
-                                    class="text-secondary">0.0000</strong></div>
-                            <div><span class="text-muted">Standard Error (SE):</span> <strong id="liveSE"
-                                    class="text-danger">1.0000</strong></div>
+                            <div><span class="text-muted">Info Soal I = P(1-P):</span> <strong id="liveItemInfo" class="text-info">0.2500</strong></div>
+                            <div><span class="text-muted">Total Info (&sum;I):</span> <strong id="liveSumInfo" class="text-secondary">0.0000</strong></div>
+                            <div><span class="text-muted">Standard Error (SE):</span> <strong id="liveSE" class="text-danger">1.0000</strong></div>
                         </div>
 
                         <div class="col-md-4 ps-2">
-                            <div><span class="text-muted">Residual (&sum;(u - P)):</span> <strong id="liveNumerator"
-                                    class="text-dark">0.0000</strong></div>
-                            <div><span class="text-muted">Penyesuaian (&Delta;&Theta;):</span> <strong
-                                    id="liveDeltaTheta" class="text-warning-emphasis">0.0000</strong></div>
-                            <div><span class="text-muted">Formula Update:</span>
-                                <code>&Theta;<sub>baru</sub> = &Theta; + &Delta;&Theta;</code></div>
+                            <div><span class="text-muted">Residual (&sum;(u - P)):</span> <strong id="liveNumerator" class="text-dark">0.0000</strong></div>
+                            <div><span class="text-muted">Penyesuaian (&Delta;&Theta;):</span> <strong id="liveDeltaTheta" class="text-warning-emphasis">0.0000</strong></div>
+                            <div><span class="text-muted">Formula Update:</span> <code>&Theta;<sub>baru</sub> = &Theta; + &Delta;&Theta;</code></div>
                         </div>
                     </div>
                 </div>
@@ -319,6 +309,7 @@
 
     <div id="comboMeter"></div>
     <div id="onFire"><i class="bi bi-fire text-danger me-1"></i>ON FIRE!</div>
+
     <script>
         let currentIndex = 0;
         let totalQuestions = 0;
@@ -330,7 +321,6 @@
         let totalSalah = 0;
         let currentStreak = 0;
 
-        // Panggil saat halaman siap untuk sinkronisasi otomatis saat reload
         document.addEventListener("DOMContentLoaded", function () {
             checkExistingSession();
         });
@@ -343,14 +333,19 @@
 
                     totalQuestions = data.totalQuestions;
                     totalBenar = data.total_correct ?? 0;
-                    currentIndex = data.current_index ?? 0; // Ambil index terbaru dari server (hasil recovery DB)
+                    currentIndex = data.current_index ?? 0;
                     answers = Array(totalQuestions).fill(null);
+
+                    if (data.theta_initial !== undefined) {
+                        document.getElementById("liveTheta").innerText = Number(data.theta_initial).toFixed(4);
+                    }
+                    if (data.se_initial !== undefined) {
+                        document.getElementById("liveSE").innerText = Number(data.se_initial).toFixed(4);
+                    }
 
                     const durasiMenit = Number.isInteger(data.durasi_pengerjaan) ? data.durasi_pengerjaan : 30;
                     timeLeft = durasiMenit * 60;
 
-                    // Jika siswa sudah mulai mengerjakan sebelumnya (currentIndex > 0), 
-                    // langsung sembunyikan info box dan masuk ke soal ujian tanpa klik tombol lagi!
                     if (currentIndex > 0) {
                         document.getElementById("info-test").hidden = true;
                         document.getElementById("soal-test").hidden = false;
@@ -574,7 +569,7 @@
                         if (res.should_stop || currentIndex >= totalQuestions - 1) {
                             showResult();
                         } else {
-                            loadQuestion(); // Panggil loadQuestion langsung karena server sudah increment index secara otomatis via submit
+                            loadQuestion();
                         }
                     }, 1300);
                 })
