@@ -25,6 +25,7 @@
             color: #333;
         }
 
+        /* Card Informasi Awal */
         .info-card {
             border: none;
             border-radius: 1rem;
@@ -32,6 +33,7 @@
             background: #ffffff;
         }
 
+        /* Panel Soal Utama */
         #soal-test {
             background: #ffffff;
             border-radius: 1rem;
@@ -40,6 +42,7 @@
             animation: fadeIn 0.4s ease;
         }
 
+        /* Meta Soal Header */
         .soal-meta {
             padding: 15px 20px;
             border-radius: 0.75rem;
@@ -52,10 +55,11 @@
             color: var(--primary-color);
         }
 
+        /* Timer Badge */
         #timer {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: 700;
-            background: #e74a3b;
+            background: var(--danger-color);
             color: white;
             padding: 6px 16px;
             border-radius: 0.5rem;
@@ -64,32 +68,62 @@
             letter-spacing: 1px;
         }
 
+        /* Teks Soal */
         .question-box {
             font-size: 1.125rem;
             line-height: 1.7;
             color: #2e384d;
         }
 
+        /* Custom Desain Pilihan Ganda (Radio Button & Container) */
         .option-item {
+            display: flex;
+            align-items: center;
             padding: 14px 18px;
             border-radius: 0.75rem;
             border: 2px solid #e3e6f0;
             margin-bottom: 12px;
             cursor: pointer;
             transition: all 0.2s ease-in-out;
-            background: #fdfdfd;
+            background: #ffffff;
             font-size: 1rem;
+            user-select: none;
         }
 
         .option-item:hover {
             border-color: var(--primary-color);
-            background: #f8f9fc;
+            background-color: #f8f9fc;
+            transform: translateY(-1px);
         }
 
-        .form-check-input:checked~.form-check-label {
-            font-weight: 600;
+        /* State ketika Radio Button dipilih */
+        .option-item.selected {
+            border-color: var(--primary-color);
+            background-color: #eaecf4;
+            box-shadow: 0 2px 6px rgba(78, 115, 223, 0.15);
         }
 
+        /* Styling Native Input Radio */
+        .form-check-input[type="radio"] {
+            width: 22px;
+            height: 22px;
+            margin-right: 12px;
+            margin-top: 0;
+            cursor: pointer;
+            border: 2px solid #b7b9cc;
+            accent-color: var(--primary-color);
+            flex-shrink: 0;
+        }
+
+        .form-check-label {
+            cursor: pointer;
+            width: 100%;
+            margin: 0;
+            color: #2e384d;
+            word-break: break-word;
+        }
+
+        /* Tombol Selanjutnya / Selesai */
         .btn-next {
             padding: 10px 24px;
             font-size: 1rem;
@@ -106,33 +140,18 @@
             box-shadow: 0 6px 15px rgba(28, 200, 138, 0.4);
         }
 
-        .form-check-input {
-            width: 20px;
-            height: 20px;
-            margin-top: 2px;
-            cursor: pointer;
-            border: 2px solid #b7b9cc !important;
-            accent-color: var(--success-color);
-        }
-
-        .form-check-label {
-            margin-left: 8px;
-            cursor: pointer;
-            width: 100%;
-        }
-
         @keyframes fadeIn {
             from {
                 opacity: 0;
                 transform: translateY(10px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
+        /* Floating Widgets (Combo & Fire) */
         #comboMeter {
             position: fixed;
             top: 20px;
@@ -154,12 +173,10 @@
                 transform: scale(1);
                 text-shadow: 0 0 10px orange;
             }
-
             50% {
                 transform: scale(1.15);
                 text-shadow: 0 0 20px red;
             }
-
             100% {
                 transform: scale(1);
                 text-shadow: 0 0 10px orange;
@@ -189,20 +206,21 @@
 
 <body class="py-5">
 
-    <div class="container" style="max-width: 900px;">
+    <div class="container" style="max-width: 850px;">
 
         <h3 class="text-center fw-bold mb-4 text-dark">
             <i class="bi bi-journal-code text-primary me-2"></i>{{ $judul }}
             <span class="text-muted fs-5 fw-normal">({{ ucfirst($topik) }})</span>
         </h3>
 
+        <!-- START SCREEN CARD -->
         <div id="info-test" class="text-center">
             <div class="card info-card mx-auto shadow-sm p-4">
                 <div class="card-body">
                     <div class="mb-4">
                         <div class="bg-primary-subtle text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
                             style="width: 60px; height: 60px;">
-                            <i class="bi bi-cpu fs-3"></i>
+                            <i class="bi bi-patch-check fs-3"></i>
                         </div>
                         <h4 class="fw-bold text-dark">Keterangan Aktivitas Ujian</h4>
                     </div>
@@ -224,8 +242,7 @@
 
                     <p class="text-muted small mb-4 px-2">
                         <i class="bi bi-info-circle-fill text-info me-1"></i> <b>Mode Ujian Adaptif:</b> Sistem secara
-                        dinamis menyesuaikan alur soal berdasarkan kemampuan Anda. Ujian dapat diselesaikan
-                        lebih awal jika kompetensi telah terpenuhi.
+                        dinamis menyesuaikan alur soal berdasarkan kemampuan Anda. Pahami setiap soal dengan teliti sebelum menjawab.
                     </p>
 
                     <div class="d-flex justify-content-center gap-3">
@@ -241,10 +258,11 @@
             </div>
         </div>
 
+        <!-- AREA SOAL UJIAN -->
         <div id="soal-test" hidden>
 
             <div class="soal-meta shadow-sm">
-                <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <div class="mb-1"><strong>Kelas:</strong> {{ $kelas }}</div>
                         <div class="mb-1"><strong>Mata Pelajaran:</strong> {{ $mapel }}</div>
@@ -253,37 +271,6 @@
 
                     <div id="timer" class="shadow-sm">
                         <i class="bi bi-clock-history me-1"></i>{{ str_pad($durasi, 2, '0', STR_PAD_LEFT) }}:00
-                    </div>
-                </div>
-
-                <div class="bg-white p-3 rounded border shadow-sm mt-3" style="font-size: 0.85rem;">
-                    <div class="fw-bold text-primary border-bottom pb-1 mb-2 d-flex justify-content-between align-items-center">
-                        <span><i class="bi bi-calculator me-1"></i> Perhitungan Real-Time IRT Rasch Model (1PL)</span>
-                        <span class="badge bg-primary-subtle text-primary border">Target SE &le; <span id="targetSEDisplay">0.50</span></span>
-                    </div>
-
-                    <div class="row g-2">
-                        <div class="col-md-4 border-end pe-2">
-                            <div><span class="text-muted">Ability (&Theta;):</span> <strong id="liveTheta" class="text-primary">0.0000</strong> Logit</div>
-                            <div>
-                                <span class="text-muted">Difficulty (&delta;):</span>
-                                <strong id="liveDelta" class="text-dark">0.0000</strong> Logit
-                                <span id="liveDifficulty" class="badge bg-secondary ms-1">-</span>
-                            </div>
-                            <div><span class="text-muted">Peluang Benar (P):</span> <strong id="liveP" class="text-success">0.5000</strong></div>
-                        </div>
-
-                        <div class="col-md-4 border-end px-2">
-                            <div><span class="text-muted">Info Soal I = P(1-P):</span> <strong id="liveItemInfo" class="text-info">0.2500</strong></div>
-                            <div><span class="text-muted">Total Info (&sum;I):</span> <strong id="liveSumInfo" class="text-secondary">0.0000</strong></div>
-                            <div><span class="text-muted">Standard Error (SE):</span> <strong id="liveSE" class="text-danger">1.0000</strong></div>
-                        </div>
-
-                        <div class="col-md-4 ps-2">
-                            <div><span class="text-muted">Residual (&sum;(u - P)):</span> <strong id="liveNumerator" class="text-dark">0.0000</strong></div>
-                            <div><span class="text-muted">Penyesuaian (&Delta;&Theta;):</span> <strong id="liveDeltaTheta" class="text-warning-emphasis">0.0000</strong></div>
-                            <div><span class="text-muted">Formula Update:</span> <code>&Theta;<sub>baru</sub> = &Theta; + &Delta;&Theta;</code></div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -335,13 +322,6 @@
                     totalBenar = data.total_correct ?? 0;
                     currentIndex = data.current_index ?? 0;
                     answers = Array(totalQuestions).fill(null);
-
-                    if (data.theta_initial !== undefined) {
-                        document.getElementById("liveTheta").innerText = Number(data.theta_initial).toFixed(4);
-                    }
-                    if (data.se_initial !== undefined) {
-                        document.getElementById("liveSE").innerText = Number(data.se_initial).toFixed(4);
-                    }
 
                     const durasiMenit = Number.isInteger(data.durasi_pengerjaan) ? data.durasi_pengerjaan : 30;
                     timeLeft = durasiMenit * 60;
@@ -423,14 +403,15 @@
                 .replace(/'/g, "&#039;");
         }
 
-        function getDifficultyBadgeClass(difficulty) {
-            switch (difficulty) {
-                case 'Sangat Mudah': return 'bg-success';
-                case 'Mudah': return 'bg-info text-dark';
-                case 'Sedang': return 'bg-warning text-dark';
-                case 'Sulit': return 'bg-danger';
-                case 'Sangat Sulit': return 'bg-dark text-white';
-                default: return 'bg-secondary';
+        function selectOption(key) {
+            const radio = document.getElementById(`opt_${key}`);
+            if (radio) {
+                radio.checked = true;
+                
+                // Highlight container yang terpilih
+                document.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
+                const container = radio.closest('.option-item');
+                if (container) container.classList.add('selected');
             }
         }
 
@@ -450,18 +431,6 @@
                     document.getElementById("soalNumHeader").innerText = (currentIndex + 1);
                     currentQuestionID = q.question_id;
 
-                    if (q.theta !== undefined) document.getElementById("liveTheta").innerText = Number(q.theta).toFixed(4);
-                    if (q.delta !== undefined) document.getElementById("liveDelta").innerText = Number(q.delta).toFixed(4);
-                    if (q.difficulty !== undefined) {
-                        const badgeEl = document.getElementById("liveDifficulty");
-                        badgeEl.innerText = q.difficulty;
-                        badgeEl.className = `badge ms-1 ${getDifficultyBadgeClass(q.difficulty)}`;
-                    }
-                    if (q.p_value !== undefined) document.getElementById("liveP").innerText = Number(q.p_value).toFixed(4);
-                    if (q.item_info !== undefined) document.getElementById("liveItemInfo").innerText = Number(q.item_info).toFixed(4);
-                    if (q.sum_info !== undefined) document.getElementById("liveSumInfo").innerText = Number(q.sum_info).toFixed(4);
-                    if (q.current_se !== undefined) document.getElementById("liveSE").innerText = Number(q.current_se).toFixed(4);
-
                     document.getElementById('questionText').textContent = q.question.text;
 
                     let html = "";
@@ -469,11 +438,12 @@
                         q.options.forEach(o => {
                             let key = Object.keys(o)[0];
                             let val = escapeHtml(o[key].teks);
+                            let isChecked = answers[currentIndex] === key;
 
                             html += `
-                            <div class="form-check option-item d-flex align-items-center">
+                            <div class="option-item ${isChecked ? 'selected' : ''}" onclick="selectOption('${key}')">
                                 <input type="radio" name="answer" value="${key}" id="opt_${key}" class="form-check-input"
-                                    ${answers[currentIndex] === key ? "checked" : ""}>
+                                    ${isChecked ? "checked" : ""} onclick="event.stopPropagation(); selectOption('${key}')">
                                 <label class="form-check-label" for="opt_${key}">
                                     <strong class="me-1">${key.toUpperCase()}.</strong> ${val}
                                 </label>
@@ -545,13 +515,6 @@
             })
                 .then(r => r.json())
                 .then(res => {
-                    if (res.current_theta !== undefined) document.getElementById("liveTheta").innerText = Number(res.current_theta).toFixed(4);
-                    if (res.current_p !== undefined) document.getElementById("liveP").innerText = Number(res.current_p).toFixed(4);
-                    if (res.current_se !== undefined) document.getElementById("liveSE").innerText = Number(res.current_se).toFixed(4);
-                    if (res.sum_numerator !== undefined) document.getElementById("liveNumerator").innerText = Number(res.sum_numerator).toFixed(4);
-                    if (res.sum_info !== undefined) document.getElementById("liveSumInfo").innerText = Number(res.sum_info).toFixed(4);
-                    if (res.delta_theta !== undefined) document.getElementById("liveDeltaTheta").innerText = Number(res.delta_theta).toFixed(4);
-
                     if (res.correct === true) {
                         totalBenar++;
                         currentStreak++;
@@ -656,34 +619,21 @@
                     const isLulus = statusText === 'Pass';
 
                     const html = `
-            <div style="text-align:left; font-size: 0.95rem;">
-                <p class="mb-1"><strong>Waktu Pengerjaan:</strong> ${m} menit ${s} detik</p>
-                <p class="mb-1"><strong>Soal Diselesaikan:</strong> ${totalDik} dari Maksimal ${totalQuestions}</p>
-                <p class="mb-3">
-                    <strong>Benar:</strong> <span class="text-success fw-bold">${totalBnr}</span> | 
-                    <strong>Salah:</strong> <span class="text-danger fw-bold">${totalSlh}</span>
-                </p>
-                
-                <div class="text-center bg-light p-3 rounded-3 shadow-sm border mb-3">
-                    <p class="mb-1 text-muted small">Nilai Akhir</p>
-                    <h2 class="mb-1 fw-bolder ${isLulus ? 'text-success' : 'text-danger'}">${nilaiAkhir}</h2>
-                    <span class="badge ${isLulus ? 'bg-success' : 'bg-danger'} fs-6 px-3 py-1">${isLulus ? 'LULUS' : 'REMEDIAL'}</span>
-                </div>
-
-                <div class="card border-warning bg-warning-subtle p-2 rounded-3 text-dark" style="font-size: 0.85rem;">
-                    <div class="fw-bold text-warning-emphasis mb-1">
-                        <i class="bi bi-bug-fill me-1"></i> Panel Debugging Sistem:
+                    <div style="text-align:left; font-size: 0.95rem;">
+                        <p class="mb-1"><strong>Waktu Pengerjaan:</strong> ${m} menit ${s} detik</p>
+                        <p class="mb-1"><strong>Soal Diselesaikan:</strong> ${totalDik} dari Maksimal ${totalQuestions}</p>
+                        <p class="mb-3">
+                            <strong>Benar:</strong> <span class="text-success fw-bold">${totalBnr}</span> | 
+                            <strong>Salah:</strong> <span class="text-danger fw-bold">${totalSlh}</span>
+                        </p>
+                        
+                        <div class="text-center bg-light p-3 rounded-3 shadow-sm border mb-2">
+                            <p class="mb-1 text-muted small">Nilai Akhir</p>
+                            <h2 class="mb-1 fw-bolder ${isLulus ? 'text-success' : 'text-danger'}">${nilaiAkhir}</h2>
+                            <span class="badge ${isLulus ? 'bg-success' : 'bg-danger'} fs-6 px-3 py-1">${isLulus ? 'LULUS' : 'REMEDIAL'}</span>
+                        </div>
                     </div>
-                    <ul class="mb-0 ps-3">
-                        <li><b>Perhitungan Nilai:</b> <code>${debug.rumus ?? '-'}</code> = <b>${debug.nilai_hitung ?? 0}</b></li>
-                        <li><b>Sifat Ujian:</b> ${debug.mode_adaptif ? 'Adaptif (IRT 1PL)' : 'Non-Adaptif'}</li>
-                        <li><b>Skor Kemampuan (&Theta; / Theta):</b> <code>${debug.theta_akhir ?? 0}</code> (Logit)</li>
-                        <li><b>Standard Error (SE):</b> <code>${debug.se_akhir ?? 0}</code> (Target SE &le; ${debug.target_se})</li>
-                        <li><b>Rata-rata Nilai P (Peluang):</b> <code>${debug.p_value_akhir ?? debug.p_value ?? '-'}</code></li>
-                    </ul>
-                </div>
-            </div>
-        `;
+                    `;
 
                     Swal.fire({
                         title: "Ujian Selesai!",
@@ -692,7 +642,7 @@
                         confirmButtonText: "Kembali ke Daftar Aktivitas",
                         confirmButtonColor: '#4e73df',
                         allowOutsideClick: false,
-                        width: '600px'
+                        width: '500px'
                     }).then(result => {
                         if (result.isConfirmed) {
                             location.href = "{{ route('siswa.aktivitas') }}";
