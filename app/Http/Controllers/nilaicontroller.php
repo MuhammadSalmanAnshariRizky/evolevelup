@@ -144,9 +144,30 @@ class nilaicontroller extends Controller
     public function showActivity(Request $request, $id)
     {
         $teacherId = Auth::id();
-        $activity = Activity::with('topic.subject')->findOrFail($id);
 
-        $classId = optional(optional($activity->topic)->subject)->id_class;
+        // Load relasi single topic maupun multi topics (activity_topics)
+        $activity = Activity::with(['topic.subject', 'topics.subject'])->findOrFail($id);
+
+        // 1. Kumpulkan Topik & Subject dari Single Topic maupun Multi Topics
+        $topics = collect();
+        if ($activity->topic) {
+            $topics->push($activity->topic);
+        }
+        if ($activity->topics && $activity->topics->isNotEmpty()) {
+            foreach ($activity->topics as $top) {
+                $topics->push($top);
+            }
+        }
+        $topics = $topics->unique('id');
+
+        $topicNames = $topics->pluck('title')->implode(', ') ?: '-';
+
+        // Ambil Subject terkait
+        $subjects = $topics->pluck('subject')->filter()->unique('id');
+        $subjectNames = $subjects->pluck('name')->implode(', ') ?: '-';
+
+        // 2. Tentukan ID Kelas
+        $classId = optional($subjects->first())->id_class;
 
         if (!$classId) {
             $evalClass = DB::table('activity_topics')
@@ -158,6 +179,14 @@ class nilaicontroller extends Controller
             $classId = $evalClass ? $evalClass->id_class : null;
         }
 
+        // Ambil Nama Kelas dari tabel classes
+        $className = '-';
+        if ($classId) {
+            $classModel = Classes::find($classId);
+            $className = $classModel ? $classModel->name : ('Kelas ' . $classId);
+        }
+
+        // Cek Hak Akses Guru
         $teaches = DB::table('teacher_classes')
             ->where('id_teacher', $teacherId)
             ->where('id_class', $classId)
@@ -167,6 +196,7 @@ class nilaicontroller extends Controller
             abort(403, 'Tidak diizinkan melihat data ini.');
         }
 
+        // 3. Ambil Siswa dan Hasil Nilai
         $studentIds = DB::table('student_classes')
             ->where('id_class', $classId)
             ->pluck('id_student')
@@ -195,27 +225,33 @@ class nilaicontroller extends Controller
             return [
                 'id' => $s->id,
                 'name' => $s->name,
-                'nilai' => $this->formatNilaiDenganStatus($rawNilai)
+                'nilai' => $rawNilai !== null ? (float) $rawNilai : null
             ];
         });
 
+        // Export XLSX
         if ($request->query('export') === 'xlsx') {
             $spreadsheet = new Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
 
             $sheet->setCellValue('A1', 'No');
             $sheet->setCellValue('B1', 'Nama Siswa');
-            $sheet->setCellValue('C1', 'Nilai Akhir & Status');
+            $sheet->setCellValue('C1', 'Nilai Akhir');
+            $sheet->setCellValue('D1', 'Status');
 
             $row = 2;
             foreach ($studentRows as $index => $stu) {
+                $val = $stu['nilai'];
+                $status = ($val !== null) ? ($val >= 60 ? 'Lulus' : 'Tidak Lulus') : 'Belum Mengerjakan';
+
                 $sheet->setCellValue('A' . $row, $index + 1);
                 $sheet->setCellValueExplicit('B' . $row, $stu['name'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-                $sheet->setCellValueExplicit('C' . $row, $stu['nilai'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                $sheet->setCellValueExplicit('C' . $row, $val !== null ? (string) $val : '-', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                $sheet->setCellValueExplicit('D' . $row, $status, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
                 $row++;
             }
 
-            foreach (range('A', 'C') as $col) {
+            foreach (range('A', 'D') as $col) {
                 $sheet->getColumnDimension($col)->setAutoSize(true);
             }
 
@@ -238,8 +274,12 @@ class nilaicontroller extends Controller
             return $response;
         }
 
+        // Kirim variabel metadata lengkap ke view
         return view('guru.detailnilaisiswa', [
             'activity' => $activity,
+            'subject_name' => $subjectNames,
+            'topic_name' => $topicNames,
+            'class_name' => $className,
             'class_id' => $classId,
             'students' => $studentRows
         ]);

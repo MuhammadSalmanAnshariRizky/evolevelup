@@ -53,22 +53,20 @@
                             </button>
                         </div>
 
-                        <div class="text-muted mb-2">
-                            <span class="me-3"><span class="meta-key">Mata Pelajaran:</span>
-                                <span class="meta-value">{{ optional(optional($activity->topic)->subject)->name ?? '-' }}</span>
-                            </span>
-                            <span class="me-3"><span class="meta-key">Topik:</span>
-                                <span class="meta-value">{{ optional($activity->topic)->title ?? '-' }}</span>
-                            </span>
-                            <span class="me-3"><span class="meta-key">Kelas:</span>
-                                <span class="meta-value">
-                                    {{ optional(optional($activity->topic)->subject)->id_class
-                                        ? (optional(optional($activity->topic)->subject)->classes->name ?? 'Kelas ' . optional(optional($activity->topic)->subject)->id_class)
-                                        : '-' }}
-                                </span>
-                            </span>
+                        <div class="text-muted mb-3">
+                            <div class="mb-1">
+                                <span class="meta-key">Mata Pelajaran:</span>
+                                <span class="meta-value">{{ $subject_name ?? '-' }}</span>
+                            </div>
+                            <div class="mb-1">
+                                <span class="meta-key">Topik:</span>
+                                <span class="meta-value">{{ $topic_name ?? '-' }}</span>
+                            </div>
+                            <div>
+                                <span class="meta-key">Kelas:</span>
+                                <span class="meta-value">{{ $class_name ?? '-' }}</span>
+                            </div>
                         </div>
-
                         <div class="small text-muted">
                             <span class="me-3"><i class="far fa-calendar-alt me-1"></i>
                                 Dibuat: {{ optional($activity->created_at)->format('d M Y H:i') ?? '-' }}
@@ -92,8 +90,8 @@
                                         if (is_numeric($raw)) {
                                             $num = (float) $raw;
                                         } else {
-                                            preg_match('/[0-9]+(\.[0-9]+)?/', (string)$raw, $matches);
-                                            $num = isset($matches[0]) ? (float)$matches[0] : null;
+                                            preg_match('/[0-9]+(\.[0-9]+)?/', (string) $raw, $matches);
+                                            $num = isset($matches[0]) ? (float) $matches[0] : null;
                                         }
 
                                         if ($num !== null) {
@@ -152,8 +150,8 @@
                                             if (is_numeric($rawNilai)) {
                                                 $numericVal = (float) $rawNilai;
                                             } else {
-                                                preg_match('/[0-9]+(\.[0-9]+)?/', (string)$rawNilai, $matches);
-                                                $numericVal = isset($matches[0]) ? (float)$matches[0] : null;
+                                                preg_match('/[0-9]+(\.[0-9]+)?/', (string) $rawNilai, $matches);
+                                                $numericVal = isset($matches[0]) ? (float) $matches[0] : null;
                                             }
                                         }
 
@@ -287,21 +285,21 @@
 @endsection
 
 @section('scripts')
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-<script>
-    $(document).ready(function() {
-        if ($('#nilaiTable').length) {
-            $('#nilaiTable').DataTable({
-                "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json"
-                },
-                "pageLength": 10,
-                "responsive": true,
-                "order": [[0, "asc"]]
-            });
-        }
-    });
-</script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            if ($('#nilaiTable').length) {
+                $('#nilaiTable').DataTable({
+                    "language": {
+                        "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json"
+                    },
+                    "pageLength": 10,
+                    "responsive": true,
+                    "order": [[0, "asc"]]
+                });
+            }
+        });
+    </script>
 @endsection
