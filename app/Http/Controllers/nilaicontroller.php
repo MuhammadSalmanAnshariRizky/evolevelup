@@ -17,6 +17,24 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class nilaicontroller extends Controller
 {
+    /**
+     * Helper method internal untuk menampilkan nilai angka beserta status kelulusannya
+     */
+    private function formatNilaiDenganStatus($rawVal)
+    {
+        if (is_null($rawVal) || $rawVal === '') {
+            return '-';
+        }
+
+        if (is_numeric($rawVal)) {
+            $numVal = (float) $rawVal;
+            $status = ($numVal >= 60) ? 'Lulus' : 'Tidak Lulus';
+            return "{$numVal} ({$status})";
+        }
+
+        return $rawVal;
+    }
+
     public function index()
     {
         $teacherId = Auth::id();
@@ -85,10 +103,11 @@ class nilaicontroller extends Controller
 
                     $resultsByStudent = [];
                     foreach ($results as $r) {
-                        $nilai = $r->nilai_akhir ?? $r->result ?? null;
+                        $rawNilai = $r->nilai_akhir ?? $r->result ?? null;
+
                         $resultsByStudent[$r->id_user] = [
                             'id' => $r->id,
-                            'nilai' => $nilai
+                            'nilai' => $this->formatNilaiDenganStatus($rawNilai)
                         ];
                     }
 
@@ -164,18 +183,19 @@ class nilaicontroller extends Controller
 
         $studentRows = $students->map(function ($s) use ($results) {
             $res = $results->get($s->id);
-            $nilai = null;
+            $rawNilai = null;
             if ($res) {
                 if (isset($res->nilai_akhir) && !is_null($res->nilai_akhir)) {
-                    $nilai = $res->nilai_akhir;
+                    $rawNilai = $res->nilai_akhir;
                 } elseif (isset($res->result) && !is_null($res->result)) {
-                    $nilai = $res->result;
+                    $rawNilai = $res->result;
                 }
             }
+
             return [
                 'id' => $s->id,
                 'name' => $s->name,
-                'nilai' => $nilai
+                'nilai' => $this->formatNilaiDenganStatus($rawNilai)
             ];
         });
 
@@ -185,17 +205,13 @@ class nilaicontroller extends Controller
 
             $sheet->setCellValue('A1', 'No');
             $sheet->setCellValue('B1', 'Nama Siswa');
-            $sheet->setCellValue('C1', 'Nilai Akhir');
+            $sheet->setCellValue('C1', 'Nilai Akhir & Status');
 
             $row = 2;
             foreach ($studentRows as $index => $stu) {
                 $sheet->setCellValue('A' . $row, $index + 1);
                 $sheet->setCellValueExplicit('B' . $row, $stu['name'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-                if (is_numeric($stu['nilai'])) {
-                    $sheet->setCellValue('C' . $row, (float) $stu['nilai']);
-                } else {
-                    $sheet->setCellValueExplicit('C' . $row, $stu['nilai'] ?? '-', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-                }
+                $sheet->setCellValueExplicit('C' . $row, $stu['nilai'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
                 $row++;
             }
 
@@ -285,12 +301,13 @@ class nilaicontroller extends Controller
                     ->get();
 
                 foreach ($rows as $r) {
-                    $val = null;
+                    $rawVal = null;
                     if (isset($r->nilai_akhir) && !is_null($r->nilai_akhir))
-                        $val = $r->nilai_akhir;
+                        $rawVal = $r->nilai_akhir;
                     elseif (isset($r->result) && !is_null($r->result))
-                        $val = $r->result;
-                    $results[$r->id_activity][$r->id_user] = $val;
+                        $rawVal = $r->result;
+
+                    $results[$r->id_activity][$r->id_user] = $this->formatNilaiDenganStatus($rawVal);
                 }
             }
 
@@ -359,16 +376,9 @@ class nilaicontroller extends Controller
                 $sheet->setCellValueExplicit('C' . $row, (string) $stu->name, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
 
                 foreach ($activityMap as $colIdx => $activityId) {
-                    $val = null;
-                    if (isset($cdata['results'][$activityId]) && isset($cdata['results'][$activityId][$stu->id])) {
-                        $val = $cdata['results'][$activityId][$stu->id];
-                    }
+                    $val = $cdata['results'][$activityId][$stu->id] ?? '-';
                     $cell = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIdx) . $row;
-                    if (is_numeric($val)) {
-                        $sheet->setCellValue($cell, (float) $val);
-                    } else {
-                        $sheet->setCellValueExplicit($cell, $val ?? '-', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-                    }
+                    $sheet->setCellValueExplicit($cell, $val, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
                 }
                 $row++;
             }
@@ -450,12 +460,13 @@ class nilaicontroller extends Controller
                 ->get();
 
             foreach ($rows as $r) {
-                $val = null;
+                $rawVal = null;
                 if (isset($r->nilai_akhir) && !is_null($r->nilai_akhir))
-                    $val = $r->nilai_akhir;
+                    $rawVal = $r->nilai_akhir;
                 elseif (isset($r->result) && !is_null($r->result))
-                    $val = $r->result;
-                $results[$r->id_activity][$r->id_user] = $val;
+                    $rawVal = $r->result;
+
+                $results[$r->id_activity][$r->id_user] = $this->formatNilaiDenganStatus($rawVal);
             }
         }
 
@@ -493,16 +504,9 @@ class nilaicontroller extends Controller
             $sheet->setCellValueExplicit('C' . $row, (string) $stu->name, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
 
             foreach ($activityMap as $colIdx => $activityId) {
-                $val = null;
-                if (isset($results[$activityId]) && isset($results[$activityId][$stu->id])) {
-                    $val = $results[$activityId][$stu->id];
-                }
+                $val = $results[$activityId][$stu->id] ?? '-';
                 $cell = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIdx) . $row;
-                if (is_numeric($val)) {
-                    $sheet->setCellValue($cell, (float) $val);
-                } else {
-                    $sheet->setCellValueExplicit($cell, $val ?? '-', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-                }
+                $sheet->setCellValueExplicit($cell, $val, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
             }
             $row++;
         }

@@ -2,10 +2,9 @@
 @section('dataNilai', 'active')
 
 @section('head')
-    {{-- jika layout punya section head, DataTables CSS --}}
+    {{-- DataTables CSS --}}
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <style>
-        /* sedikit styling custom agar rapi */
         .meta-key {
             font-weight: 600;
             color: #495057;
@@ -39,8 +38,7 @@
             <i class="fas fa-arrow-left me-1"></i> Kembali
         </a>
 
-
-        {{-- header / card info aktivitas --}}
+        {{-- Header / Card Info Aktivitas --}}
         <div class="card card-activity mb-4">
             <div class="card-body">
                 <div class="row align-items-center">
@@ -56,10 +54,8 @@
                         </div>
 
                         <div class="text-muted mb-2">
-                            {{-- Subject, Topic, Class (menggunakan relasi yang ada jika tersedia) --}}
                             <span class="me-3"><span class="meta-key">Mata Pelajaran:</span>
-                                <span
-                                    class="meta-value">{{ optional(optional($activity->topic)->subject)->name ?? '-' }}</span>
+                                <span class="meta-value">{{ optional(optional($activity->topic)->subject)->name ?? '-' }}</span>
                             </span>
                             <span class="me-3"><span class="meta-key">Topik:</span>
                                 <span class="meta-value">{{ optional($activity->topic)->title ?? '-' }}</span>
@@ -67,8 +63,8 @@
                             <span class="me-3"><span class="meta-key">Kelas:</span>
                                 <span class="meta-value">
                                     {{ optional(optional($activity->topic)->subject)->id_class
-        ? (optional(optional($activity->topic)->subject)->classes->name ?? 'Kelas ' . optional(optional($activity->topic)->subject)->id_class)
-        : '-' }}
+                                        ? (optional(optional($activity->topic)->subject)->classes->name ?? 'Kelas ' . optional(optional($activity->topic)->subject)->id_class)
+                                        : '-' }}
                                 </span>
                             </span>
                         </div>
@@ -84,18 +80,26 @@
                     </div>
 
                     <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                        {{-- ringkasan angka --}}
+                        {{-- Ringkasan Angka --}}
                         @php
-                            // students: koleksi/array dari controller: setiap elemen ['id','name','nilai']
                             $countStudents = isset($students) ? count($students) : 0;
                             $countWithNilai = 0;
                             $sumNilai = 0;
                             if ($countStudents) {
                                 foreach ($students as $st) {
-                                    if (isset($st['nilai']) && $st['nilai'] !== null && $st['nilai'] !== '') {
-                                        $countWithNilai++;
-                                        // pastikan numeric
-                                        $sumNilai += is_numeric($st['nilai']) ? (float) $st['nilai'] : 0;
+                                    $raw = $st['nilai'] ?? null;
+                                    if ($raw !== null && $raw !== '' && $raw !== '-') {
+                                        if (is_numeric($raw)) {
+                                            $num = (float) $raw;
+                                        } else {
+                                            preg_match('/[0-9]+(\.[0-9]+)?/', (string)$raw, $matches);
+                                            $num = isset($matches[0]) ? (float)$matches[0] : null;
+                                        }
+
+                                        if ($num !== null) {
+                                            $countWithNilai++;
+                                            $sumNilai += $num;
+                                        }
                                     }
                                 }
                             }
@@ -114,37 +118,48 @@
 
                         <div class="d-inline-block text-start ms-3">
                             <div class="small text-muted">Rata-rata</div>
-                            <div class="h5 mb-0">{{ $avg ?? '-' }}</div>
+                            <div class="h5 mb-0">{{ $avg !== null ? $avg : '-' }}</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- tabel nilai --}}
+        {{-- Tabel Nilai DataTables --}}
         <div class="card">
             <div class="card-body">
                 @if(empty($students) || count($students) === 0)
                     <div class="alert alert-info mb-0">Tidak ada siswa di kelas ini.</div>
                 @else
                     <div class="table-responsive">
-                        <table id="nilaiTable" class="table table-striped table-hover align-middle">
+                        <table id="nilaiTable" class="table table-striped table-hover align-middle w-100">
                             <thead class="table-light">
                                 <tr>
                                     <th style="width:60px">No</th>
                                     <th>Nama Siswa</th>
                                     <th style="width:160px">Nilai Akhir</th>
-                                    <th style="width:120px">Status</th>
+                                    <th style="width:140px">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($students as $i => $s)
                                     @php
-                                        $nilai = $s['nilai'] ?? null;
-                                        $status = '-';
-                                        if ($nilai !== null && $nilai !== '') {
-                                            // contoh logika status (bisa disesuaikan)
-                                            $status = (is_numeric($nilai) && $nilai >= 75) ? 'Lulus' : 'Remedial';
+                                        $rawNilai = $s['nilai'] ?? null;
+                                        $numericVal = null;
+
+                                        // Parsing nilai angka murni
+                                        if ($rawNilai !== null && $rawNilai !== '' && $rawNilai !== '-') {
+                                            if (is_numeric($rawNilai)) {
+                                                $numericVal = (float) $rawNilai;
+                                            } else {
+                                                preg_match('/[0-9]+(\.[0-9]+)?/', (string)$rawNilai, $matches);
+                                                $numericVal = isset($matches[0]) ? (float)$matches[0] : null;
+                                            }
+                                        }
+
+                                        // Penentuan status berdasarkan ambang batas >= 60
+                                        if ($numericVal !== null) {
+                                            $status = ($numericVal >= 60) ? 'Lulus' : 'Tidak Lulus';
                                         } else {
                                             $status = 'Belum Mengerjakan';
                                         }
@@ -152,20 +167,20 @@
                                     <tr>
                                         <td>{{ $i + 1 }}</td>
                                         <td>{{ $s['name'] ?? ('Siswa ' . ($s['id'] ?? '')) }}</td>
-                                        <td>
-                                            @if($nilai === null || $nilai === '')
+                                        <td data-order="{{ $numericVal ?? -1 }}">
+                                            @if($numericVal === null)
                                                 <span class="no-data">-</span>
                                             @else
-                                                <span class="text-dark">{{ $nilai }}</span>
+                                                <span class="text-dark fw-bold">{{ $numericVal }}</span>
                                             @endif
                                         </td>
                                         <td>
                                             @if($status === 'Lulus')
-                                                <span class="badge bg-success">{{ $status }}</span>
-                                            @elseif($status === 'Remedial')
-                                                <span class="badge bg-warning text-dark">{{ $status }}</span>
+                                                <span class="badge bg-success badge-nilai">Lulus</span>
+                                            @elseif($status === 'Tidak Lulus')
+                                                <span class="badge bg-warning text-dark badge-nilai">Tidak Lulus</span>
                                             @else
-                                                <span class="badge bg-secondary">{{ $status }}</span>
+                                                <span class="badge bg-secondary badge-nilai">Belum Mengerjakan</span>
                                             @endif
                                         </td>
                                     </tr>
@@ -174,17 +189,17 @@
                         </table>
                     </div>
 
-                    {{-- tombol export sederhana --}}
+                    {{-- Tombol Export --}}
                     <div class="mt-3">
                         <a href="{{ route('detail.nilai', $activity->id) }}?export=xlsx" class="btn btn-sm btn-outline-success">
                             <i class="fas fa-file-excel me-1"></i> Export Excel (XLSX)
                         </a>
-
                     </div>
                 @endif
             </div>
         </div>
     </div>
+
     {{-- MODAL INFO DETAIL NILAI --}}
     <div class="modal fade" id="modalInfoDetailNilai" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
@@ -199,7 +214,6 @@
                 </div>
 
                 <div class="modal-body">
-
                     <p class="mb-3">
                         Halaman ini menampilkan <strong>hasil nilai siswa</strong> untuk satu
                         <strong>aktivitas evaluasi</strong> tertentu. Data digunakan untuk
@@ -242,8 +256,8 @@
                         <li>
                             <strong>Status</strong>:
                             <ul>
-                                <li><span class="badge bg-success">Lulus</span> → nilai memenuhi KKM.</li>
-                                <li><span class="badge bg-warning text-dark">Remedial</span> → perlu perbaikan.</li>
+                                <li><span class="badge bg-success">Lulus</span> → nilai $\ge 60$.</li>
+                                <li><span class="badge bg-warning text-dark">Tidak Lulus</span> → nilai $< 60$.</li>
                                 <li><span class="badge bg-secondary">Belum Mengerjakan</span> → belum submit.</li>
                             </ul>
                         </li>
@@ -259,7 +273,6 @@
                         <li>Gunakan tombol <strong>Export Excel (XLSX)</strong> untuk mengunduh nilai siswa.</li>
                         <li>File dapat digunakan untuk laporan, arsip, atau pengolahan lanjutan.</li>
                     </ul>
-
                 </div>
 
                 <div class="modal-footer">
@@ -271,11 +284,24 @@
             </div>
         </div>
     </div>
-
 @endsection
 
 @section('scripts')
-{{-- jQuery + DataTables (CDN) - jika layout sudah include jQuery, yang ini tidak perlu --}}
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script>
+    $(document).ready(function() {
+        if ($('#nilaiTable').length) {
+            $('#nilaiTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json"
+                },
+                "pageLength": 10,
+                "responsive": true,
+                "order": [[0, "asc"]]
+            });
+        }
+    });
+</script>
+@endsection
