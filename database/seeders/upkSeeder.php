@@ -74,7 +74,7 @@ class upkSeeder extends Seeder
                 'id_other'      => $student['nim'],
                 'type_id_other' => 'NIM',
                 'name'          => $student['name'],
-                'email'         => $student['nim'] . '@mhs.ulm.ac.id',
+                'email'         => $student['nim'] . '@mhs.upk.ac.id',
                 'password'      => Hash::make($student['nim']),
                 'role'          => 'student',
             ]);
