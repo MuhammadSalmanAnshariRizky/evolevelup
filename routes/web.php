@@ -6,6 +6,7 @@ use App\Http\Controllers\aktivitasController;
 use App\Http\Controllers\aturAktivitasController;
 use App\Http\Controllers\BadgeController;
 use App\Http\Controllers\guruController;
+use App\Http\Controllers\GuruJawabanSiswaController;
 use App\Http\Controllers\loginController;
 use App\Http\Controllers\nilaicontroller;
 use App\Http\Controllers\LearningAnalyticsController;
@@ -190,6 +191,14 @@ Route::middleware(['auth', RoleMiddleware::class . ':teacher'])->group(function 
         [ActivityMatrixController::class, 'exportExcel']
     )->name('activity.matrix.export');
 
+    #jawaban siswa
+    Route::get('/guru/jawaban-siswa', [GuruJawabanSiswaController::class, 'index'])->name('guru.jawaban_siswa');
+
+    // Route Export (Bebas taruh dimana saja jika polanya sudah beda)
+    Route::get('/guru/jawaban-siswa/export/{activityId}', [GuruJawabanSiswaController::class, 'exportActivityXlsx'])->name('guru.jawaban_siswa.export');
+
+    // Route Detail (TAMBAHKAN KATA /detail/ DISINI)
+    Route::get('/guru/jawaban-siswa/detail/{activityId}/{userId}', [GuruJawabanSiswaController::class, 'detail'])->name('guru.jawaban_siswa.detail');
 });
 
 

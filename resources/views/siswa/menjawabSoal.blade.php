@@ -73,6 +73,10 @@
             font-size: 1.125rem;
             line-height: 1.7;
             color: #2e384d;
+            /* TAMBAHKAN BARIS INI: untuk membaca \n dan spasi dari database */
+            white-space: pre-wrap; 
+            /* Optional: Anda bisa ganti font ke family yang rapi untuk kode jika mau, 
+               tapi pre-wrap sudah cukup agar struktur aslinya (enter) terlihat */
         }
 
         /* Custom Desain Pilihan Ganda (Radio Button & Container) */
@@ -431,6 +435,7 @@
                     document.getElementById("soalNumHeader").innerText = (currentIndex + 1);
                     currentQuestionID = q.question_id;
 
+                    // TextContent mempertahankan format dari `white-space: pre-wrap`
                     document.getElementById('questionText').textContent = q.question.text;
 
                     let html = "";
